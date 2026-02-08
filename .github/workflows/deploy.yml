@@ -18,6 +18,15 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            # Load environment (for npm/pm2)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            source ~/.profile || true
+            source ~/.bashrc || true
+
+            # Fix git ownership issue
+            git config --global --add safe.directory '*'
+
             # Navigate to project directory
             cd tripplanner
             
