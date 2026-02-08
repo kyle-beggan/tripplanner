@@ -24,24 +24,34 @@ jobs:
             source ~/.profile || true
             source ~/.bashrc || true
 
-            # Fix permissions (must be done before cd and git, assuming parent dir is accessible)
-            # If tripplanner doesn't exist yet, git clone will create it with correct permissions
-            # If it exists with bad permissions, this fixes it.
+            # Debug info
+            echo "Deploying as: $(whoami)"
+            echo "In directory: $(pwd)"
+
+            # Fix permissions
             sudo chown -R $USER:$USER tripplanner || true
 
-            # Navigate to project directory
+            # Navigate
             cd tripplanner
             
-            # Pull latest changes
-            git pull origin main
+            # Force sync with remote (discard local changes/conflicts)
+            git fetch origin main
+            git reset --hard origin/main
             
             # Install dependencies
             npm install
             
-            # Build application
+            # Clean build artifact to force fresh build
+            rm -rf .next
             npm run build
             
-            # Force restart from THIS directory (fixes issue if process was running from elsewhere)
+            # Force restart from THIS directory
             pm2 delete lfg-places || true
-            pm2 start npm --name "lfg-places" -- start
+            # Explicitly start on port 3000
+            pm2 start npm --name "lfg-places" -- start -- -p 3000
             pm2 save
+            
+            # Verify local operation
+            echo "Verifying local server..."
+            sleep 5
+            curl -I http://localhost:3000 || echo "WARNING: Localhost check failed"
