@@ -13,9 +13,9 @@ export const metadata: Metadata = {
     title: 'LFG Places',
     description: 'Plan your next group adventure with LFG Places.',
     icons: {
-        icon: '/logo-v4.png',
-        shortcut: '/logo-v4.png',
-        apple: '/logo-v4.png',
+        icon: '/logo-blue.png',
+        shortcut: '/logo-blue.png',
+        apple: '/logo-blue.png',
     },
 }
 

@@ -9,7 +9,7 @@ export default function LoginPage() {
             <div className="w-full max-w-md space-y-8">
                 <div className="flex flex-col items-center">
                     <div className="relative h-16 w-16 overflow-hidden rounded-xl mb-4">
-                        <Image src="/logo-v4.png" alt="LFG Places Logo" fill className="object-cover" />
+                        <Image src="/logo-blue.png" alt="LFG Places Logo" fill className="object-cover" />
                     </div>
                     <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
                         Sign in to LFG Places

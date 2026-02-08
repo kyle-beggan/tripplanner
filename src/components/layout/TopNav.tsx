@@ -43,7 +43,8 @@ export default function TopNav({ user, profile }: { user: any, profile: any }) {
                 <div className="flex items-center gap-4">
                     <Link href="/dashboard" className="flex items-center gap-2" aria-label="Home">
                         <div className="relative h-12 w-12">
-                            <Image src="/logo-v4.png" alt="LFG Places Logo" fill className="object-contain" />
+                            <Image src="/logo-blue.png" alt="LFG Places Logo" fill className="object-contain dark:hidden" />
+                            <Image src="/logo-white.png" alt="LFG Places Logo" fill className="object-contain hidden dark:block" />
                         </div>
                         {/* Title removed as requested */}
                         <span className="hidden md:block text-xl font-bold text-gray-900 dark:text-white">
