@@ -24,8 +24,10 @@ jobs:
             source ~/.profile || true
             source ~/.bashrc || true
 
-            # Fix git ownership issue
-            git config --global --add safe.directory '*'
+            # Fix permissions (must be done before cd and git, assuming parent dir is accessible)
+            # If tripplanner doesn't exist yet, git clone will create it with correct permissions
+            # If it exists with bad permissions, this fixes it.
+            sudo chown -R $USER:$USER tripplanner || true
 
             # Navigate to project directory
             cd tripplanner
@@ -39,5 +41,5 @@ jobs:
             # Build application
             npm run build
             
-            # Restart PM2 process
-            pm2 restart lfg-places
+            # Restart PM2 process (or start if not running)
+            pm2 restart lfg-places || pm2 start npm --name "lfg-places" -- start
