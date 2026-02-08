@@ -13,7 +13,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
     const pathname = usePathname()
 
     const navigation = [
-        { name: 'My Trips', href: '/trips', icon: Map },
+        { name: 'Trips', href: '/trips', icon: Map },
         { name: 'Feedback', href: '/feedback', icon: MessageSquare },
         ...(isAdmin ? [{ name: 'Admin', href: '/admin', icon: Shield }] : []),
     ]
