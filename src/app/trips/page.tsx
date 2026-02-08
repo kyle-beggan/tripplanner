@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 
 export default async function MyTripsPage() {
-    const { user } = await getUserProfile()
+    const { user, profile } = await getUserProfile()
     const supabase = await createClient()
 
     if (!user) return null
@@ -55,7 +55,12 @@ export default async function MyTripsPage() {
             ) : (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {trips.map((trip: any) => (
-                        <TripCard key={trip.id} trip={trip} currentUserId={user.id} />
+                        <TripCard
+                            key={trip.id}
+                            trip={trip}
+                            currentUserId={user.id}
+                            isAdmin={profile?.role === 'admin'}
+                        />
                     ))}
                 </div>
             )}

@@ -1,6 +1,12 @@
+'use client'
+
 import Link from 'next/link'
-import { Calendar, MapPin, User } from 'lucide-react'
+import { Calendar, X } from 'lucide-react'
 import { format } from 'date-fns'
+import { deleteTrip } from '@/app/trips/actions'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface Trip {
     id: string
@@ -11,15 +17,55 @@ interface Trip {
     owner_id: string
 }
 
-export default function TripCard({ trip, currentUserId }: { trip: Trip, currentUserId: string }) {
+interface TripCardProps {
+    trip: Trip
+    currentUserId: string
+    isAdmin?: boolean
+}
+
+export default function TripCard({ trip, currentUserId, isAdmin }: TripCardProps) {
     const isOwner = trip.owner_id === currentUserId
+    const canDelete = isOwner || isAdmin
+    const [isDeleting, setIsDeleting] = useState(false)
+    const router = useRouter()
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.preventDefault() // Prevent navigation to details
+
+        if (!confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
+            return
+        }
+
+        setIsDeleting(true)
+        try {
+            await deleteTrip(trip.id)
+            toast.success('Trip deleted successfully')
+            router.refresh()
+        } catch (error) {
+            toast.error('Failed to delete trip')
+            console.error(error)
+        } finally {
+            setIsDeleting(false)
+        }
+    }
 
     return (
-        <div className="flex flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md border border-gray-200 dark:border-gray-700">
+        <div className="group relative flex flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md border border-gray-200 dark:border-gray-700">
+            {canDelete && (
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="absolute top-2 right-2 z-10 rounded-full bg-white/80 p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600 dark:bg-gray-800/80 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                    aria-label="Delete trip"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+            )}
+
             <div className="flex flex-1 flex-col p-6">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1">{trip.name}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1 pr-6">{trip.name}</h3>
                         {isOwner && (
                             <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-400/10 dark:text-indigo-400 dark:ring-indigo-400/20 mt-2">
                                 Owner
