@@ -2,8 +2,13 @@
 
 import { login } from './actions'
 import Image from 'next/image'
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
+function LoginForm() {
+    const searchParams = useSearchParams()
+    const message = searchParams.get('message')
+
     return (
         <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div className="w-full max-w-md space-y-8">
@@ -18,6 +23,19 @@ export default function LoginPage() {
                         Plan your next group adventure together
                     </p>
                 </div>
+
+                {message && (
+                    <div className="rounded-md bg-red-50 p-4">
+                        <div className="flex">
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Authentication Error</h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    <p>{message}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="mt-8 space-y-6">
                     <div className="space-y-4">
@@ -59,5 +77,13 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginForm />
+        </Suspense>
     )
 }

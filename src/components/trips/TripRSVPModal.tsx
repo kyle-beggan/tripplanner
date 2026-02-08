@@ -150,7 +150,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                     onChange={() => setStatus('going')}
                                                     className="sr-only"
                                                 />
-                                                <span>Yes, I'm In!</span>
+                                                <span>Yes, I&apos;m In!</span>
                                             </label>
                                             <label className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border py-3 text-sm font-medium sm:flex-initial sm:min-w-[120px] ${status === 'declined' ? 'bg-red-600 text-white border-red-600' : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'}`}>
                                                 <input
@@ -161,7 +161,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                     onChange={() => setStatus('declined')}
                                                     className="sr-only"
                                                 />
-                                                <span>Can't Make It</span>
+                                                <span>Can&apos;t Make It</span>
                                             </label>
                                         </div>
                                     </div>

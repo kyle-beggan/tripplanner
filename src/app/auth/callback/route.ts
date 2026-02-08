@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
 export async function GET(request: Request) {
+    console.log('Callback Route Hit:', request.url)
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
     // if "next" is in param, use it as the redirect URL
@@ -11,6 +12,12 @@ export async function GET(request: Request) {
     if (code) {
         const supabase = await createClient()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (error) {
+            console.error('Auth code exchange error:', error)
+            return NextResponse.redirect(`${origin}/login?message=Auth exchange failed: ${error.message}`)
+        }
+
         if (!error) {
             const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
             const isLocalEnv = process.env.NODE_ENV === 'development'

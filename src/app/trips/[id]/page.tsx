@@ -203,7 +203,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 {/* Who's Coming Section */}
                 <section className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Who's Coming</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Who&apos;s Coming</h2>
                         <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                             {totalConfirmed} confirmed
                         </span>
@@ -244,7 +244,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-gray-500 dark:text-gray-400 italic">No one has RSVP'd yet. Be the first!</p>
+                        <p className="text-gray-500 dark:text-gray-400 italic">No one has RSVP&apos;d yet. Be the first!</p>
                     )}
                 </section>
 
@@ -252,7 +252,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 {notComing.length > 0 && (
                     <section className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Who's Not Coming</h2>
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Who&apos;s Not Coming</h2>
                             <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
                                 {notComing.length} declined
                             </span>

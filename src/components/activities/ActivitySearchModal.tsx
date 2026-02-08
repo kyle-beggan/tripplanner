@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { MapPin, Star, ExternalLink, Loader2, Navigation, X } from 'lucide-react'
 
 interface Place {
@@ -32,20 +32,7 @@ export default function ActivitySearchModal({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // Reset state when modal opens
-    useEffect(() => {
-        if (isOpen) {
-            setSelectedLocation(locations[0] || '')
-            setPlaces([])
-            setError(null)
-            // Optional: Auto-search on open
-            if (locations.length > 0) {
-                handleSearch(locations[0])
-            }
-        }
-    }, [isOpen, activityName, locations])
-
-    const handleSearch = async (location: string) => {
+    const handleSearch = useCallback(async (location: string) => {
         if (!location) return
 
         setLoading(true)
@@ -55,10 +42,7 @@ export default function ActivitySearchModal({
             const response = await fetch('/api/places', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: activityName,
-                    location: location
-                })
+                body: JSON.stringify({ textQuery: activityName }),
             })
 
             const data = await response.json()
@@ -74,7 +58,20 @@ export default function ActivitySearchModal({
         } finally {
             setLoading(false)
         }
-    }
+    }, [activityName])
+
+    // Reset state when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setSelectedLocation(locations[0] || '')
+            setPlaces([])
+            setError(null)
+            // Optional: Auto-search on open
+            if (locations.length > 0) {
+                handleSearch(locations[0])
+            }
+        }
+    }, [isOpen, locations, handleSearch])
 
     if (!isOpen) return null
 
@@ -154,7 +151,7 @@ export default function ActivitySearchModal({
                             </div>
                             <p className="text-lg font-medium text-gray-900 dark:text-white">No results found</p>
                             <p className="text-sm">
-                                We couldn't find "{activityName}" near {selectedLocation}.
+                                We couldn&apos;t find &quot;{activityName}&quot; near {selectedLocation}.
                             </p>
                         </div>
                     ) : (

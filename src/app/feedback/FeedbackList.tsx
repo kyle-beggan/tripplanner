@@ -1,18 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import { Feedback } from './actions'
+import { Feedback, deleteFeedback } from './actions'
 import Link from 'next/link'
-import { MessageSquare, Bug, Lightbulb, CheckCircle, Clock, Circle } from 'lucide-react'
+import { MessageSquare, Bug, Lightbulb, CheckCircle, Clock, Circle, X } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
+import { toast } from 'sonner'
 
 interface FeedbackListProps {
     initialFeedback: Feedback[]
+    currentUser: {
+        id: string
+        isAdmin: boolean
+    } | null
 }
 
-export default function FeedbackList({ initialFeedback }: FeedbackListProps) {
+export default function FeedbackList({ initialFeedback, currentUser }: FeedbackListProps) {
     const [statusFilter, setStatusFilter] = useState<string>('all')
     const [typeFilter, setTypeFilter] = useState<string>('all')
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, feedbackId: string | null }>({
+        isOpen: false,
+        feedbackId: null
+    })
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const filteredFeedback = initialFeedback.filter(item => {
         if (statusFilter !== 'all' && item.status !== statusFilter) return false
@@ -44,8 +55,43 @@ export default function FeedbackList({ initialFeedback }: FeedbackListProps) {
         return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
     }
 
+    const handleDeleteClick = (e: React.MouseEvent, feedbackId: string) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDeleteConfirmation({ isOpen: true, feedbackId })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirmation.feedbackId) return
+
+        setIsDeleting(true)
+        try {
+            const result = await deleteFeedback(deleteConfirmation.feedbackId)
+            if (result.error) {
+                toast.error(result.error)
+            } else {
+                toast.success('Feedback deleted successfully')
+            }
+        } catch (error) {
+            toast.error('An error occurred while deleting feedback')
+        } finally {
+            setIsDeleting(false)
+            setDeleteConfirmation({ isOpen: false, feedbackId: null })
+        }
+    }
+
     return (
         <div>
+            <ConfirmationModal
+                isOpen={deleteConfirmation.isOpen}
+                onClose={() => setDeleteConfirmation({ isOpen: false, feedbackId: null })}
+                onConfirm={handleConfirmDelete}
+                title="Delete Feedback"
+                message="Are you sure you want to delete this feedback? This action cannot be undone."
+                confirmLabel="Delete"
+                isDestructive={true}
+                isLoading={isDeleting}
+            />
             {/* Filters */}
             <div className="flex flex-wrap gap-4 mb-6">
                 <select
@@ -100,9 +146,21 @@ export default function FeedbackList({ initialFeedback }: FeedbackListProps) {
                                         <span className="ml-1">{getStatusText(item.status)}</span>
                                     </span>
                                 </div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                                    </span>
+
+                                    {currentUser && (currentUser.isAdmin || currentUser.id === item.user_id) && (
+                                        <button
+                                            onClick={(e) => handleDeleteClick(e, item.id)}
+                                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                            aria-label="Delete feedback"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">

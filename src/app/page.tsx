@@ -31,7 +31,7 @@ export default async function Home() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Trips</h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-400">
-                        Manage the trips you're organizing or attending.
+                        LFG Places is the ultimate tool for planning group trips with friends. Whether it&apos;s a weekend getaway or a month-long adventure, we help you coordinate everything.
                     </p>
                 </div>
                 <Link

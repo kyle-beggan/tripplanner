@@ -164,3 +164,48 @@ export async function updateFeedbackStatus(id: string, status: FeedbackStatus) {
     revalidatePath(`/feedback/${id}`)
     return { success: true }
 }
+
+export async function deleteFeedback(id: string) {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    // Fetch feedback to check ownership
+    const { data: feedback, error: fetchError } = await supabase
+        .from('feedback')
+        .select('user_id')
+        .eq('id', id)
+        .single()
+
+    if (fetchError || !feedback) {
+        return { error: 'Feedback not found' }
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isAdmin = profile?.role === 'admin'
+    const isOwner = feedback.user_id === user.id
+
+    if (!isOwner && !isAdmin) {
+        return { error: 'Unauthorized: You can only delete your own feedback' }
+    }
+
+    const { error } = await supabase
+        .from('feedback')
+        .delete()
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error deleting feedback:', error)
+        return { error: 'Failed to delete feedback' }
+    }
+
+    revalidatePath('/feedback')
+    return { success: true }
+}

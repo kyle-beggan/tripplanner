@@ -24,9 +24,7 @@ export default async function MyTripsPage() {
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Trips</h1>
-                    <p className="mt-2 text-gray-600 dark:text-gray-400">
-                        Manage the trips you're organizing or attending.
-                    </p>
+                    <p className="text-gray-600">You haven&apos;t planned any trips yet.</p>
                 </div>
                 {/* Temporary Create Button - User didn't filter this out but it's essential */}
                 <Link
