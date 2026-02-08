@@ -41,5 +41,7 @@ jobs:
             # Build application
             npm run build
             
-            # Restart PM2 process (or start if not running)
-            pm2 restart lfg-places || pm2 start npm --name "lfg-places" -- start
+            # Force restart from THIS directory (fixes issue if process was running from elsewhere)
+            pm2 delete lfg-places || true
+            pm2 start npm --name "lfg-places" -- start
+            pm2 save
