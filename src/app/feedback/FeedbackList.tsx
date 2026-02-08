@@ -1,0 +1,99 @@
+'use client'
+
+import { Feedback } from './actions'
+import Link from 'next/link'
+import { MessageSquare, Bug, Lightbulb, CheckCircle, Clock, Circle } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+
+interface FeedbackListProps {
+    initialFeedback: Feedback[]
+}
+
+export default function FeedbackList({ initialFeedback }: FeedbackListProps) {
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'closed': return <CheckCircle className="h-4 w-4 text-green-500" />
+            case 'in_progress': return <Clock className="h-4 w-4 text-yellow-500" />
+            default: return <Circle className="h-4 w-4 text-gray-400" />
+        }
+    }
+
+    const getTypeIcon = (type: string) => {
+        switch (type) {
+            case 'bug': return <Bug className="h-4 w-4 text-red-500" />
+            case 'feature_request': return <Lightbulb className="h-4 w-4 text-amber-500" />
+            default: return <MessageSquare className="h-4 w-4 text-blue-500" />
+        }
+    }
+
+    const getStatusText = (status: string) => {
+        return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    }
+
+    const getTypeText = (type: string) => {
+        return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    }
+
+    if (initialFeedback.length === 0) {
+        return (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No feedback yet</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Be the first to share your thoughts!</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {initialFeedback.map((item) => (
+                <Link
+                    key={item.id}
+                    href={`/feedback/${item.id}`}
+                    className="block p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow group"
+                >
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20">
+                                {getTypeIcon(item.type)}
+                                <span className="ml-1">{getTypeText(item.type)}</span>
+                            </span>
+                            <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20">
+                                {getStatusIcon(item.status)}
+                                <span className="ml-1">{getStatusText(item.status)}</span>
+                            </span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                        </span>
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
+                        {item.title}
+                    </h3>
+
+                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mb-4 h-[60px]">
+                        {item.description}
+                    </p>
+
+                    <div className="flex items-center gap-2 mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+                        {item.user?.avatar_url ? (
+                            <img
+                                src={item.user.avatar_url}
+                                alt=""
+                                className="h-6 w-6 rounded-full bg-gray-100"
+                            />
+                        ) : (
+                            <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-300">
+                                {item.user?.full_name?.charAt(0) || '?'}
+                            </div>
+                        )}
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {item.user?.full_name || 'Anonymous'}
+                        </span>
+                    </div>
+                </Link>
+            ))}
+        </div>
+    )
+}
