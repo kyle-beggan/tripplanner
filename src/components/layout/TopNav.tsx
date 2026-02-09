@@ -42,8 +42,8 @@ export default function TopNav({ user, profile }: { user: any, profile: any }) {
                 {/* Logo & Branding */}
                 <div className="flex items-center gap-4">
                     <Link href="/trips" className="flex items-center gap-2" aria-label="Home">
-                        <div className="relative h-12 w-12">
-                            <Image src="/logo-blue.png" alt="LFG Places Logo" fill className="object-contain" />
+                        <div className="relative h-12 w-12 overflow-hidden rounded-xl shadow-lg border border-white bg-gradient-to-br from-white via-gray-100 to-gray-200">
+                            <Image src="/LFGPlaces_logo.png" alt="LFG Places Logo" fill className="object-contain" />
                         </div>
                         {/* Title removed as requested */}
                         <span className="hidden md:block text-xl font-bold text-gray-900">

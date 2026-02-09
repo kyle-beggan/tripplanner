@@ -13,14 +13,14 @@ function LoginForm() {
         <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div className="w-full max-w-md space-y-8">
                 <div className="flex flex-col items-center">
-                    <div className="relative h-16 w-16 overflow-hidden rounded-xl mb-4">
-                        <Image src="/logo-blue.png" alt="LFG Places Logo" fill className="object-cover" />
+                    <div className="relative h-48 w-48 overflow-hidden rounded-3xl shadow-xl border border-white mb-[25px] bg-gradient-to-br from-white via-gray-100 to-gray-200">
+                        <Image src="/LFGPlaces_logo.png" alt="LFG Places Logo" fill className="object-contain" />
                     </div>
-                    <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-                        Sign in to LFG Places
+                    <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+                        Let&apos;s Find Great Places
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
-                        Plan your next group adventure together
+                        We can help you plan, organize, and execute your next group outing.
                     </p>
                 </div>
 
