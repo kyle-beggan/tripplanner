@@ -41,6 +41,9 @@ jobs:
             # Install dependencies
             npm install
             
+            # Create a version file to verify build
+            echo "Build Date: $(date)" > public/version.txt
+            
             # Clean build artifact to force fresh build
             rm -rf .next
             npm run build
@@ -54,4 +57,11 @@ jobs:
             # Verify local operation
             echo "Verifying local server..."
             sleep 5
-            curl -I http://localhost:3000 || echo "WARNING: Localhost check failed"
+            echo "--- LOCAL VERSION ---"
+            curl http://localhost:3000/version.txt || echo "WARNING: Local verify failed"
+            echo "---------------------"
+            
+            # Diagnostic: Check Nginx config (to see where it's pointing)
+            echo "--- NGINX CONFIG ---"
+            sudo cat /etc/nginx/sites-enabled/* || echo "WARNING: Could not read Nginx config"
+            echo "--------------------"
