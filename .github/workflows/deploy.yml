@@ -101,3 +101,11 @@ jobs:
             echo "Checking localhost:80 response..."
             curl -I http://localhost:80 || echo "Localhost:80 failed"
             echo "------------------------------"
+            
+            # Restart Apache to clear stale proxy connections
+            echo "Restarting Apache..."
+            sudo /opt/bitnami/ctlscript.sh restart apache || sudo systemctl restart bitnami.apache || echo "WARNING: Apache restart failed"
+            
+            # Final check
+            echo "Final check of public URL (via localhost:80)..."
+            curl -I http://localhost:80/version.txt || echo "WARNING: Public check failed"
