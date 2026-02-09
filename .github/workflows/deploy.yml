@@ -13,7 +13,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
           
       - name: Install Dependencies
         run: npm ci
@@ -40,6 +40,10 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             source ~/.profile || true
             source ~/.bashrc || true
+            
+            # Ensure proper Node version (v20)
+            nvm install 20
+            nvm use 20
 
             # Debug info
             echo "Deploying as: $(whoami)"
