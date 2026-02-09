@@ -101,31 +101,31 @@ export default async function TripDetailsPage({ params }: PageProps) {
     return (
         <div className="min-h-full pb-12">
             {/* Header */}
-            <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="mb-4">
-                        <Link href="/trips" className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1">
+                        <Link href="/trips" className="text-sm font-medium text-gray-500 hover:text-gray-700 flex items-center gap-1">
                             <ArrowLeft className="h-4 w-4" />
                             Back to Trips
                         </Link>
                     </div>
                     <div className="md:flex md:items-center md:justify-between">
                         <div className="min-w-0 flex-1">
-                            <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-white">
+                            <h1 className="text-3xl font-bold leading-tight text-gray-900">
                                 {trip.name}
                             </h1>
                             <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
-                                <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                <div className="mt-2 flex items-center text-sm text-gray-500">
                                     <Calendar className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
                                     {trip.start_date ? formatDate(trip.start_date) : 'TBD'}
                                     {trip.end_date && ` - ${formatDate(trip.end_date)}`}
                                 </div>
-                                <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                <div className="mt-2 flex items-center text-sm text-gray-500">
                                     <User className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
                                     Hosted by {trip.owner?.full_name || 'Unknown'}
                                 </div>
-                                <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                    <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                                <div className="mt-2 flex items-center text-sm text-gray-500">
+                                    <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded">
                                         {totalConfirmed} {totalConfirmed === 1 ? 'Person' : 'People'} Going
                                     </span>
                                 </div>
@@ -135,7 +135,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                             {isOwner && (
                                 <Link
                                     href={`/trips/${trip.id}/edit`}
-                                    className="inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                                 >
                                     Edit Trip
                                 </Link>
@@ -153,9 +153,9 @@ export default async function TripDetailsPage({ params }: PageProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
                 {/* Details Section */}
-                <section className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Details</h2>
-                    <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300">
+                <section className="bg-white shadow rounded-lg p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
+                    <div className="prose max-w-none text-gray-600">
                         {trip.description ? (
                             <p className="whitespace-pre-wrap">{trip.description}</p>
                         ) : (
@@ -177,21 +177,21 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     if (locations.length === 0) return null
 
                     return (
-                        <section className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        <section className="bg-white shadow rounded-lg p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">
                                 Location{locations.length > 1 ? 's' : ''}
                             </h2>
                             {locations.length > 1 ? (
                                 <div className="flex flex-wrap gap-3">
                                     {locations.map((loc: string, index: number) => (
-                                        <div key={index} className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-full px-4 py-2 text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10 dark:ring-indigo-400/30">
+                                        <div key={index} className="flex items-center gap-2 bg-indigo-50 rounded-full px-4 py-2 text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
                                             <MapPin className="h-4 w-4" />
                                             <span className="font-medium">{loc}</span>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex items-start gap-3 text-gray-600 dark:text-gray-300">
+                                <div className="flex items-start gap-3 text-gray-600">
                                     <MapPin className="h-6 w-6 text-indigo-500 mt-0.5 flex-shrink-0" />
                                     <span className="text-lg">{locations[0]}</span>
                                 </div>
@@ -201,9 +201,9 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 })()}
 
                 {/* Who's Coming Section */}
-                <section className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <section className="bg-white shadow rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Who&apos;s Coming</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">Who&apos;s Coming</h2>
                         <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                             {totalConfirmed} confirmed
                         </span>
@@ -212,30 +212,30 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     {going.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {going.map((participant) => (
-                                <div key={participant.id} className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:shadow-md transition-shadow text-center">
+                                <div key={participant.id} className="flex flex-col items-center p-4 rounded-lg border border-gray-200 bg-gray-50 hover:shadow-md transition-shadow text-center">
                                     <div className="flex-shrink-0 mb-3">
                                         {participant.profile?.avatar_url ? (
                                             <img
                                                 src={participant.profile.avatar_url}
                                                 alt={participant.profile.full_name}
-                                                className="h-16 w-16 rounded-full object-cover bg-gray-100 ring-2 ring-white dark:ring-gray-800"
+                                                className="h-16 w-16 rounded-full object-cover bg-gray-100 ring-2 ring-white"
                                             />
                                         ) : (
-                                            <div className="h-16 w-16 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold text-xl ring-2 ring-white dark:ring-gray-800">
+                                            <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl ring-2 ring-white">
                                                 {participant.profile?.full_name?.charAt(0) || participant.profile?.username?.charAt(0) || '?'}
                                             </div>
                                         )}
                                     </div>
                                     <div className="w-full">
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">
                                             {participant.profile?.full_name || participant.profile?.username || 'Unknown User'}
                                         </p>
-                                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium mb-1">
+                                        <p className="text-xs text-indigo-600 font-medium mb-1">
                                             {participant.role === 'owner' ? 'Host' : 'Guest'}
                                             {participant.guests && participant.guests.length > 0 && ` + ${participant.guests.length} ${participant.guests.length === 1 ? 'guest' : 'guests'}`}
                                         </p>
                                         {participant.arrival_date && participant.departure_date && (
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            <p className="text-xs text-gray-500">
                                                 {formatDate(participant.arrival_date, 'MMM d')} - {formatDate(participant.departure_date, 'MMM d')}
                                             </p>
                                         )}
@@ -244,22 +244,22 @@ export default async function TripDetailsPage({ params }: PageProps) {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-gray-500 dark:text-gray-400 italic">No one has RSVP&apos;d yet. Be the first!</p>
+                        <p className="text-gray-500 italic">No one has RSVP&apos;d yet. Be the first!</p>
                     )}
                 </section>
 
                 {/* Who's Not Coming Section */}
                 {notComing.length > 0 && (
-                    <section className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <section className="bg-white shadow rounded-lg p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Who&apos;s Not Coming</h2>
+                            <h2 className="text-xl font-semibold text-gray-900">Who&apos;s Not Coming</h2>
                             <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
                                 {notComing.length} declined
                             </span>
                         </div>
                         <div className="flex flex-wrap gap-3">
                             {notComing.map((participant) => (
-                                <div key={participant.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-full px-3 py-1">
+                                <div key={participant.id} className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1">
                                     <div className="flex-shrink-0">
                                         {participant.profile?.avatar_url ? (
                                             <img
@@ -268,12 +268,12 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                                 className="h-6 w-6 rounded-full object-cover bg-gray-200"
                                             />
                                         ) : (
-                                            <div className="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-300 font-bold">
+                                            <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 font-bold">
                                                 {participant.profile?.full_name?.charAt(0) || participant.profile?.username?.charAt(0) || '?'}
                                             </div>
                                         )}
                                     </div>
-                                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                                    <span className="text-sm text-gray-600">
                                         {participant.profile?.full_name || participant.profile?.username || 'Unknown'}
                                     </span>
                                 </div>
@@ -283,8 +283,8 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 )}
 
                 {/* Activities Section */}
-                <section className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Activities</h2>
+                <section className="bg-white shadow rounded-lg p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Activities</h2>
                     {trip.activities && trip.activities.length > 0 ? (
                         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             {trip.activities.map((activityName: string, index: number) => {
@@ -303,7 +303,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                             })}
                         </ul>
                     ) : (
-                        <p className="text-gray-500 dark:text-gray-400 italic">No activities listed for this trip yet.</p>
+                        <p className="text-gray-500 italic">No activities listed for this trip yet.</p>
                     )}
                 </section>
             </div>

@@ -117,13 +117,13 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                 <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                     <DialogPanel
                         transition
-                        className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-xl sm:p-6"
+                        className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-xl sm:p-6"
                     >
                         <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                             >
                                 <span className="sr-only">Close</span>
                                 <X className="h-6 w-6" aria-hidden="true" />
@@ -133,15 +133,15 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                         <form onSubmit={handleSubmit}>
                             <div className="sm:flex sm:items-start">
                                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                                    <DialogTitle as="h3" className="text-xl font-semibold leading-6 text-gray-900 dark:text-white mb-6">
+                                    <DialogTitle as="h3" className="text-xl font-semibold leading-6 text-gray-900 mb-6">
                                         {initialData ? 'Update your RSVP' : 'RSVP for ' + trip.name}
                                     </DialogTitle>
 
                                     {/* Status Selection */}
                                     <div className="mb-6">
-                                        <label className="text-base font-semibold text-gray-900 dark:text-gray-100">Are you going?</label>
+                                        <label className="text-base font-semibold text-gray-900">Are you going?</label>
                                         <div className="mt-2 flex gap-4">
-                                            <label className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border py-3 text-sm font-medium sm:flex-initial sm:min-w-[120px] ${status === 'going' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'}`}>
+                                            <label className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border py-3 text-sm font-medium sm:flex-initial sm:min-w-[120px] ${status === 'going' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'}`}>
                                                 <input
                                                     type="radio"
                                                     name="status"
@@ -152,7 +152,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                 />
                                                 <span>Yes, I&apos;m In!</span>
                                             </label>
-                                            <label className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border py-3 text-sm font-medium sm:flex-initial sm:min-w-[120px] ${status === 'declined' ? 'bg-red-600 text-white border-red-600' : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'}`}>
+                                            <label className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border py-3 text-sm font-medium sm:flex-initial sm:min-w-[120px] ${status === 'declined' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'}`}>
                                                 <input
                                                     type="radio"
                                                     name="status"
@@ -171,7 +171,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                             {/* Dates */}
                                             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div>
-                                                    <label htmlFor="arrival" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Arrival Date</label>
+                                                    <label htmlFor="arrival" className="block text-sm font-medium text-gray-700">Arrival Date</label>
                                                     <input
                                                         type="date"
                                                         id="arrival"
@@ -179,11 +179,11 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                         onChange={(e) => setArrivalDate(e.target.value)}
                                                         min={trip.start_date ? new Date(trip.start_date).toISOString().split('T')[0] : undefined}
                                                         max={trip.end_date ? new Date(trip.end_date).toISOString().split('T')[0] : undefined}
-                                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label htmlFor="departure" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Departure Date</label>
+                                                    <label htmlFor="departure" className="block text-sm font-medium text-gray-700">Departure Date</label>
                                                     <input
                                                         type="date"
                                                         id="departure"
@@ -191,7 +191,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                         onChange={(e) => setDepartureDate(e.target.value)}
                                                         min={trip.start_date ? new Date(trip.start_date).toISOString().split('T')[0] : undefined}
                                                         max={trip.end_date ? new Date(trip.end_date).toISOString().split('T')[0] : undefined}
-                                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -199,11 +199,11 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                             {/* Guests */}
                                             <div className="mb-6">
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Guests in your group</label>
+                                                    <label className="text-sm font-medium text-gray-700">Guests in your group</label>
                                                     <button
                                                         type="button"
                                                         onClick={handleAddGuest}
-                                                        className="inline-flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+                                                        className="inline-flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-500"
                                                     >
                                                         <Plus className="mr-1 h-3 w-3" />
                                                         Add Member
@@ -220,14 +220,14 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                                 placeholder="Name"
                                                                 value={guest.name}
                                                                 onChange={(e) => handleGuestChange(index, 'name', e.target.value)}
-                                                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                             />
                                                             <input
                                                                 type="text"
                                                                 placeholder="Age"
                                                                 value={guest.age}
                                                                 onChange={(e) => handleGuestChange(index, 'age', e.target.value)}
-                                                                className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                                className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                             />
                                                             <button
                                                                 type="button"
@@ -244,7 +244,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                             {/* Activities */}
                                             {trip.activities && trip.activities.length > 0 && (
                                                 <div className="mb-6">
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Interested Activities</label>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Interested Activities</label>
                                                     <div className="space-y-2">
                                                         {trip.activities.map((activity: string, index: number) => (
                                                             <label key={index} className="flex items-center">
@@ -252,9 +252,9 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                                     type="checkbox"
                                                                     checked={selectedActivities.includes(activity)}
                                                                     onChange={() => toggleActivity(activity)}
-                                                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 dark:border-gray-600 dark:bg-gray-700"
+                                                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                                                 />
-                                                                <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">{activity}</span>
+                                                                <span className="ml-2 text-sm text-gray-900">{activity}</span>
                                                             </label>
                                                         ))}
                                                     </div>
@@ -276,7 +276,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto"
+                                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                                 >
                                     Cancel
                                 </button>

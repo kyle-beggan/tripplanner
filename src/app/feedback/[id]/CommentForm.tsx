@@ -27,7 +27,7 @@ export default function CommentForm({ feedbackId }: { feedbackId: string }) {
 
     return (
         <form onSubmit={handleSubmit} className="relative">
-            <div className="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800">
+            <div className="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
                 <label htmlFor="comment" className="sr-only">
                     Add your comment
                 </label>
@@ -35,13 +35,13 @@ export default function CommentForm({ feedbackId }: { feedbackId: string }) {
                     rows={3}
                     name="comment"
                     id="comment"
-                    className="block w-full resize-none border-0 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-white"
+                    className="block w-full resize-none border-0 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     placeholder="Add to the discussion..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                 />
 
-                <div className="flex items-center justify-between py-2 pl-3 pr-2 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between py-2 pl-3 pr-2 bg-gray-50 border-t border-gray-200">
                     <div className="flex-shrink-0">
                         <button
                             type="submit"

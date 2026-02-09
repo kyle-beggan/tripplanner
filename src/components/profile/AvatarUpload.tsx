@@ -58,7 +58,7 @@ export default function AvatarUpload({ uid, url, onUpload, size = 150 }: AvatarU
     return (
         <div className="flex flex-col items-center gap-4">
             <div
-                className="relative overflow-hidden rounded-full border-4 border-white shadow-lg bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
+                className="relative overflow-hidden rounded-full border-4 border-white shadow-lg bg-gray-100"
                 style={{ height: size, width: size }}
             >
                 {avatarUrl ? (
@@ -69,7 +69,7 @@ export default function AvatarUpload({ uid, url, onUpload, size = 150 }: AvatarU
                         className="object-cover"
                     />
                 ) : (
-                    <div className="flex h-full w-full items-center justify-center text-gray-400 dark:text-gray-500">
+                    <div className="flex h-full w-full items-center justify-center text-gray-400">
                         <Upload className="h-10 w-10 opacity-50" />
                     </div>
                 )}

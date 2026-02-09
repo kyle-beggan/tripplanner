@@ -90,20 +90,20 @@ export default function ActivitiesPage() {
     return (
         <div className="p-8 max-w-7xl mx-auto">
             <div className="mb-6 flex items-center gap-4">
-                <Link href="/admin" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                <Link href="/admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                     <ArrowLeft className="h-5 w-5 text-gray-500" />
                 </Link>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Activities</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Manage Activities</h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Add New Activity */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 sticky top-8">
-                        <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Add New</h2>
+                    <div className="bg-white shadow rounded-lg p-6 sticky top-8">
+                        <h2 className="text-lg font-medium text-gray-900 mb-4">Add New</h2>
                         <form onSubmit={handleAdd} className="space-y-4">
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                                     Activity Name
                                 </label>
                                 <input
@@ -111,7 +111,7 @@ export default function ActivitiesPage() {
                                     id="name"
                                     value={newActivity}
                                     onChange={(e) => setNewActivity(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     placeholder="e.g. Hiking"
                                 />
                             </div>
@@ -121,9 +121,9 @@ export default function ActivitiesPage() {
                                     type="checkbox"
                                     checked={requiresGps}
                                     onChange={(e) => setRequiresGps(e.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 dark:border-gray-600 dark:bg-gray-700"
+                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                 />
-                                <label htmlFor="requires-gps" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                <label htmlFor="requires-gps" className="ml-2 block text-sm text-gray-700">
                                     Requires GPS Support
                                 </label>
                             </div>
@@ -142,16 +142,16 @@ export default function ActivitiesPage() {
                 {/* List Activities */}
                 {/* List Activities */}
                 <div className="lg:col-span-2">
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Activity Name</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">GPS Support</th>
-                                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity Name</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GPS Support</th>
+                                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="bg-white divide-y divide-gray-200">
                                 {loading ? (
                                     <tr>
                                         <td colSpan={3} className="px-6 py-4 text-center">
@@ -169,7 +169,7 @@ export default function ActivitiesPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={3} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                        <td colSpan={3} className="px-6 py-4 text-center text-gray-500">
                                             No activities found. Add some to get started!
                                         </td>
                                     </tr>
@@ -223,13 +223,13 @@ function ActivityRow({
 
     if (isEditing) {
         return (
-            <tr className="bg-indigo-50/50 dark:bg-indigo-900/10">
+            <tr className="bg-indigo-50/50">
                 <td className="px-6 py-4">
                     <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-2 py-1"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-2 py-1"
                     />
                 </td>
                 <td className="px-6 py-4">
@@ -238,9 +238,9 @@ function ActivityRow({
                             type="checkbox"
                             checked={requiresGps}
                             onChange={(e) => setRequiresGps(e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 dark:border-gray-600 dark:bg-gray-700"
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                         />
-                        <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Requires GPS</span>
+                        <span className="ml-2 text-sm text-gray-500">Requires GPS</span>
                     </div>
                 </td>
                 <td className="px-6 py-4 text-center">
@@ -248,14 +248,14 @@ function ActivityRow({
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="text-green-600 hover:text-green-900 dark:hover:text-green-400 text-xs font-semibold px-2 py-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                            className="text-green-600 hover:text-green-900 text-xs font-semibold px-2 py-1 rounded hover:bg-green-50 transition-colors"
                         >
                             {saving ? 'Saving...' : 'Save'}
                         </button>
                         <button
                             onClick={() => setIsEditing(false)}
                             disabled={saving}
-                            className="text-gray-600 hover:text-gray-900 dark:hover:text-gray-400 text-xs font-semibold px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                            className="text-gray-600 hover:text-gray-900 text-xs font-semibold px-2 py-1 rounded hover:bg-gray-50 transition-colors"
                         >
                             Cancel
                         </button>
@@ -267,12 +267,12 @@ function ActivityRow({
 
     return (
         <tr>
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {activity.name}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {activity.requires_gps ? (
-                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-400/30">
+                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
                         <MapPin className="h-3 w-3 mr-1" />
                         GPS
                     </span>
@@ -284,13 +284,13 @@ function ActivityRow({
                 <div className="flex items-center justify-center gap-2">
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400 text-xs font-semibold px-2 py-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                        className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 rounded hover:bg-indigo-50 transition-colors"
                     >
                         Edit
                     </button>
                     <button
                         onClick={() => onDelete(activity.id)}
-                        className="text-red-600 hover:text-red-900 dark:hover:text-red-400 text-xs font-semibold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 rounded hover:bg-red-50 transition-colors"
                     >
                         Delete
                     </button>

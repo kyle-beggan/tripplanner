@@ -114,23 +114,23 @@ export default function AdminPage() {
     return (
         <div className="p-8 max-w-7xl mx-auto">
             <div className="mb-6 flex items-center gap-4">
-                <Link href="/admin" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                <Link href="/admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                     <ArrowLeft className="h-5 w-5 text-gray-500" />
                 </Link>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
+                <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-900/50">
+            <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="bg-white divide-y divide-gray-200">
                         {users.map((user) => (
                             <tr key={user.id}>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -145,21 +145,21 @@ export default function AdminPage() {
                                             )}
                                         </div>
                                         <div className="ml-4">
-                                            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.full_name || 'No Name'}</div>
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                                            <div className="text-sm font-medium text-gray-900">{user.full_name || 'No Name'}</div>
+                                            <div className="text-sm text-gray-500">{user.email}</div>
                                             <div className="text-xs text-gray-400">{user.username}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        ${user.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                                            user.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'}`}>
+                                        ${user.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                            user.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                'bg-yellow-100 text-yellow-800'}`}>
                                         {user.status}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <div className="flex items-center gap-1">
                                         {user.role === 'admin' ? <Shield className="h-4 w-4" /> : <User className="h-4 w-4" />}
                                         {user.role}
@@ -169,7 +169,7 @@ export default function AdminPage() {
                                     <div className="flex items-center justify-center gap-2">
                                         <button
                                             onClick={() => alert('Edit functionality to be implemented')}
-                                            className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400 text-xs font-semibold px-2 py-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                                            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 rounded hover:bg-indigo-50 transition-colors"
                                         >
                                             Edit
                                         </button>
@@ -177,7 +177,7 @@ export default function AdminPage() {
                                         {user.role !== 'admin' && (
                                             <button
                                                 onClick={() => handleMakeAdmin(user.id)}
-                                                className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                                                className="text-blue-600 hover:text-blue-900 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition-colors"
                                             >
                                                 Make Admin
                                             </button>
@@ -185,7 +185,7 @@ export default function AdminPage() {
 
                                         <button
                                             onClick={() => handleDeleteUser(user.id)}
-                                            className="text-red-600 hover:text-red-900 dark:hover:text-red-400 text-xs font-semibold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                            className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 rounded hover:bg-red-50 transition-colors"
                                         >
                                             Delete
                                         </button>

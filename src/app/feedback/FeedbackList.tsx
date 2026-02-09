@@ -97,7 +97,7 @@ export default function FeedbackList({ initialFeedback, currentUser }: FeedbackL
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-white dark:ring-gray-600"
+                    className="block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     aria-label="Filter by status"
                 >
                     <option value="all">All Statuses</option>
@@ -109,7 +109,7 @@ export default function FeedbackList({ initialFeedback, currentUser }: FeedbackL
                 <select
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
-                    className="block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-white dark:ring-gray-600"
+                    className="block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     aria-label="Filter by type"
                 >
                     <option value="all">All Types</option>
@@ -120,10 +120,10 @@ export default function FeedbackList({ initialFeedback, currentUser }: FeedbackL
             </div>
 
             {filteredFeedback.length === 0 ? (
-                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
                     <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No feedback found</h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <h3 className="mt-2 text-sm font-semibold text-gray-900">No feedback found</h3>
+                    <p className="mt-1 text-sm text-gray-500">
                         {initialFeedback.length === 0 ? "Be the first to share your thoughts!" : "Try adjusting your filters."}
                     </p>
                 </div>
@@ -133,21 +133,21 @@ export default function FeedbackList({ initialFeedback, currentUser }: FeedbackL
                         <Link
                             key={item.id}
                             href={`/feedback/${item.id}`}
-                            className="block p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow group"
+                            className="block p-6 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20">
+                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                                         {getTypeIcon(item.type)}
                                         <span className="ml-1">{getTypeText(item.type)}</span>
                                     </span>
-                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20">
+                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                                         {getStatusIcon(item.status)}
                                         <span className="ml-1">{getStatusText(item.status)}</span>
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    <span className="text-xs text-gray-500">
                                         {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                                     </span>
 
@@ -163,15 +163,15 @@ export default function FeedbackList({ initialFeedback, currentUser }: FeedbackL
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-1">
                                 {item.title}
                             </h3>
 
-                            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mb-4 h-[60px]">
+                            <p className="text-sm text-gray-600 line-clamp-3 mb-4 h-[60px]">
                                 {item.description}
                             </p>
 
-                            <div className="flex items-center gap-2 mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <div className="flex items-center gap-2 mt-auto pt-4 border-t border-gray-100">
                                 {item.user?.avatar_url ? (
                                     <img
                                         src={item.user.avatar_url}
@@ -179,11 +179,11 @@ export default function FeedbackList({ initialFeedback, currentUser }: FeedbackL
                                         className="h-6 w-6 rounded-full bg-gray-100"
                                     />
                                 ) : (
-                                    <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-300">
+                                    <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
                                         {item.user?.full_name?.charAt(0) || '?'}
                                     </div>
                                 )}
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                <span className="text-xs text-gray-500">
                                     {item.user?.full_name || 'Anonymous'}
                                 </span>
                             </div>

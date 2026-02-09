@@ -53,7 +53,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
     return (
         <div className="max-w-2xl mx-auto space-y-8">
             {/* Avatar Section */}
-            <div className="flex justify-center pb-6 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex justify-center pb-6 border-b border-gray-100">
                 <AvatarUpload
                     uid={user.id}
                     url={avatarUrl}
@@ -68,7 +68,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
             <form onSubmit={updateProfile} className="space-y-6">
                 <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                     <div>
-                        <label htmlFor="first_name" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                        <label htmlFor="first_name" className="block text-sm font-medium leading-6 text-gray-900">
                             First Name <span className="text-red-500">*</span>
                         </label>
                         <div className="mt-2">
@@ -78,13 +78,13 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                                 required
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label htmlFor="last_name" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                        <label htmlFor="last_name" className="block text-sm font-medium leading-6 text-gray-900">
                             Last Name <span className="text-red-500">*</span>
                         </label>
                         <div className="mt-2">
@@ -94,13 +94,13 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                                 required
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
                     </div>
 
                     <div className="sm:col-span-2">
-                        <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                        <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
                             Username <span className="text-red-500">*</span>
                         </label>
                         <div className="mt-2">
@@ -110,13 +110,13 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                                 required
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
                     </div>
 
                     <div className="sm:col-span-2">
-                        <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                        <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
                             Email Address
                         </label>
                         <div className="mt-2">
@@ -125,13 +125,13 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                                 type="email"
                                 disabled
                                 value={user.email}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 bg-gray-50 sm:text-sm sm:leading-6 dark:bg-gray-900 dark:ring-gray-700 dark:text-gray-400 cursor-not-allowed"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 bg-gray-50 sm:text-sm sm:leading-6 cursor-not-allowed"
                             />
                         </div>
                     </div>
 
                     <div className="sm:col-span-2">
-                        <label htmlFor="phone" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                        <label htmlFor="phone" className="block text-sm font-medium leading-6 text-gray-900">
                             Phone Number <span className="text-red-500">*</span>
                         </label>
                         <div className="mt-2">
@@ -141,19 +141,19 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                                 required
                                 value={phoneNumber}
                                 onChange={(e) => setPhoneNumber(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
                     </div>
                 </div>
 
                 {message && (
-                    <div className={`p-4 rounded-md text-sm ${message.includes('Error') ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'}`}>
+                    <div className={`p-4 rounded-md text-sm ${message.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
                         {message}
                     </div>
                 )}
 
-                <div className="flex justify-end pt-6 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex justify-end pt-6 border-t border-gray-100">
                     <button
                         type="submit"
                         disabled={loading}

@@ -36,13 +36,13 @@ export default async function RootLayout({
     return (
         <html lang="en" className="h-full bg-gray-50" suppressHydrationWarning>
             <body className={`${inter.className} h-full`}>
-                <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+                <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
                     {showChrome && <TopNav user={user} profile={profile} />}
 
                     <div className="flex h-full">
                         {showChrome && <Sidebar isAdmin={profile?.role === 'admin'} />}
 
-                        <main className={`flex-1 ${showChrome ? 'lg:pl-64 pt-16' : ''} h-full overflow-auto bg-gray-50 dark:bg-gray-900 transition-colors`}>
+                        <main className={`flex-1 ${showChrome ? 'lg:pl-64 pt-16' : ''} h-full overflow-auto bg-gray-50 transition-colors`}>
                             {children}
                         </main>
                     </div>

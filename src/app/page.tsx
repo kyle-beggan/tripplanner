@@ -29,8 +29,8 @@ export default async function Home() {
         <div className="p-8 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Trips</h1>
-                    <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    <h1 className="text-3xl font-bold text-gray-900">My Trips</h1>
+                    <p className="mt-2 text-gray-600">
                         LFG Places is the ultimate tool for planning group trips with friends. Whether it&apos;s a weekend getaway or a month-long adventure, we help you coordinate everything.
                     </p>
                 </div>
@@ -44,9 +44,9 @@ export default async function Home() {
             </div>
 
             {!trips || trips.length === 0 ? (
-                <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                    <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No trips found</h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new adventure.</p>
+                <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+                    <h3 className="mt-2 text-sm font-semibold text-gray-900">No trips found</h3>
+                    <p className="mt-1 text-sm text-gray-500">Get started by creating a new adventure.</p>
                     <div className="mt-6">
                         <Link
                             href="/trips/new"

@@ -151,7 +151,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
         <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-6">
                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                    <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
                         Trip Name <span className="text-red-500">*</span>
                     </label>
                     <div className="mt-2">
@@ -162,13 +162,13 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Summer Road Trip 2024"
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                    <label htmlFor="description" className="block text-sm font-medium leading-6 text-gray-900">
                         Description
                     </label>
                     <div className="mt-2">
@@ -178,13 +178,13 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="What's the plan?"
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 mb-4">
                         Select Activities
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -197,21 +197,21 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                     className={`
                                         cursor-pointer relative flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all
                                         ${isSelected
-                                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-400'
-                                            : 'border-gray-200 hover:border-indigo-300 dark:border-gray-700 dark:hover:border-indigo-700 bg-white dark:bg-gray-800'
+                                            ? 'border-indigo-600 bg-indigo-50'
+                                            : 'border-gray-200 hover:border-indigo-300 bg-white'
                                         }
                                     `}
                                 >
                                     {isSelected && (
-                                        <div className="absolute top-2 right-2 text-indigo-600 dark:text-indigo-400">
+                                        <div className="absolute top-2 right-2 text-indigo-600">
                                             <Check className="h-4 w-4" />
                                         </div>
                                     )}
-                                    <span className="font-medium text-center text-gray-900 dark:text-white text-sm">
+                                    <span className="font-medium text-center text-gray-900 text-sm">
                                         {activity.name}
                                     </span>
                                     {activity.requires_gps && (
-                                        <div className="mt-2 flex items-center text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
+                                        <div className="mt-2 flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                                             <MapPin className="h-3 w-3 mr-1" />
                                             GPS
                                         </div>
@@ -226,7 +226,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                 </div>
 
                 <div>
-                    <label htmlFor="locations" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                    <label htmlFor="locations" className="block text-sm font-medium leading-6 text-gray-900">
                         Locations
                     </label>
                     <div className="mt-2 space-y-3">
@@ -243,7 +243,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                     }
                                 }}
                                 placeholder="City, State (e.g. Austin, TX)"
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                             <button
                                 type="button"
@@ -257,13 +257,13 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                         {locations.length > 0 && (
                             <div className="flex flex-wrap gap-2">
                                 {locations.map((loc, index) => (
-                                    <div key={index} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-900/30 dark:text-indigo-400 dark:ring-indigo-400/30">
+                                    <div key={index} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
                                         <MapPin className="h-3 w-3" />
                                         {loc}
                                         <button
                                             type="button"
                                             onClick={() => removeLocation(index)}
-                                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:outline-none dark:hover:bg-indigo-800"
+                                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:outline-none"
                                         >
                                             <span className="sr-only">Remove location</span>
                                             <X className="h-3 w-3" />
@@ -277,7 +277,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                     <div>
-                        <label htmlFor="start_date" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                        <label htmlFor="start_date" className="block text-sm font-medium leading-6 text-gray-900">
                             Start Date
                         </label>
                         <div className="mt-2 relative">
@@ -286,13 +286,13 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                 id="start_date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label htmlFor="end_date" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                        <label htmlFor="end_date" className="block text-sm font-medium leading-6 text-gray-900">
                             End Date
                         </label>
                         <div className="mt-2 relative">
@@ -302,7 +302,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                                 min={startDate}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:ring-gray-700 dark:text-white"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
                     </div>
@@ -315,34 +315,34 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                             type="checkbox"
                             checked={isPublic}
                             onChange={(e) => setIsPublic(e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 dark:border-gray-700 dark:bg-gray-800"
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                         />
                     </div>
                     <div className="ml-3 text-sm leading-6">
-                        <label htmlFor="is_public" className="font-medium text-gray-900 dark:text-gray-100">
+                        <label htmlFor="is_public" className="font-medium text-gray-900">
                             Make this trip public
                         </label>
-                        <p className="text-gray-500 dark:text-gray-400">Public trips are visible to anyone on the platform.</p>
+                        <p className="text-gray-500">Public trips are visible to anyone on the platform.</p>
                     </div>
                 </div>
             </div>
 
             {error && (
-                <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+                <div className="rounded-md bg-red-50 p-4">
                     <div className="flex">
                         <div className="ml-3">
-                            <h3 className="text-sm font-medium text-red-800 dark:text-red-400">Error saving trip</h3>
-                            <div className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</div>
+                            <h3 className="text-sm font-medium text-red-800">Error saving trip</h3>
+                            <div className="mt-2 text-sm text-red-700">{error}</div>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 dark:border-gray-700 pt-6">
+            <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 pt-6">
                 <button
                     type="button"
                     onClick={() => router.back()}
-                    className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-100"
+                    className="text-sm font-semibold leading-6 text-gray-900"
                 >
                     Cancel
                 </button>
