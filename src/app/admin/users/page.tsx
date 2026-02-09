@@ -120,6 +120,25 @@ export default function AdminPage() {
                 <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
             </div>
 
+            <div className="grid gap-4 md:grid-cols-3 mb-8">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-gray-500 text-sm font-medium">Total Users</h3>
+                    <p className="text-3xl font-bold text-gray-900 mt-2">{users.length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-gray-500 text-sm font-medium">Pending Approval</h3>
+                    <p className="text-3xl font-bold text-indigo-600 mt-2">
+                        {users.filter(u => u.status === 'pending').length}
+                    </p>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-gray-500 text-sm font-medium">Active Users</h3>
+                    <p className="text-3xl font-bold text-green-600 mt-2">
+                        {users.filter(u => u.status === 'approved').length}
+                    </p>
+                </div>
+            </div>
+
             <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -167,6 +186,15 @@ export default function AdminPage() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                                     <div className="flex items-center justify-center gap-2">
+                                        {user.status === 'pending' && (
+                                            <button
+                                                onClick={() => handleStatusUpdate(user.id, 'approved')}
+                                                className="text-green-600 hover:text-green-900 text-xs font-semibold px-2 py-1 rounded hover:bg-green-50 transition-colors"
+                                            >
+                                                Approve
+                                            </button>
+                                        )}
+
                                         <button
                                             onClick={() => alert('Edit functionality to be implemented')}
                                             className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 rounded hover:bg-indigo-50 transition-colors"

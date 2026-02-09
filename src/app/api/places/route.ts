@@ -14,7 +14,8 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json()
-        const { query, location } = body
+        const query = body.query || body.textQuery
+        const location = body.location
 
         if (!query) {
             return NextResponse.json(

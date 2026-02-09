@@ -42,7 +42,10 @@ export default function ActivitySearchModal({
             const response = await fetch('/api/places', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ textQuery: activityName }),
+                body: JSON.stringify({
+                    query: activityName,
+                    location: location
+                }),
             })
 
             const data = await response.json()

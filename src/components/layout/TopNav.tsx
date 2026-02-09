@@ -46,7 +46,7 @@ export default function TopNav({ user, profile }: { user: any, profile: any }) {
                             <Image src="/LFGPlaces_logo.png" alt="LFG Places Logo" fill className="object-contain" />
                         </div>
                         {/* Title removed as requested */}
-                        <span className="hidden md:block text-xl font-bold text-gray-900">
+                        <span className="hidden md:block text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
                             LFG Places
                         </span>
                     </Link>
