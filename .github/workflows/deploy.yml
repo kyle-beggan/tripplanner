@@ -61,7 +61,22 @@ jobs:
             curl http://localhost:3000/version.txt || echo "WARNING: Local verify failed"
             echo "---------------------"
             
-            # Diagnostic: Check Nginx config (to see where it's pointing)
-            echo "--- NGINX CONFIG ---"
-            sudo cat /etc/nginx/sites-enabled/* || echo "WARNING: Could not read Nginx config"
-            echo "--------------------"
+            # Diagnostic: Check web server config
+            echo "--- WEB SERVER DIAGNOSTICS ---"
+            echo "Checking listening ports..."
+            sudo netstat -tulpn | grep :80 || echo "Port 80 not found"
+            
+            echo "Checking Bitnami Nginx..."
+            sudo cat /opt/bitnami/nginx/conf/server_blocks/*.conf || echo "Bitnami Nginx block not found"
+            sudo cat /opt/bitnami/nginx/conf/bitnami/bitnami.conf || echo "Bitnami Nginx main conf not found"
+            
+            echo "Checking Standard Nginx..."
+            sudo cat /etc/nginx/sites-enabled/* || echo "Standard Nginx sites not found"
+            
+            echo "Checking Apache..."
+            sudo cat /etc/apache2/sites-enabled/* || echo "Apache sites not found"
+            sudo cat /opt/bitnami/apache2/conf/vhosts/*.conf || echo "Bitnami Apache vhosts not found"
+            
+            echo "Checking localhost:80 response..."
+            curl -I http://localhost:80 || echo "Localhost:80 failed"
+            echo "------------------------------"
