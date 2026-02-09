@@ -108,4 +108,4 @@ jobs:
             
             # Final check
             echo "Final check of public URL (via localhost:80)..."
-            curl -I http://localhost:80/version.txt || echo "WARNING: Public check failed"
+            curl -v http://localhost:80/api/version || echo "WARNING: Public API check failed"
