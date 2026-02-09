@@ -82,10 +82,16 @@ jobs:
             grep "api/version" build.log || echo "WARNING: api/version NOT found in build output"
             echo "--------------------------"
             
-            # Force restart from THIS directory
+            # Force restart from THIS directory with CORRECT Node version
             pm2 delete lfg-places || true
-            # Explicitly start on port 3000
-            pm2 start npm --name "lfg-places" -- start -- -p 3000
+            
+            # Identify correct Node path
+            NODE_PATH=$(nvm which 20)
+            echo "Using Node: $NODE_PATH"
+            
+            # Start strict process
+            # Note: We point directly to the NVM node executable as interpreter
+            pm2 start npm --name "lfg-places" --interpreter "$NODE_PATH" -- start -- -p 3000
             pm2 save
             
             # Process Diagnostics
@@ -93,10 +99,19 @@ jobs:
             pm2 describe lfg-places
             echo "---------------------------"
             
+            # Wait for service to be ready
+            echo "Waiting for port 3000..."
+            for i in {1..30}; do
+              if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/3000' 2> /dev/null; then
+                echo "Port 3000 is open!"
+                break
+              fi
+              echo "Waiting..."
+              sleep 1
+            done
+            
             # Verify local operation
             echo "Verifying local server..."
-            sleep 5
-            echo "--- LOCAL VERSION ---"
             curl -v http://localhost:3000/api/version || echo "WARNING: Local verify failed"
             echo "---------------------"
             
