@@ -75,7 +75,12 @@ jobs:
             
             # Clean build artifact to force fresh build
             rm -rf .next
-            npm run build
+            npm run build 2>&1 | tee build.log
+            
+            # Verify build output
+            echo "--- BUILD VERIFICATION ---"
+            grep "api/version" build.log || echo "WARNING: api/version NOT found in build output"
+            echo "--------------------------"
             
             # Force restart from THIS directory
             pm2 delete lfg-places || true
@@ -83,11 +88,16 @@ jobs:
             pm2 start npm --name "lfg-places" -- start -- -p 3000
             pm2 save
             
+            # Process Diagnostics
+            echo "--- PROCESS DIAGNOSTICS ---"
+            pm2 describe lfg-places
+            echo "---------------------------"
+            
             # Verify local operation
             echo "Verifying local server..."
             sleep 5
             echo "--- LOCAL VERSION ---"
-            curl http://localhost:3000/version.txt || echo "WARNING: Local verify failed"
+            curl -v http://localhost:3000/api/version || echo "WARNING: Local verify failed"
             echo "---------------------"
             
             # Diagnostic: Check web server config
