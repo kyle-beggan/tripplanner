@@ -82,6 +82,11 @@ jobs:
             grep "api/version" build.log || echo "WARNING: api/version NOT found in build output"
             echo "--------------------------"
             
+            # Kill anything on port 3000
+            echo "Killing process on port 3000..."
+            sudo fuser -k 3000/tcp || true
+            sudo kill -9 $(sudo lsof -t -i:3000) || true
+            
             # Force restart from THIS directory with CORRECT Node version
             pm2 delete lfg-places || true
             
