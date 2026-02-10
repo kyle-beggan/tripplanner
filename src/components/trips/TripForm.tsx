@@ -45,6 +45,7 @@ interface Trip {
     activities: string[] | null
     locations: TripLeg[] | null
     agenda: any[] | null
+    destination_airport_code: string | null
     estimated_participants: number | null
 }
 
@@ -65,6 +66,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
     const [endDate, setEndDate] = useState(trip?.end_date || '')
     const [isPublic, setIsPublic] = useState(trip?.is_public || false)
     const [estimatedParticipants, setEstimatedParticipants] = useState<number | ''>(trip?.estimated_participants || '')
+    const [destinationAirportCode, setDestinationAirportCode] = useState(trip?.destination_airport_code || '')
     const [locations, setLocations] = useState<TripLeg[]>(trip?.locations || [])
     const [newLocation, setNewLocation] = useState('')
     const [availableActivities, setAvailableActivities] = useState<Activity[]>([])
@@ -140,6 +142,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                 agenda: trip?.agenda || [],
                 owner_id: userId,
                 estimated_participants: estimatedParticipants === '' ? null : Number(estimatedParticipants),
+                destination_airport_code: destinationAirportCode ? destinationAirportCode.toUpperCase() : null,
                 updated_at: new Date().toISOString(),
             }
 
@@ -444,6 +447,31 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                             Make this trip public?
                         </label>
                         <p className="text-gray-500">Public trips can be viewed by anyone with the link.</p>
+                    </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-6">
+                    <h3 className="text-sm font-medium leading-6 text-gray-900 font-bold mb-4">
+                        Flight Estimation Settings
+                    </h3>
+                    <div>
+                        <label htmlFor="destination_airport_code" className="block text-sm font-medium leading-6 text-gray-900">
+                            Destination Airport Code (Optional)
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                type="text"
+                                id="destination_airport_code"
+                                value={destinationAirportCode}
+                                onChange={(e) => setDestinationAirportCode(e.target.value.toUpperCase())}
+                                placeholder="e.g. LHR, JFK"
+                                maxLength={3}
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 uppercase"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                                Providing this helps us give you more accurate flight estimates if we can&apos;t detect it from your itinerary.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

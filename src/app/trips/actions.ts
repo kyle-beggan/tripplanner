@@ -364,7 +364,8 @@ export async function addActivityToLegSchedule(tripId: string, legIndex: number,
         time: time,
         description: description,
         estimated_cost: estimatedCost,
-        location_name: locationName
+        location_name: locationName,
+        participants: [] // Initialize with empty participants
     })
 
     // Sort activities by time
@@ -579,6 +580,185 @@ export async function updateLodgingInLeg(tripId: string, legIndex: number, lodgi
         .eq('id', tripId)
 
     if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function toggleActivityParticipation(tripId: string, legIndex: number, date: string, activityIndex: number) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+
+    if (!leg || !leg.schedule) return { success: false, message: 'Schedule not found' }
+
+    const daySchedule = leg.schedule.find((d: any) => d.date.split('T')[0] === date.split('T')[0])
+    if (!daySchedule || !daySchedule.activities) return { success: false, message: 'Activity not found' }
+
+    // Re-sort to match UI index if needed, OR verify index. 
+    // WARN: Index might be fragile if array isn't sorted same way. 
+    // Ideally we'd validte by content, but for now we trust the sorted order if consistent.
+    // Let's rely on finding by index after ensuring sort.
+    daySchedule.activities.sort((a: any, b: any) => {
+        const timeA = a.time.replace(':', '')
+        const timeB = b.time.replace(':', '')
+        return parseInt(timeA) - parseInt(timeB)
+    })
+
+    const activity = daySchedule.activities[activityIndex]
+
+    if (!activity) return { success: false, message: 'Activity not found' }
+
+    if (!activity.participants) activity.participants = []
+
+    const userIndex = activity.participants.indexOf(user.id)
+
+    if (userIndex === -1) {
+        activity.participants.push(user.id) // Join
+    } else {
+        activity.participants.splice(userIndex, 1) // Leave
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function joinAllTripActivities(tripId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    let modified = false
+
+    locations.forEach((leg: any) => {
+        if (leg.schedule && Array.isArray(leg.schedule)) {
+            leg.schedule.forEach((day: any) => {
+                if (day.activities && Array.isArray(day.activities)) {
+                    day.activities.forEach((activity: any) => {
+                        if (!activity.participants) activity.participants = []
+                        if (!activity.participants.includes(user.id)) {
+                            activity.participants.push(user.id)
+                            modified = true
+                        }
+                    })
+                }
+            })
+        }
+    })
+
+    if (!modified) {
+        return { success: true, message: 'Already joined all activities' }
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function unjoinAllTripActivities(tripId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    let modified = false
+
+    locations.forEach((leg: any) => {
+        if (leg.schedule && Array.isArray(leg.schedule)) {
+            leg.schedule.forEach((day: any) => {
+                if (day.activities && Array.isArray(day.activities)) {
+                    day.activities.forEach((activity: any) => {
+                        if (activity.participants && Array.isArray(activity.participants)) {
+                            const initialLength = activity.participants.length
+                            activity.participants = activity.participants.filter((id: string) => id !== user.id)
+                            if (activity.participants.length !== initialLength) {
+                                modified = true
+                            }
+                        }
+                    })
+                }
+            })
+        }
+    })
+
+    if (!modified) {
+        return { success: true, message: 'Already unjoined all activities' }
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function updateParticipantIsFlying(tripId: string, isFlying: boolean) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    // Verify user is a participant or owner
+    const { error } = await supabase
+        .from('trip_participants')
+        .update({ is_flying: isFlying })
+        .eq('trip_id', tripId)
+        .eq('user_id', user.id)
+
+    if (error) {
+        console.error('Error updating flight status:', error)
+        return { success: false, message: 'Failed to update status' }
+    }
 
     revalidatePath(`/trips/${tripId}`)
     return { success: true }

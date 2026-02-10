@@ -44,10 +44,15 @@ export default function LodgingSearchModal({
     const [searchQuery, setSearchQuery] = useState('')
     const [nextPageToken, setNextPageToken] = useState<string | null>(null)
 
+    // Cost input state for generic search results
+    const [configuringPlaceId, setConfiguringPlaceId] = useState<string | null>(null)
+    const [configuringCost, setConfiguringCost] = useState('')
+
     const handleSearch = async (queryOverride?: string, pageToken?: string | null) => {
         const query = queryOverride || `hotels in ${locationName}`
         setLoading(true)
         setError(null)
+        setConfiguringPlaceId(null) // Reset on new search
 
         try {
             const response = await fetch('/api/places', {
@@ -82,14 +87,15 @@ export default function LodgingSearchModal({
         }
     }
 
-    const handleAdd = async (place: Place) => {
+    const handleAdd = async (place: Place, cost?: number) => {
         setAddingId(place.id)
         try {
-            const result = await addLodgingToLeg(tripId, legIndex, place)
+            const result = await addLodgingToLeg(tripId, legIndex, place, cost)
             if (result.success) {
                 toast.success(`"${place.displayName.text}" added to lodging!`)
                 onAdd?.()
-                // Don't close immediately so they can add alternatives
+                setConfiguringPlaceId(null)
+                setConfiguringCost('')
             } else {
                 toast.error(result.message || 'Failed to add lodging')
             }
@@ -304,30 +310,73 @@ export default function LodgingSearchModal({
                                                     {place.formattedAddress}
                                                 </p>
                                             </div>
-                                            <div className="flex sm:flex-col gap-2 justify-center sm:min-w-[140px]">
-                                                <button
-                                                    onClick={() => handleAdd(place)}
-                                                    disabled={addingId === place.id}
-                                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-md shadow-sm transition-colors whitespace-nowrap disabled:opacity-50"
-                                                >
-                                                    {addingId === place.id ? (
-                                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                                    ) : (
-                                                        <Plus className="h-3 w-3" />
-                                                    )}
-                                                    <span>Add Option</span>
-                                                </button>
+                                            <div className="flex flex-col gap-2 justify-center sm:min-w-[150px]">
+                                                {configuringPlaceId === place.id ? (
+                                                    <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-right-4 duration-200">
+                                                        <div className="relative">
+                                                            <label className="text-[10px] uppercase font-bold text-gray-500 ml-1 mb-0.5 block">
+                                                                Est. Cost / Person
+                                                            </label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-2 top-1.5 text-gray-500 text-xs">$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    value={configuringCost}
+                                                                    onChange={(e) => setConfiguringCost(e.target.value)}
+                                                                    placeholder="0"
+                                                                    className="w-full pl-5 pr-2 py-1 text-sm border border-indigo-300 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                                    autoFocus
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => setConfiguringPlaceId(null)}
+                                                                className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleAdd(place, Number(configuringCost) || undefined)}
+                                                                disabled={addingId === place.id}
+                                                                className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors"
+                                                            >
+                                                                {addingId === place.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                                                Confirm
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex sm:flex-col gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                setConfiguringPlaceId(place.id)
+                                                                setConfiguringCost('')
+                                                            }}
+                                                            disabled={addingId === place.id}
+                                                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-md shadow-sm transition-colors whitespace-nowrap disabled:opacity-50"
+                                                        >
+                                                            {addingId === place.id ? (
+                                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                            ) : (
+                                                                <Plus className="h-3 w-3" />
+                                                            )}
+                                                            <span>Add Option</span>
+                                                        </button>
 
-                                                {place.googleMapsUri && (
-                                                    <a
-                                                        href={place.googleMapsUri}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm transition-colors whitespace-nowrap"
-                                                    >
-                                                        <span>View on Maps</span>
-                                                        <ExternalLink className="h-3 w-3" />
-                                                    </a>
+                                                        {place.googleMapsUri && (
+                                                            <a
+                                                                href={place.googleMapsUri}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md shadow-sm transition-colors whitespace-nowrap"
+                                                            >
+                                                                <ExternalLink className="h-3 w-3" />
+                                                                <span>Maps</span>
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

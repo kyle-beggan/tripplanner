@@ -9,18 +9,38 @@ interface FlightEstimateCardProps {
     initialEstimate?: any
 }
 
+interface FlightEstimateResult {
+    success: boolean
+    message?: string
+    code?: string
+    currency?: string
+    total?: string
+    airline?: string
+    origin?: string
+    destination?: string
+    deepLink?: string
+    debugError?: any
+}
+
 export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEstimateCardProps) {
     const [loading, setLoading] = useState(!initialEstimate)
-    const [estimate, setEstimate] = useState<any>(initialEstimate || null)
+    const [estimate, setEstimate] = useState<FlightEstimateResult | null>(initialEstimate || null)
     const [error, setError] = useState<string | null>(initialEstimate && !initialEstimate.success ? initialEstimate.message : null)
 
     useEffect(() => {
         if (initialEstimate) return
 
         getEstimateFlightPrice(tripId)
-            .then(result => {
+            .then((result: any) => {
                 if (result.success) {
                     setEstimate(result)
+                } else if (result.deepLink) {
+                    // Fallback: API failed but we have a link
+                    setEstimate({
+                        ...result,
+                        success: false
+                    })
+                    setError(null)
                 } else {
                     setError(result.message || 'Unknown error')
                 }
@@ -65,6 +85,73 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
         )
     }
 
+    // Handle missing destination airport error
+    if (error === 'Could not determine destination airport' || (initialEstimate && initialEstimate.code === 'MISSING_DESTINATION')) {
+        const handleManualDestinationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+            e.preventDefault()
+            const formData = new FormData(e.currentTarget)
+            const code = formData.get('code') as string
+
+            if (!code || code.length !== 3) {
+                // Simple client-side validation
+                return
+            }
+
+            setLoading(true)
+
+            // Dynamically import the action
+            const { updateTripDestination } = await import('@/app/trips/flight-actions')
+            const result = await updateTripDestination(tripId, code)
+
+            if (result.success) {
+                // Retry estimate
+                getEstimateFlightPrice(tripId)
+                    .then(res => {
+                        if (res.success) {
+                            setEstimate(res)
+                            setError(null)
+                        } else {
+                            setError(res.message || 'Unknown error')
+                        }
+                    })
+                    .finally(() => setLoading(false))
+            } else {
+                setError('Failed to update destination code')
+                setLoading(false)
+            }
+        }
+
+        return (
+            <div className="bg-amber-50 rounded-lg border border-amber-100 p-4">
+                <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <div className="flex-1">
+                        <h3 className="text-sm font-medium text-amber-900">Destination Airport Needed</h3>
+                        <p className="text-sm text-amber-700 mt-1">
+                            We couldn&apos;t automatically determine the airport for this trip&apos;s location. Please enter the 3-letter IATA code (e.g., LHR, JFK) to get flight estimates.
+                        </p>
+                        <form onSubmit={handleManualDestinationSubmit} className="mt-3 flex gap-2">
+                            <input
+                                type="text"
+                                name="code"
+                                placeholder="IATA Code"
+                                maxLength={3}
+                                className="w-24 rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm uppercase"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                            >
+                                Set & Retry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     if (error) {
         return (
             <div className="bg-red-50 rounded-lg p-4 flex gap-2 text-red-700 text-sm items-center">
@@ -74,6 +161,8 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
         )
     }
 
+    if (!estimate) return null
+
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-2">
@@ -81,17 +170,27 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
                     <Plane className="h-4 w-4 text-indigo-600" />
                     <h3>Flight Estimate</h3>
                 </div>
-                <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {estimate.origin} &rarr; {estimate.destination}
-                </span>
+                {estimate.origin && estimate.destination && (
+                    <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {estimate.origin} &rarr; {estimate.destination}
+                    </span>
+                )}
             </div>
 
             <div className="flex items-baseline justify-between">
                 <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-gray-900">
-                        {estimate.currency} {estimate.total}
-                    </span>
-                    <span className="text-sm text-gray-500">per person</span>
+                    {estimate.currency && estimate.total ? (
+                        <span className="text-2xl font-bold text-gray-900">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: estimate.currency }).format(Number(estimate.total))}
+                        </span>
+                    ) : (
+                        <span className="text-lg font-semibold text-gray-400 italic">
+                            Estimate Unavailable
+                        </span>
+                    )}
+                    {estimate.currency && estimate.total && (
+                        <span className="text-sm text-gray-500">per person</span>
+                    )}
                 </div>
 
                 {estimate.deepLink && (
@@ -101,13 +200,15 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                     >
-                        View Flights <ExternalLink className="h-3 w-3" />
+                        {estimate.total ? 'View Flights' : 'Check Prices'} <ExternalLink className="h-3 w-3" />
                     </a>
                 )}
             </div>
 
             <p className="text-xs text-gray-400 mt-2">
-                *Estimated lowest fare via Amadeus. Prices subject to change.
+                {estimate.total
+                    ? '*Estimated lowest fare via Amadeus. Prices subject to change.'
+                    : '*Unable to fetch live estimate. Please check Google Flights directly.'}
             </p>
         </div>
     )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Hotel, Tent } from 'lucide-react'
+import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Home, Tent } from 'lucide-react'
 import { format } from 'date-fns'
 import TripActivityCard from '@/components/trips/TripActivityCard'
 import LodgingCard from '@/components/trips/LodgingCard'
@@ -14,6 +14,7 @@ interface ScheduledActivity {
     description: string
     estimated_cost?: number
     location_name?: string
+    participants?: string[]
 }
 
 interface DailySchedule {
@@ -52,7 +53,14 @@ interface TripLegItemProps {
     isEditable: boolean
     canManageBooking: boolean
     activityMap: Map<string, any>
+    userId?: string
+    participants?: any[]
+    dataTimestamp?: number
 }
+
+import { toggleActivityParticipation } from '@/app/trips/actions'
+import { Check, X } from 'lucide-react'
+import { useEffect } from 'react'
 
 export default function TripLegItem({
     leg,
@@ -60,13 +68,24 @@ export default function TripLegItem({
     legIndex,
     isEditable,
     canManageBooking,
-    activityMap
+    activityMap,
+    userId,
+    participants,
+    dataTimestamp
 }: TripLegItemProps) {
     const router = useRouter()
+    const [loadingActivity, setLoadingActivity] = useState<{ dayIdx: number, actIdx: number } | null>(null)
     const [activeTab, setActiveTab] = useState<'schedule' | 'lodging' | 'activities'>('schedule')
     const [searchModalOpen, setSearchModalOpen] = useState(false)
     const [activitySearchOpen, setActivitySearchOpen] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
+    // Key: "dayIdx-actIdx", Value: string[] of participant IDs
+    const [optimisticParticipants, setOptimisticParticipants] = useState<Record<string, string[]>>({})
+
+    // Clear optimistic state when server data updates
+    useEffect(() => {
+        setOptimisticParticipants({})
+    }, [dataTimestamp])
 
     const formatDate = (dateString: string | null | undefined, formatStr: string = 'MMM d, yyyy') => {
         if (!dateString) return ''
@@ -127,7 +146,7 @@ export default function TripLegItem({
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                 }`}
                         >
-                            <Hotel className="h-4 w-4" />
+                            <Home className="h-4 w-4" />
                             Lodging
                             {leg.lodging && leg.lodging.length > 0 && (
                                 <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full ${activeTab === 'lodging' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-200 text-gray-600'
@@ -189,7 +208,7 @@ export default function TripLegItem({
                                                         </div>
                                                         <div className="relative z-10 mt-1.5 w-2 h-2 rounded-full bg-indigo-200 ring-4 ring-white group-hover:bg-indigo-600 transition-colors" />
                                                         <div className="flex-1 bg-gray-50 rounded-lg p-3 group-hover:bg-indigo-50/50 transition-colors border border-transparent group-hover:border-indigo-100">
-                                                            <div className="flex justify-between items-start gap-2">
+                                                            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                                                                 <div>
                                                                     <p className="text-sm font-semibold text-gray-900">{item.description}</p>
                                                                     {item.location_name && (
@@ -205,11 +224,118 @@ export default function TripLegItem({
                                                                         </a>
                                                                     )}
                                                                 </div>
-                                                                {item.estimated_cost && item.estimated_cost > 0 && (
-                                                                    <div className="text-xs font-medium text-gray-600 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm whitespace-nowrap">
-                                                                        ${item.estimated_cost}
-                                                                    </div>
-                                                                )}
+
+                                                                <div className="flex items-center gap-3 self-end sm:self-start">
+                                                                    {(() => {
+                                                                        // Determine current participants (optimistic or server)
+                                                                        const optimisticKey = `${dIdx}-${iIdx}`
+                                                                        const currentParticipants = optimisticParticipants[optimisticKey] !== undefined
+                                                                            ? optimisticParticipants[optimisticKey]
+                                                                            : (item.participants || [])
+
+                                                                        const isParticipating = userId && currentParticipants.includes(userId)
+
+                                                                        return (
+                                                                            <>
+                                                                                {/* Participant Avatars */}
+                                                                                {currentParticipants.length > 0 && participants && (
+                                                                                    <div className="flex -space-x-2">
+                                                                                        {currentParticipants.slice(0, 3).map((pId) => {
+                                                                                            const p = participants.find(part => part.user_id === pId)
+                                                                                            if (!p) return null
+                                                                                            return (
+                                                                                                // eslint-disable-next-line @next/next/no-img-element
+                                                                                                <img
+                                                                                                    key={pId}
+                                                                                                    src={p.profile?.avatar_url || `https://ui-avatars.com/api/?name=${p.profile?.full_name}&background=random`}
+                                                                                                    alt={p.profile?.full_name}
+                                                                                                    title={p.profile?.full_name}
+                                                                                                    className="h-6 w-6 rounded-full ring-2 ring-white"
+                                                                                                />
+                                                                                            )
+                                                                                        })}
+                                                                                        {currentParticipants.length > 3 && (
+                                                                                            <div className="h-6 w-6 rounded-full bg-gray-100 ring-2 ring-white flex items-center justify-center text-[10px] font-medium text-gray-600">
+                                                                                                +{currentParticipants.length - 3}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {/* Cost Badge */}
+                                                                                {item.estimated_cost && item.estimated_cost > 0 && (
+                                                                                    <div className="text-xs font-medium text-gray-600 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm whitespace-nowrap">
+                                                                                        ${item.estimated_cost}
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {/* Join/Leave Button */}
+                                                                                {userId && (
+                                                                                    <button
+                                                                                        onClick={async (e) => {
+                                                                                            e.stopPropagation()
+                                                                                            const key = `${dIdx}-${iIdx}`
+
+                                                                                            // Optimistic update
+                                                                                            let newParticipants = [...currentParticipants]
+                                                                                            if (isParticipating) {
+                                                                                                newParticipants = newParticipants.filter(id => id !== userId)
+                                                                                            } else {
+                                                                                                newParticipants.push(userId)
+                                                                                            }
+
+                                                                                            setOptimisticParticipants(prev => ({
+                                                                                                ...prev,
+                                                                                                [key]: newParticipants
+                                                                                            }))
+
+                                                                                            // Prevent duplicate requests if already loading (though visual feedback is instant now)
+                                                                                            if (loadingActivity) return
+                                                                                            setLoadingActivity({ dayIdx: dIdx, actIdx: iIdx })
+
+                                                                                            try {
+                                                                                                await toggleActivityParticipation(tripId, legIndex, day.date, iIdx)
+                                                                                                router.refresh()
+                                                                                            } catch (error) {
+                                                                                                console.error('Failed to toggle participation', error)
+                                                                                                alert('Failed to update participation')
+                                                                                                // Revert optimistic update on error
+                                                                                                setOptimisticParticipants(prev => {
+                                                                                                    const copy = { ...prev }
+                                                                                                    delete copy[key]
+                                                                                                    return copy
+                                                                                                })
+                                                                                            } finally {
+                                                                                                setLoadingActivity(null)
+                                                                                            }
+                                                                                        }}
+                                                                                        disabled={!!loadingActivity}
+                                                                                        className={`
+                                                                                            inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors
+                                                                                            ${isParticipating
+                                                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                                                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                                                                            }
+                                                                                            ${loadingActivity?.dayIdx === dIdx && loadingActivity?.actIdx === iIdx ? 'cursor-wait' : ''}
+                                                                                        `}
+                                                                                    >
+                                                                                        {isParticipating ? (
+                                                                                            <>
+                                                                                                <Check className="w-3 h-3" />
+                                                                                                Going
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            <>
+                                                                                                <Plus className="w-3 h-3" />
+                                                                                                Join
+                                                                                            </>
+                                                                                        )}
+                                                                                    </button>
+                                                                                )}
+                                                                            </>
+                                                                        )
+                                                                    })()}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>

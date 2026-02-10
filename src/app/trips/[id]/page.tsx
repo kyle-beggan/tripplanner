@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, MapPin, ArrowLeft, User, Star, Clock } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, differenceInDays } from 'date-fns'
 import TripRSVPButton from '@/components/trips/TripRSVPButton'
 import TripActivityCard from '@/components/trips/TripActivityCard'
 import TripLegs from '@/components/trips/TripLegs'
@@ -10,6 +10,7 @@ import TripInviteButton from '@/components/trips/TripInviteButton'
 import TripCostSummary from '@/components/trips/TripCostSummary'
 import FlightEstimateCard from '@/components/trips/FlightEstimateCard'
 import { getEstimateFlightPrice } from '@/app/trips/flight-actions'
+import TripJoinAllButton from '@/components/trips/TripJoinAllButton'
 
 interface ScheduledActivity {
     time: string
@@ -183,25 +184,81 @@ export default async function TripDetailsPage({ params }: PageProps) {
     // 1. Lodging: Sum of all total_cost / estimated participants
     // User request: "The estimated cost for lodging should be the total of all lodging entries for the entire trip divided by the estimated number of participants for the trip."
 
-    const totalLodgingCost = legs.reduce((total, leg) => {
-        const legLodging = leg.lodging || []
-        const legCost = legLodging.reduce((acc, l) => acc + (l.total_cost || 0), 0)
-        return total + legCost
-    }, 0)
-
     const estimatedParticipantsCount = trip.estimated_participants || 1 // Fallback to 1 to avoid division by zero
-    const lodgingEstPerPerson = totalLodgingCost / estimatedParticipantsCount
+
+    // 1. Lodging: 
+    // - Hotels: (estimated_cost_per_person * nights)
+    // - Airbnbs/Other: (total_cost / estimated participants)
+
+    const lodgingEstPerPerson = legs.reduce((totalPerPerson, leg) => {
+        const legLodging = leg.lodging || []
+
+        let nights = 0
+        if (leg.start_date && leg.end_date) {
+            nights = differenceInDays(new Date(leg.end_date), new Date(leg.start_date))
+        }
+
+        const legCostPerPerson = legLodging.reduce((acc, l) => {
+            if (l.type === 'hotel') {
+                // Hotel cost is entered as per person PER NIGHT
+                return acc + ((l.estimated_cost_per_person || 0) * nights)
+            } else {
+                // Airbnb/Other is entered as TOTAL trip cost
+                return acc + ((l.total_cost || 0) / estimatedParticipantsCount)
+            }
+        }, 0)
+
+        return totalPerPerson + legCostPerPerson
+    }, 0)
 
     // 2. Activities: Sum of all estimated_cost in schedule
-    const activityEstPerPerson = legs.reduce((total, leg) => {
+    // Calculate total potential cost (if one did everything) AND personal cost (what they opted into)
+    let totalActivityPotential = 0
+    let myActivityCost = 0
+
+    legs.forEach(leg => {
         const schedule = leg.schedule || []
-        const legActivityCost = schedule.reduce((accDay, day) => {
-            return accDay + day.activities.reduce((accAct, act) => accAct + (act.estimated_cost || 0), 0)
-        }, 0)
-        return total + legActivityCost
-    }, 0)
+        schedule.forEach(day => {
+            day.activities.forEach(act => {
+                const cost = act.estimated_cost || 0
+                totalActivityPotential += cost
+
+                // If user is participating, add to their personal total
+                const actParticipants = (act as any).participants || [] // Type cast needed until ScheduleActivity interface updated fully in this file
+                if (user && actParticipants.includes(user.id)) {
+                    myActivityCost += cost
+                }
+            })
+        })
+    })
 
     const userParticipation = user ? participants.find(p => p.user_id === user.id) : null
+
+    // Calculate activity participation stats
+    let totalActivities = 0
+    let joinedActivities = 0
+    let hasActivities = false
+
+    if (user) {
+        legs.forEach(leg => {
+            const schedule = leg.schedule || []
+            schedule.forEach(day => {
+                if (day.activities && day.activities.length > 0) {
+                    day.activities.forEach(act => {
+                        totalActivities++
+                        const actParticipants = (act as any).participants || []
+                        if (actParticipants.includes(user.id)) {
+                            joinedActivities++
+                        }
+                    })
+                }
+            })
+        })
+
+        if (totalActivities > 0) {
+            hasActivities = true
+        }
+    }
 
 
     // Fetch Flight Estimate (Server Side)
@@ -278,10 +335,13 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     {/* Right Column: Cost Summary */}
                     <div>
                         <TripCostSummary
+                            tripId={trip.id}
                             flightEstimate={flightCost}
                             lodgingEstPerPerson={lodgingEstPerPerson}
-                            activityEstPerPerson={activityEstPerPerson}
+                            activityEstPerPerson={totalActivityPotential}
+                            myActivityCost={myActivityCost}
                             estimatedParticipants={trip.estimated_participants || 0}
+                            initialIsFlying={userParticipation?.is_flying}
                         />
                     </div>
                 </div>
@@ -296,9 +356,18 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
                 {/* Itinerary Section */}
                 <section className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        Trip Itinerary
-                    </h2>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                            Trip Itinerary
+                        </h2>
+                        {hasActivities && user && (
+                            <TripJoinAllButton
+                                tripId={trip.id}
+                                joinedCount={joinedActivities}
+                                totalCount={totalActivities}
+                            />
+                        )}
+                    </div>
 
                     <TripLegs
                         legs={legs}
@@ -306,6 +375,8 @@ export default async function TripDetailsPage({ params }: PageProps) {
                         isEditable={isEditable}
                         canManageBooking={isOwner || isAdmin}
                         activityMap={activityMap}
+                        userId={user?.id}
+                        participants={participants}
                     />
                 </section>
 

@@ -7,7 +7,7 @@ export default function Loading() {
                 <Loader2 className="h-12 w-12 text-indigo-600 animate-spin mx-auto" />
                 <h2 className="text-xl font-semibold text-gray-900">Gathering Trip Details...</h2>
                 <p className="text-gray-500 max-w-sm mx-auto">
-                    We're fetching the latest itinerary, flight estimates, and activity details for your trip.
+                    We&apos;re fetching the latest itinerary, flight estimates, and activity details for your trip.
                 </p>
             </div>
         </div>

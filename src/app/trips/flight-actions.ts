@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 import Amadeus from 'amadeus'
 
 export async function getEstimateFlightPrice(tripId: string) {
+    console.log('[getEstimateFlightPrice] Starting for trip:', tripId)
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -38,7 +39,7 @@ export async function getEstimateFlightPrice(tripId: string) {
     // 2. Get Trip Details
     const { data: trip } = await supabase
         .from('trips')
-        .select('locations, end_date')
+        .select('locations, end_date, destination_airport_code')
         .eq('id', tripId)
         .single()
 
@@ -53,45 +54,88 @@ export async function getEstimateFlightPrice(tripId: string) {
     // Otherwise, we might need to search for it.
     // For MVP, let's assume if it's not 3 chars, we try to find a city/airport match.
 
-    let destinationCode = ''
+    let destinationCode = trip.destination_airport_code || ''
 
-    // Simple heuristic: if the name is 3 letters and uppercase, assume it's an IATA code
-    if (firstLeg.name && firstLeg.name.length === 3 && firstLeg.name === firstLeg.name.toUpperCase()) {
-        destinationCode = firstLeg.name
-    } else {
-        // Search for the city/airport code using Amadeus
-        try {
-            const response = await amadeus.referenceData.locations.get({
-                keyword: firstLeg.name.split(',')[0], // heuristic: take first part of string
-                subType: Amadeus.location.city
-            })
+    let locationSearchError = null
 
-            if (response.data && response.data.length > 0) {
-                destinationCode = response.data[0].iataCode
+    if (!destinationCode) {
+        // Simple heuristic: if the name is 3 letters and uppercase, assume it's an IATA code
+        if (firstLeg.name && firstLeg.name.length === 3 && firstLeg.name === firstLeg.name.toUpperCase()) {
+            destinationCode = firstLeg.name
+        } else {
+            // Search for the city/airport code using Amadeus
+            try {
+                if (!amadeus) {
+                    amadeus = new Amadeus({
+                        clientId: process.env.AMADEUS_CLIENT_ID,
+                        clientSecret: process.env.AMADEUS_CLIENT_SECRET
+                    })
+                }
+
+                const response = await amadeus.referenceData.locations.get({
+                    keyword: firstLeg.name.split(',')[0],
+                    subType: Amadeus.location.city
+                })
+
+                if (response.data && response.data.length > 0) {
+                    destinationCode = response.data[0].iataCode
+                }
+            } catch (error: any) {
+                console.error('Error finding destination code:', error)
+
+                // Capture error for debug return
+                locationSearchError = {
+                    message: error.message,
+                    name: error.name,
+                    code: error.code,
+                    stack: error.stack,
+                    response: error.response ? {
+                        status: error.response.statusCode,
+                        body: error.response.body
+                    } : 'No response'
+                }
             }
-        } catch (error) {
-            console.error('Error finding destination code:', error)
         }
     }
 
     if (!destinationCode) {
-        // Fallback: try using the address or just fail gracefully
-        return { success: false, message: 'Could not determine destination airport' }
+        // Return specific error code to trigger UI input
+        return {
+            success: false,
+            message: 'Could not determine destination airport',
+            code: 'MISSING_DESTINATION',
+            debugError: locationSearchError // Return captured error
+        }
     }
 
     if (!firstLeg.start_date) {
         return { success: false, message: 'Trip has no start date' }
     }
 
+    // Construct Google Flights Deep Link immediately (Availability doesn't depend on API success)
+    const departureDate = firstLeg.start_date.split('T')[0]
+    let googleFlightsUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${destinationCode}%20from%20${profile.home_airport}%20on%20${departureDate}`
+
+    if (trip.end_date) {
+        const returnDate = trip.end_date.split('T')[0]
+        googleFlightsUrl += `%20through%20${returnDate}`
+    }
+
+    const fallbackResult = {
+        origin: profile.home_airport,
+        destination: destinationCode,
+        deepLink: googleFlightsUrl
+    }
+
     // 3. Search Flight Offers
     try {
-        const searchParams: Record<string, string> = {
+        const searchParams: Record<string, any> = {
             originLocationCode: profile.home_airport,
             destinationLocationCode: destinationCode,
             departureDate: firstLeg.start_date.split('T')[0], // Ensure YYYY-MM-DD
             currencyCode: 'USD',
-            adults: '1',
-            max: '1'
+            adults: 1, // Changed to number
+            max: 5 // Increased to 5, sometimes 1 is too restrictive for algorithms
         }
 
         // Add return date if trip has an end date
@@ -101,34 +145,76 @@ export async function getEstimateFlightPrice(tripId: string) {
 
         const response = await amadeus.shopping.flightOffersSearch.get(searchParams)
 
-        if (response.data && response.data.length > 0) {
+        if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
             const offer = response.data[0]
-
-            // Construct Google Flights Deep Link
-            // Format: https://www.google.com/travel/flights?q=Flights%20to%20[DEST]%20from%20[ORIGIN]%20on%20[DATE]%20through%20[RETURNDATE]
-            const departureDate = firstLeg.start_date.split('T')[0]
-            let googleFlightsUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${destinationCode}%20from%20${profile.home_airport}%20on%20${departureDate}`
-
-            if (trip.end_date) {
-                const returnDate = trip.end_date.split('T')[0]
-                googleFlightsUrl += `%20through%20${returnDate}`
-            }
 
             return {
                 success: true,
                 currency: offer.price.currency,
                 total: offer.price.total,
                 airline: offer.validatingAirlineCodes[0],
-                origin: profile.home_airport,
-                destination: destinationCode,
-                deepLink: googleFlightsUrl
+                ...fallbackResult
             }
         } else {
-            return { success: false, message: 'No flights found' }
+            console.log('Amadeus: No flights found for parameters:', searchParams)
+            return {
+                success: false,
+                message: 'No flights found',
+                ...fallbackResult
+            }
         }
 
-    } catch (error) {
-        console.error('Amadeus API Error:', error)
-        return { success: false, message: 'Failed to fetch flight estimate' }
+    } catch (error: any) {
+        console.error('Amadeus API Error:', error.message)
+
+        // Return debug info to client since user can't see server logs
+        return {
+            success: false,
+            message: 'Could not fetch estimate', // Generic message
+            // Return the deep link so UI can still be helpful!
+            ...fallbackResult
+        }
     }
+}
+
+export async function updateTripDestination(tripId: string, destinationCode: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    // Check permissions
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id')
+        .eq('id', tripId)
+        .single()
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip?.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!trip || (!isOwner && !isAdmin)) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ destination_airport_code: destinationCode.toUpperCase() })
+        .eq('id', tripId)
+
+    if (error) {
+        console.error('Error updating destination code:', error)
+        return { success: false, message: 'Failed to update destination' }
+    }
+
+    // Revalidate paths that might display this
+    return { success: true }
 }
