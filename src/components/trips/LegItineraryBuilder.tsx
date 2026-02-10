@@ -75,6 +75,7 @@ export default function LegItineraryBuilder({
         } catch (e) {
             console.error('Error generating days:', e)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [startDate, endDate])
 
     const activeSchedule = schedule.find(s => s.date === activeDate)

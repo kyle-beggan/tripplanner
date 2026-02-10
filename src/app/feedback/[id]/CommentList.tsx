@@ -22,11 +22,14 @@ export default function CommentList({ comments }: CommentListProps) {
                 <div key={comment.id} className="flex gap-4">
                     <div className="flex-shrink-0">
                         {comment.user?.avatar_url ? (
-                            <img
-                                src={comment.user.avatar_url}
-                                alt=""
-                                className="h-10 w-10 rounded-full bg-gray-100"
-                            />
+                            <>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={comment.user.avatar_url}
+                                    alt=""
+                                    className="h-10 w-10 rounded-full bg-gray-100"
+                                />
+                            </>
                         ) : (
                             <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600">
                                 {comment.user?.full_name?.charAt(0) || '?'}

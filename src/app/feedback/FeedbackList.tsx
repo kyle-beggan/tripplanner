@@ -173,11 +173,14 @@ export default function FeedbackList({ initialFeedback, currentUser }: FeedbackL
 
                             <div className="flex items-center gap-2 mt-auto pt-4 border-t border-gray-100">
                                 {item.user?.avatar_url ? (
-                                    <img
-                                        src={item.user.avatar_url}
-                                        alt=""
-                                        className="h-6 w-6 rounded-full bg-gray-100"
-                                    />
+                                    <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={item.user.avatar_url}
+                                            alt=""
+                                            className="h-6 w-6 rounded-full bg-gray-100"
+                                        />
+                                    </>
                                 ) : (
                                     <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
                                         {item.user?.full_name?.charAt(0) || '?'}

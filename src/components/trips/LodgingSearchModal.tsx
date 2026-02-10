@@ -356,6 +356,7 @@ export default function LodgingSearchModal({
 
                         <div className="p-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400 bg-gray-50 rounded-b-xl">
                             <span>Results provided by Google Places</span>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="https://developers.google.com/static/maps/documentation/images/google_on_white.png" alt="Powered by Google" className="h-4 opacity-70" />
                         </div>
                     </>

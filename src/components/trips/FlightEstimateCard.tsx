@@ -30,7 +30,7 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
                 setError('Failed to load estimate')
             })
             .finally(() => setLoading(false))
-    }, [tripId])
+    }, [tripId, initialEstimate])
 
     if (loading) {
         return (

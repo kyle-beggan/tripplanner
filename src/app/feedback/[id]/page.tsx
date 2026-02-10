@@ -102,11 +102,14 @@ export default async function FeedbackDetailPage({ params }: PageProps) {
                     <div className="flex items-center mt-6 pt-6 border-t border-gray-100">
                         <div className="flex items-center gap-3">
                             {feedback.user?.avatar_url ? (
-                                <img
-                                    src={feedback.user.avatar_url}
-                                    alt=""
-                                    className="h-10 w-10 rounded-full bg-gray-100"
-                                />
+                                <>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={feedback.user.avatar_url}
+                                        alt=""
+                                        className="h-10 w-10 rounded-full bg-gray-100"
+                                    />
+                                </>
                             ) : (
                                 <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600">
                                     {feedback.user?.full_name?.charAt(0) || '?'}

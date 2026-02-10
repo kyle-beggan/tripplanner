@@ -331,11 +331,14 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                 <div key={participant.id} className="flex flex-col items-center p-4 rounded-lg border border-gray-200 bg-gray-50 hover:shadow-md transition-shadow text-center">
                                     <div className="flex-shrink-0 mb-3">
                                         {participant.profile?.avatar_url ? (
-                                            <img
-                                                src={participant.profile.avatar_url}
-                                                alt={participant.profile.full_name}
-                                                className="h-16 w-16 rounded-full object-cover bg-gray-100 ring-2 ring-white"
-                                            />
+                                            <>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                    src={participant.profile.avatar_url}
+                                                    alt={participant.profile.full_name}
+                                                    className="h-16 w-16 rounded-full object-cover bg-gray-100 ring-2 ring-white"
+                                                />
+                                            </>
                                         ) : (
                                             <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl ring-2 ring-white">
                                                 {participant.profile?.full_name?.charAt(0) || participant.profile?.username?.charAt(0) || '?'}
@@ -377,11 +380,14 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                 <div key={participant.id} className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1">
                                     <div className="flex-shrink-0">
                                         {participant.profile?.avatar_url ? (
-                                            <img
-                                                src={participant.profile.avatar_url}
-                                                alt={participant.profile.full_name}
-                                                className="h-6 w-6 rounded-full object-cover bg-gray-200"
-                                            />
+                                            <>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                    src={participant.profile.avatar_url}
+                                                    alt={participant.profile.full_name}
+                                                    className="h-6 w-6 rounded-full object-cover bg-gray-200"
+                                                />
+                                            </>
                                         ) : (
                                             <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 font-bold">
                                                 {participant.profile?.full_name?.charAt(0) || participant.profile?.username?.charAt(0) || '?'}
