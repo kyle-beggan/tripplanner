@@ -97,12 +97,27 @@ export default function LodgingSearchModal({
     }
 
     // Custom Lodging State
-    const [activeTab, setActiveTab] = useState<'search' | 'custom'>('search')
+    const [activeTab, setActiveTab] = useState<'search' | 'custom' | 'airbnb'>('search')
     const [customName, setCustomName] = useState('')
     const [customAddress, setCustomAddress] = useState('')
     const [customCost, setCustomCost] = useState('')
     const [customLink, setCustomLink] = useState('')
     const [isSubmittingCustom, setIsSubmittingCustom] = useState(false)
+
+    // Airbnb State
+    const [airbnbMinPrice, setAirbnbMinPrice] = useState('')
+    const [airbnbMaxPrice, setAirbnbMaxPrice] = useState('')
+    const [airbnbBedrooms, setAirbnbBedrooms] = useState('')
+
+    const handleAirbnbSearch = () => {
+        const params = new URLSearchParams()
+        params.append('query', locationName)
+        if (airbnbMinPrice) params.append('price_min', airbnbMinPrice)
+        if (airbnbMaxPrice) params.append('price_max', airbnbMaxPrice)
+        if (airbnbBedrooms) params.append('min_bedrooms', airbnbBedrooms)
+
+        window.open(`https://www.airbnb.com/s/${encodeURIComponent(locationName)}/homes?${params.toString()}`, '_blank')
+    }
 
     const handleAddCustom = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -165,7 +180,7 @@ export default function LodgingSearchModal({
                             Find Lodging in {locationName}
                         </h2>
                         <p className="text-sm text-gray-500 mt-1">
-                            Search for hotels or add your own.
+                            Search for hotels, find an Airbnb, or add your own.
                         </p>
                     </div>
                     <button
@@ -182,13 +197,19 @@ export default function LodgingSearchModal({
                         onClick={() => setActiveTab('search')}
                         className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'search' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                     >
-                        Search Places
+                        Find Hotels
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('airbnb')}
+                        className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'airbnb' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Search Airbnb
                     </button>
                     <button
                         onClick={() => setActiveTab('custom')}
                         className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'custom' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                     >
-                        Add Custom (Airbnb/VRBO)
+                        Add Custom
                     </button>
                 </div>
 
@@ -319,6 +340,78 @@ export default function LodgingSearchModal({
                             <img src="https://developers.google.com/static/maps/documentation/images/google_on_white.png" alt="Powered by Google" className="h-4 opacity-70" />
                         </div>
                     </>
+                ) : activeTab === 'airbnb' ? (
+                    <div className="p-6">
+                        <div className="space-y-4">
+                            <div className="p-4 bg-rose-50 rounded-lg text-rose-800 text-sm">
+                                Use this tool to find Airbnb listings in <strong>{locationName}</strong>.
+                                Enter your preferences below to launch a tailored search.
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Min Price
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span className="text-gray-500 sm:text-sm">$</span>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={airbnbMinPrice}
+                                            onChange={(e) => setAirbnbMinPrice(e.target.value)}
+                                            placeholder="100"
+                                            className="w-full rounded-md border border-gray-300 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Max Price
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span className="text-gray-500 sm:text-sm">$</span>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={airbnbMaxPrice}
+                                            onChange={(e) => setAirbnbMaxPrice(e.target.value)}
+                                            placeholder="500"
+                                            className="w-full rounded-md border border-gray-300 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Minimum Bedrooms
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={airbnbBedrooms}
+                                    onChange={(e) => setAirbnbBedrooms(e.target.value)}
+                                    placeholder="e.g. 2"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                />
+                            </div>
+
+                            <div className="pt-4 flex justify-end">
+                                <button
+                                    onClick={handleAirbnbSearch}
+                                    className="px-4 py-2 bg-rose-500 text-white text-sm font-medium rounded-md hover:bg-rose-600 flex items-center gap-2"
+                                >
+                                    <ExternalLink className="h-4 w-4" />
+                                    Search on Airbnb
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 ) : (
                     <div className="p-6">
                         <form onSubmit={handleAddCustom} className="space-y-4">
@@ -402,4 +495,5 @@ export default function LodgingSearchModal({
             </div>
         </div>
     )
+}
 }
