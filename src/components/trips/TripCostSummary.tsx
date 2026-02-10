@@ -1,6 +1,6 @@
 'use client'
 
-import { DollarSign, Plane, Hotel, Ticket, Calculator, HelpCircle } from 'lucide-react'
+import { Plane, Hotel, Ticket, Calculator, HelpCircle } from 'lucide-react'
 
 interface TripCostSummaryProps {
     flightEstimate: number | null

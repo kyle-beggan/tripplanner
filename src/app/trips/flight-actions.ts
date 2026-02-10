@@ -78,7 +78,7 @@ export async function getEstimateFlightPrice(tripId: string) {
 
     // 3. Search Flight Offers
     try {
-        const searchParams: any = {
+        const searchParams: Record<string, string> = {
             originLocationCode: profile.home_airport,
             destinationLocationCode: destinationCode,
             departureDate: firstLeg.start_date.split('T')[0], // Ensure YYYY-MM-DD
