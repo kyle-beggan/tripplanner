@@ -238,3 +238,67 @@ export async function toggleLodgingBookingStatus(tripId: string, legIndex: numbe
     revalidatePath(`/trips/${tripId}`)
     return { success: true }
 }
+
+export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lodgingData: {
+    name: string
+    address?: string
+    total_cost?: number
+    website_uri?: string
+}) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id, locations')
+        .eq('id', tripId)
+        .single()
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip?.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!trip || (!isOwner && !isAdmin)) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+
+    if (!leg) return { success: false, message: 'Leg not found' }
+
+    if (!leg.lodging) leg.lodging = []
+
+    const newLodging = {
+        id: crypto.randomUUID(),
+        name: lodgingData.name,
+        address: lodgingData.address || '',
+        type: 'custom',
+        total_cost: lodgingData.total_cost,
+        website_uri: lodgingData.website_uri,
+        booked: false,
+        rating: null,
+        user_rating_count: null,
+        google_maps_uri: null,
+        price_level: null
+    }
+
+    leg.lodging.push(newLodging)
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
