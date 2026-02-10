@@ -91,12 +91,12 @@ export default function TripLegItem({
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 mb-6 border-b border-gray-100 overflow-x-auto">
+            <div className="flex p-1 mb-6 bg-gray-100 rounded-xl">
                 <button
                     onClick={() => setActiveTab('schedule')}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'schedule'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'schedule'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                         }`}
                 >
                     <List className="h-4 w-4" />
@@ -104,30 +104,32 @@ export default function TripLegItem({
                 </button>
                 <button
                     onClick={() => setActiveTab('lodging')}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'lodging'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'lodging'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                         }`}
                 >
                     <Hotel className="h-4 w-4" />
                     Lodging
                     {leg.lodging && leg.lodging.length > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 text-xs bg-gray-100 rounded-full text-gray-600">
+                        <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full ${activeTab === 'lodging' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-200 text-gray-600'
+                            }`}>
                             {leg.lodging.length}
                         </span>
                     )}
                 </button>
                 <button
                     onClick={() => setActiveTab('activities')}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'activities'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'activities'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                         }`}
                 >
                     <Search className="h-4 w-4" />
                     Find Activities
                     {leg.activities && leg.activities.length > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 text-xs bg-gray-100 rounded-full text-gray-600">
+                        <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full ${activeTab === 'activities' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-200 text-gray-600'
+                            }`}>
                             {leg.activities.length}
                         </span>
                     )}
