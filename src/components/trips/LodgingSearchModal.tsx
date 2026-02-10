@@ -22,6 +22,8 @@ interface LodgingSearchModalProps {
     locationName: string
     tripId: string
     legIndex: number
+    initialStartDate?: string | null
+    initialEndDate?: string | null
     onAdd?: () => void
 }
 
@@ -31,6 +33,8 @@ export default function LodgingSearchModal({
     locationName,
     tripId,
     legIndex,
+    initialStartDate,
+    initialEndDate,
     onAdd
 }: LodgingSearchModalProps) {
     const [places, setPlaces] = useState<Place[]>([])
@@ -108,6 +112,16 @@ export default function LodgingSearchModal({
     const [airbnbMinPrice, setAirbnbMinPrice] = useState('')
     const [airbnbMaxPrice, setAirbnbMaxPrice] = useState('')
     const [airbnbBedrooms, setAirbnbBedrooms] = useState('')
+    const [airbnbCheckin, setAirbnbCheckin] = useState('')
+    const [airbnbCheckout, setAirbnbCheckout] = useState('')
+
+    // Initialize dates when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            if (initialStartDate) setAirbnbCheckin(initialStartDate.split('T')[0])
+            if (initialEndDate) setAirbnbCheckout(initialEndDate.split('T')[0])
+        }
+    }, [isOpen, initialStartDate, initialEndDate])
 
     const handleAirbnbSearch = () => {
         const params = new URLSearchParams()
@@ -115,6 +129,8 @@ export default function LodgingSearchModal({
         if (airbnbMinPrice) params.append('price_min', airbnbMinPrice)
         if (airbnbMaxPrice) params.append('price_max', airbnbMaxPrice)
         if (airbnbBedrooms) params.append('min_bedrooms', airbnbBedrooms)
+        if (airbnbCheckin) params.append('checkin', airbnbCheckin)
+        if (airbnbCheckout) params.append('checkout', airbnbCheckout)
 
         window.open(`https://www.airbnb.com/s/${encodeURIComponent(locationName)}/homes?${params.toString()}`, '_blank')
     }
@@ -346,6 +362,31 @@ export default function LodgingSearchModal({
                             <div className="p-4 bg-rose-50 rounded-lg text-rose-800 text-sm">
                                 Use this tool to find Airbnb listings in <strong>{locationName}</strong>.
                                 Enter your preferences below to launch a tailored search.
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Check In
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={airbnbCheckin}
+                                        onChange={(e) => setAirbnbCheckin(e.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Check Out
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={airbnbCheckout}
+                                        onChange={(e) => setAirbnbCheckout(e.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">

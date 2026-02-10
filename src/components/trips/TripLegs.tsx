@@ -210,6 +210,8 @@ export default function TripLegs({ legs, tripId, isEditable, activityMap }: Trip
                     locationName={legs[activeLegIndex].name}
                     tripId={tripId}
                     legIndex={activeLegIndex}
+                    initialStartDate={legs[activeLegIndex].start_date}
+                    initialEndDate={legs[activeLegIndex].end_date}
                     onAdd={() => {
                         router.refresh()
                         // Optional: close modal on add? maybe keep open for alternatives
