@@ -121,7 +121,7 @@ export default function LegItineraryBuilder({
                     <h3 className="text-lg font-bold text-gray-900">Daily Itinerary: {legName}</h3>
                     <p className="text-xs text-gray-500">Plan your days from 8:00 AM to Midnight</p>
                 </div>
-                <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
+                <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600">
                     <X className="h-5 w-5" />
                 </button>
             </div>
@@ -132,10 +132,11 @@ export default function LegItineraryBuilder({
                     {schedule.map((day) => (
                         <button
                             key={day.date}
+                            type="button"
                             onClick={() => setActiveDate(day.date)}
                             className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors ${activeDate === day.date
-                                    ? 'bg-white border-r-4 border-r-indigo-600 text-indigo-600 font-semibold'
-                                    : 'hover:bg-gray-100 text-gray-600'
+                                ? 'bg-white border-r-4 border-r-indigo-600 text-indigo-600 font-semibold'
+                                : 'hover:bg-gray-100 text-gray-600'
                                 }`}
                         >
                             <div className="text-xs uppercase tracking-wider opacity-70">

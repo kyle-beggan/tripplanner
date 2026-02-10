@@ -43,6 +43,7 @@ interface Trip {
     activities: string[] | null
     locations: TripLeg[] | null
     agenda: any[] | null
+    estimated_participants: number | null
 }
 
 interface TripFormProps {
@@ -61,6 +62,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
     const [startDate, setStartDate] = useState(trip?.start_date || '')
     const [endDate, setEndDate] = useState(trip?.end_date || '')
     const [isPublic, setIsPublic] = useState(trip?.is_public || false)
+    const [estimatedParticipants, setEstimatedParticipants] = useState<number | ''>(trip?.estimated_participants || '')
     const [locations, setLocations] = useState<TripLeg[]>(trip?.locations || [])
     const [newLocation, setNewLocation] = useState('')
     const [availableActivities, setAvailableActivities] = useState<Activity[]>([])
@@ -135,6 +137,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                 locations: locations,
                 agenda: trip?.agenda || [],
                 owner_id: userId,
+                estimated_participants: estimatedParticipants === '' ? null : Number(estimatedParticipants),
                 updated_at: new Date().toISOString(),
             }
 
@@ -254,6 +257,24 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                             placeholder="What's the plan?"
                             className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         />
+                    </div>
+                </div>
+
+                <div>
+                    <label htmlFor="estimated_participants" className="block text-sm font-medium leading-6 text-gray-900">
+                        Estimated Number of Participants
+                    </label>
+                    <div className="mt-2">
+                        <input
+                            type="number"
+                            id="estimated_participants"
+                            min="1"
+                            value={estimatedParticipants}
+                            onChange={(e) => setEstimatedParticipants(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 5"
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Helps with cost estimation.</p>
                     </div>
                 </div>
 
