@@ -4,11 +4,6 @@ import { createClient } from '@/utils/supabase/server'
 // @ts-ignore - amadeus types are not perfect
 import Amadeus from 'amadeus'
 
-const amadeus = new Amadeus({
-    clientId: process.env.AMADEUS_CLIENT_ID,
-    clientSecret: process.env.AMADEUS_CLIENT_SECRET
-})
-
 export async function getEstimateFlightPrice(tripId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -16,6 +11,12 @@ export async function getEstimateFlightPrice(tripId: string) {
     if (!user) {
         return { success: false, message: 'Unauthorized' }
     }
+
+    // Lazy load specific for this request to avoid build-time errors if env vars are missing
+    const amadeus = new Amadeus({
+        clientId: process.env.AMADEUS_CLIENT_ID,
+        clientSecret: process.env.AMADEUS_CLIENT_SECRET
+    })
 
     // 1. Get User Profile for Home Airport
     const { data: profile } = await supabase
