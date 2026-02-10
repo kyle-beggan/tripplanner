@@ -10,6 +10,9 @@ interface TripActivityCardProps {
     locations: string[]
     tripId?: string
     isEditable?: boolean
+    legIndex?: number
+    startDate?: string | null
+    endDate?: string | null
 }
 
 export default function TripActivityCard({
@@ -17,7 +20,10 @@ export default function TripActivityCard({
     requiresGps,
     locations,
     tripId,
-    isEditable
+    isEditable,
+    legIndex,
+    startDate,
+    endDate
 }: TripActivityCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -52,6 +58,9 @@ export default function TripActivityCard({
                 locations={locations}
                 tripId={tripId}
                 isEditable={isEditable}
+                legIndex={legIndex}
+                startDate={startDate}
+                endDate={endDate}
             />
         </>
     )

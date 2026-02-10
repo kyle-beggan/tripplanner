@@ -1,9 +1,8 @@
-'use client'
-
 import { useState, useEffect, useCallback } from 'react'
-import { MapPin, Star, ExternalLink, Loader2, Navigation, X, Plus, Check } from 'lucide-react'
-import { addToTripAgenda } from '@/app/trips/actions'
+import { MapPin, Star, ExternalLink, Loader2, Navigation, X, Plus, Check, Calendar, Clock } from 'lucide-react'
+import { addToTripAgenda, addActivityToLegSchedule } from '@/app/trips/actions'
 import { toast } from 'sonner'
+import { format, eachDayOfInterval, addDays } from 'date-fns'
 
 interface Place {
     id: string
@@ -23,6 +22,9 @@ interface ActivitySearchModalProps {
     locations: string[]
     tripId?: string
     isEditable?: boolean
+    legIndex?: number
+    startDate?: string | null
+    endDate?: string | null
 }
 
 export default function ActivitySearchModal({
@@ -31,7 +33,10 @@ export default function ActivitySearchModal({
     activityName,
     locations,
     tripId,
-    isEditable
+    isEditable,
+    legIndex,
+    startDate,
+    endDate
 }: ActivitySearchModalProps) {
     const [selectedLocation, setSelectedLocation] = useState<string>(locations[0] || '')
     const [places, setPlaces] = useState<Place[]>([])
@@ -39,6 +44,12 @@ export default function ActivitySearchModal({
     const [addingToAgenda, setAddingToAgenda] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [nextPageToken, setNextPageToken] = useState<string | null>(null)
+
+    // Schedule Modal State
+    const [schedulePlace, setSchedulePlace] = useState<Place | null>(null)
+    const [scheduleDate, setScheduleDate] = useState<string>('')
+    const [scheduleTime, setScheduleTime] = useState<string>('12:00')
+    const [isScheduling, setIsScheduling] = useState(false)
 
     const handleSearch = useCallback(async (location: string, pageToken?: string | null) => {
         if (!location) return
@@ -82,6 +93,15 @@ export default function ActivitySearchModal({
     const handleAddToAgenda = async (place: Place) => {
         if (!tripId) return
 
+        // If we have leg context, open schedule modal instead
+        if (typeof legIndex === 'number') {
+            setSchedulePlace(place)
+            if (startDate) {
+                setScheduleDate(startDate.split('T')[0])
+            }
+            return
+        }
+
         const placeName = place.displayName.text
         setAddingToAgenda(placeName)
         try {
@@ -98,6 +118,33 @@ export default function ActivitySearchModal({
         }
     }
 
+    const confirmSchedule = async () => {
+        if (!tripId || typeof legIndex !== 'number' || !schedulePlace || !scheduleDate) return
+
+        setIsScheduling(true)
+        try {
+            const result = await addActivityToLegSchedule(
+                tripId,
+                legIndex,
+                scheduleDate,
+                scheduleTime,
+                schedulePlace.displayName.text,
+                schedulePlace
+            )
+
+            if (result.success) {
+                toast.success('Activity scheduled!')
+                setSchedulePlace(null) // Close schedule modal
+            } else {
+                toast.error(result.message || 'Failed to schedule')
+            }
+        } catch (err) {
+            toast.error('Failed to schedule activity')
+        } finally {
+            setIsScheduling(false)
+        }
+    }
+
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
@@ -105,6 +152,7 @@ export default function ActivitySearchModal({
             setPlaces([])
             setError(null)
             setNextPageToken(null)
+            setSchedulePlace(null)
             // Optional: Auto-search on open
             if (locations.length > 0) {
                 handleSearch(locations[0])
@@ -112,13 +160,98 @@ export default function ActivitySearchModal({
         }
     }, [isOpen, locations, handleSearch])
 
+    // Generate date options
+    const dateOptions = []
+    if (startDate && endDate) {
+        try {
+            const start = new Date(startDate)
+            const end = new Date(endDate)
+            const days = eachDayOfInterval({ start, end })
+            dateOptions.push(...days)
+        } catch (e) {
+            // Fallback if dates invalid
+        }
+    }
+
     if (!isOpen) return null
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
+            <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200 overflow-hidden">
+
+                {/* Schedule Overlay Modal */}
+                {schedulePlace && (
+                    <div className="absolute inset-0 z-10 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-8 animate-in fade-in duration-200">
+                        <div className="w-full max-w-sm space-y-6">
+                            <div className="text-center">
+                                <h3 className="text-xl font-bold text-gray-900">Schedule Activity</h3>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    When do you want to visit <span className="font-semibold text-indigo-600">{schedulePlace.displayName.text}</span>?
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Date</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <select
+                                            value={scheduleDate}
+                                            onChange={(e) => setScheduleDate(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none"
+                                        >
+                                            {dateOptions.length > 0 ? (
+                                                dateOptions.map((d) => (
+                                                    <option key={d.toISOString()} value={format(d, 'yyyy-MM-dd')}>
+                                                        {format(d, 'EEEE, MMM d')}
+                                                    </option>
+                                                ))
+                                            ) : (
+                                                <option value={startDate ? startDate.split('T')[0] : ''}>
+                                                    {startDate ? format(new Date(startDate), 'MMM d') : 'Day 1'}
+                                                </option>
+                                            )}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Time</label>
+                                    <div className="relative">
+                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="time"
+                                            value={scheduleTime}
+                                            onChange={(e) => setScheduleTime(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() => setSchedulePlace(null)}
+                                    disabled={isScheduling}
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmSchedule}
+                                    disabled={isScheduling}
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-sm transition-colors flex items-center justify-center gap-2"
+                                >
+                                    {isScheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white z-0">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                             <Navigation className="h-5 w-5 text-indigo-600" />
@@ -137,7 +270,7 @@ export default function ActivitySearchModal({
                 </div>
 
                 {/* Search Controls */}
-                <div className="p-4 bg-gray-50 border-b border-gray-100">
+                <div className="p-4 bg-gray-50 border-b border-gray-100 z-0">
                     <div className="flex items-center gap-3">
                         <label htmlFor="location-select" className="text-sm font-medium text-gray-700">
                             Location:
@@ -166,7 +299,7 @@ export default function ActivitySearchModal({
                 </div>
 
                 {/* Results List */}
-                <div className="flex-1 overflow-y-auto p-6 min-h-[300px]">
+                <div className="flex-1 overflow-y-auto p-6 min-h-[300px] z-0">
                     {places.length === 0 && !loading && !error && (
                         <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-3">
                             <div className="p-4 bg-gray-100 rounded-full">
@@ -278,7 +411,7 @@ export default function ActivitySearchModal({
                     )}
                 </div>
 
-                <div className="p-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400 bg-gray-50 rounded-b-xl">
+                <div className="p-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400 bg-gray-50 rounded-b-xl z-0">
                     <span>Results provided by Google Places</span>
                     <img src="https://developers.google.com/static/maps/documentation/images/google_on_white.png" alt="Powered by Google" className="h-4 opacity-70" />
                 </div>

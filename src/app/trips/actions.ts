@@ -302,3 +302,80 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
     revalidatePath(`/trips/${tripId}`)
     return { success: true }
 }
+
+export async function addActivityToLegSchedule(tripId: string, legIndex: number, date: string, time: string, description: string, placeDetails?: any) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id, locations')
+        .eq('id', tripId)
+        .single()
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip?.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!trip || (!isOwner && !isAdmin)) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+
+    if (!leg) return { success: false, message: 'Leg not found' }
+
+    if (!leg.schedule) {
+        // Initialize schedule if empty. 
+        // We might want to pre-fill it based on start/end dates, but for now just create the array
+        leg.schedule = []
+    }
+
+    // Find or create day entry
+    let daySchedule = leg.schedule.find((d: any) => d.date.split('T')[0] === date)
+
+    // If exact match not found, try to find by string comparison carefully? 
+    // Assuming date passed in is YYYY-MM-DD
+    if (!daySchedule) {
+        daySchedule = {
+            date: date,
+            activities: []
+        }
+        leg.schedule.push(daySchedule)
+        // Sort schedule by date
+        leg.schedule.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    }
+
+    if (!daySchedule.activities) daySchedule.activities = []
+
+    // Add activity
+    daySchedule.activities.push({
+        time: time,
+        description: description
+    })
+
+    // Sort activities by time
+    daySchedule.activities.sort((a: any, b: any) => {
+        const timeA = a.time.replace(':', '')
+        const timeB = b.time.replace(':', '')
+        return parseInt(timeA) - parseInt(timeB)
+    })
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
