@@ -6,6 +6,7 @@ import { format } from 'date-fns'
 import TripRSVPButton from '@/components/trips/TripRSVPButton'
 import TripActivityCard from '@/components/trips/TripActivityCard'
 import TripLegs from '@/components/trips/TripLegs'
+import TripInviteButton from '@/components/trips/TripInviteButton'
 
 interface ScheduledActivity {
     time: string
@@ -246,6 +247,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                         legs={legs}
                         tripId={trip.id}
                         isEditable={isEditable}
+                        canManageBooking={isOwner || isAdmin}
                         activityMap={activityMap}
                     />
                 </section>
@@ -253,10 +255,17 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 {/* Who's Coming Section */}
                 <section className="bg-white shadow rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900">Who&apos;s Coming</h2>
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                            {totalConfirmed} confirmed
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-xl font-semibold text-gray-900">Who&apos;s Coming</h2>
+                            <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                {totalConfirmed} confirmed
+                            </span>
+                        </div>
+                        <TripInviteButton
+                            tripId={trip.id}
+                            tripName={trip.name}
+                            isOwnerOrAdmin={isOwner || isAdmin}
+                        />
                     </div>
 
                     {going.length > 0 ? (

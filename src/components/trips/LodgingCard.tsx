@@ -24,10 +24,11 @@ interface LodgingCardProps {
     tripId: string
     legIndex: number
     isEditable: boolean
+    canManageBooking: boolean
     onUpdate?: () => void
 }
 
-export default function LodgingCard({ lodging, tripId, legIndex, isEditable, onUpdate }: LodgingCardProps) {
+export default function LodgingCard({ lodging, tripId, legIndex, isEditable, canManageBooking, onUpdate }: LodgingCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
 
     const handleToggleBooked = async () => {
@@ -147,18 +148,20 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, onU
 
             {isEditable && (
                 <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100/50">
-                    <button
-                        onClick={handleToggleBooked}
-                        disabled={isUpdating}
-                        className={`
-                            flex-1 text-xs font-semibold py-2 px-3 rounded-lg transition-colors
-                            ${lodging.booked
-                                ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'}
-                        `}
-                    >
-                        {lodging.booked ? 'Mark Unbooked' : 'Mark as Booked'}
-                    </button>
+                    {canManageBooking && (
+                        <button
+                            onClick={handleToggleBooked}
+                            disabled={isUpdating}
+                            className={`
+                                flex-1 text-xs font-semibold py-2 px-3 rounded-lg transition-colors
+                                ${lodging.booked
+                                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'}
+                            `}
+                        >
+                            {lodging.booked ? 'Mark Unbooked' : 'Mark as Booked'}
+                        </button>
+                    )}
                     {!lodging.booked && (
                         <button
                             onClick={handleRemove}

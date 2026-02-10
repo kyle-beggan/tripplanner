@@ -379,3 +379,82 @@ export async function addActivityToLegSchedule(tripId: string, legIndex: number,
     revalidatePath(`/trips/${tripId}`)
     return { success: true }
 }
+
+export async function sendTripInvitation(tripId: string, emails: string[], message: string) {
+    // 1. Verify user session
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false, message: 'Unauthorized' }
+
+    // 2. Verify permissions (Owner or Admin)
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id, name')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!isOwner && !isAdmin) {
+        return { success: false, message: 'You do not have permission to invite people to this trip.' }
+    }
+
+    // 3. Send Emails via Resend
+    const resendApiKey = process.env.RESEND_API_KEY
+
+    if (!resendApiKey) {
+        console.error('RESEND_API_KEY is not set')
+        return { success: false, message: 'Server configuration error: Email service not configured.' }
+    }
+
+    try {
+        const { Resend } = await import('resend')
+        const resend = new Resend(resendApiKey)
+
+        // Send to each recipient
+        // In production, you might want to batch this or use a queue
+        const emailPromises = emails.map(email => {
+            return resend.emails.send({
+                from: 'LFG Places <onboarding@resend.dev>', // Update this with your verified domain
+                to: email,
+                subject: `Invitation to ${trip.name}`,
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #4f46e5;">You're invited!</h2>
+                        <p>${user.user_metadata?.full_name || 'A friend'} invited you to join <strong>${trip.name}</strong> on LFG Places.</p>
+                        
+                        <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
+                            <p style="margin-top: 0; white-space: pre-wrap;">${message}</p>
+                        </div>
+
+                        <a href="${process.env.NEXT_PUBLIC_APP_URL}/trips/${tripId}" 
+                           style="display: inline-block; background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                           View Trip & RSVP
+                        </a>
+                        
+                        <p style="color: #6b7280; font-size: 12px; margin-top: 32px;">
+                            Sent via LFG Places
+                        </p>
+                    </div>
+                `
+            })
+        })
+
+        await Promise.all(emailPromises)
+        return { success: true }
+
+    } catch (error) {
+        console.error('Resend error:', error)
+        return { success: false, message: 'Failed to send emails.' }
+    }
+}

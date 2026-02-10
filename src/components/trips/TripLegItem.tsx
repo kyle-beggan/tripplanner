@@ -187,7 +187,7 @@ export default function TripLegItem({
                                         <List className="h-8 w-8 text-gray-300 mb-2" />
                                         <p className="text-sm font-medium">Your itinerary is empty.</p>
                                         <p className="text-xs text-gray-400 mt-1">
-                                            Check "Find Activities" to add some fun!
+                                            Check &quot;Find Activities&quot; to add some fun!
                                         </p>
                                     </div>
                                 )}
@@ -280,7 +280,7 @@ export default function TripLegItem({
                                         <Search className="h-8 w-8 text-gray-300 mx-auto mb-3" />
                                         <p className="text-sm text-gray-500 font-medium">No activities planned.</p>
                                         <p className="text-xs text-gray-400 mt-1">
-                                            Edit the trip to add activity categories like "Museums" or "Hiking".
+                                            Edit the trip to add activity categories like &quot;Museums&quot; or &quot;Hiking&quot;.
                                         </p>
                                     </div>
                                 )}
