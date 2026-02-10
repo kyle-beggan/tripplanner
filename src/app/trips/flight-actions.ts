@@ -13,10 +13,16 @@ export async function getEstimateFlightPrice(tripId: string) {
     }
 
     // Lazy load specific for this request to avoid build-time errors if env vars are missing
-    const amadeus = new Amadeus({
-        clientId: process.env.AMADEUS_CLIENT_ID,
-        clientSecret: process.env.AMADEUS_CLIENT_SECRET
-    })
+    let amadeus;
+    try {
+        amadeus = new Amadeus({
+            clientId: process.env.AMADEUS_CLIENT_ID,
+            clientSecret: process.env.AMADEUS_CLIENT_SECRET
+        })
+    } catch (error) {
+        console.error('Amadeus SDK Initialization Error:', error)
+        return { success: false, message: 'Flight service unavailable' }
+    }
 
     // 1. Get User Profile for Home Airport
     const { data: profile } = await supabase
