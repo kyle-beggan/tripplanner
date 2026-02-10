@@ -19,9 +19,16 @@ export async function getEstimateFlightPrice(tripId: string) {
             clientId: process.env.AMADEUS_CLIENT_ID,
             clientSecret: process.env.AMADEUS_CLIENT_SECRET
         })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Amadeus SDK Initialization Error:', error)
-        return { success: false, message: 'Flight service unavailable' }
+        console.log('Amadeus Env Vars Check:', {
+            hasId: !!process.env.AMADEUS_CLIENT_ID,
+            hasSecret: !!process.env.AMADEUS_CLIENT_SECRET,
+            idLength: process.env.AMADEUS_CLIENT_ID?.length,
+            secretLength: process.env.AMADEUS_CLIENT_SECRET?.length
+        })
+        const errorDetails = error?.response?.parsed?.error_description || error?.message || 'Unknown error'
+        return { success: false, message: `Flight service unavailable: ${errorDetails}` }
     }
 
     // 1. Get User Profile for Home Airport
