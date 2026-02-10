@@ -7,6 +7,8 @@ import { format, addDays, parseISO, isBefore, isAfter, eachDayOfInterval } from 
 interface ScheduledActivity {
     time: string // e.g., "08:00"
     description: string
+    estimated_cost?: number
+    location_name?: string
 }
 
 interface DailySchedule {
@@ -176,53 +178,77 @@ export default function LegItineraryBuilder({
 
                             <div className="space-y-4">
                                 {activeSchedule?.activities.map((activity, idx) => (
-                                    <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50 group">
-                                        <div className="w-32">
-                                            <select
-                                                value={activity.time}
-                                                onChange={(e) => updateActivity(activeDate, idx, { time: e.target.value })}
-                                                className="block w-full rounded-md border-gray-200 text-sm focus:ring-indigo-500 focus:border-indigo-500 py-1"
-                                            >
-                                                {TIME_SLOTS.map(slot => (
-                                                    <option key={slot.value} value={slot.value}>{slot.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="flex-1 relative">
-                                            <input
-                                                type="text"
-                                                value={activity.description}
-                                                onChange={(e) => updateActivity(activeDate, idx, { description: e.target.value })}
-                                                placeholder="What are you doing? (e.g. Lunch at the Pier)"
-                                                className="block w-full border-0 border-b border-transparent bg-transparent focus:ring-0 focus:border-indigo-600 text-sm placeholder:text-gray-400 transition-all font-medium py-1"
-                                            />
-                                            {/* Suggestions from leg activities */}
-                                            {legActivities.length > 0 && !activity.description && (
-                                                <div className="absolute top-full left-0 z-10 mt-1 w-full bg-white border border-gray-100 rounded-md shadow-lg overflow-hidden hidden group-focus-within:block">
-                                                    <div className="p-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50">
-                                                        From Leg Activities
-                                                    </div>
-                                                    {legActivities.map(act => (
-                                                        <button
-                                                            key={act}
-                                                            type="button"
-                                                            onClick={() => updateActivity(activeDate, idx, { description: act })}
-                                                            className="w-full text-left px-3 py-2 text-xs text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
-                                                        >
-                                                            <Check className="h-3 w-3" />
-                                                            {act}
-                                                        </button>
+                                    <div key={idx} className="p-3 rounded-lg border border-gray-100 bg-gray-50/50 group space-y-3">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-32">
+                                                <select
+                                                    value={activity.time}
+                                                    onChange={(e) => updateActivity(activeDate, idx, { time: e.target.value })}
+                                                    className="block w-full rounded-md border-gray-200 text-sm focus:ring-indigo-500 focus:border-indigo-500 py-1"
+                                                >
+                                                    {TIME_SLOTS.map(slot => (
+                                                        <option key={slot.value} value={slot.value}>{slot.label}</option>
                                                     ))}
-                                                </div>
-                                            )}
+                                                </select>
+                                            </div>
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    type="text"
+                                                    value={activity.description}
+                                                    onChange={(e) => updateActivity(activeDate, idx, { description: e.target.value })}
+                                                    placeholder="What are you doing? (e.g. Lunch at the Pier)"
+                                                    className="block w-full border-0 border-b border-transparent bg-transparent focus:ring-0 focus:border-indigo-600 text-sm placeholder:text-gray-400 transition-all font-medium py-1"
+                                                />
+                                                {/* Suggestions from leg activities */}
+                                                {legActivities.length > 0 && !activity.description && (
+                                                    <div className="absolute top-full left-0 z-10 mt-1 w-full bg-white border border-gray-100 rounded-md shadow-lg overflow-hidden hidden group-focus-within:block">
+                                                        <div className="p-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50">
+                                                            From Leg Activities
+                                                        </div>
+                                                        {legActivities.map(act => (
+                                                            <button
+                                                                key={act}
+                                                                type="button"
+                                                                onClick={() => updateActivity(activeDate, idx, { description: act })}
+                                                                className="w-full text-left px-3 py-2 text-xs text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
+                                                            >
+                                                                <Check className="h-3 w-3" />
+                                                                {act}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeActivity(activeDate, idx)}
+                                                className="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeActivity(activeDate, idx)}
-                                            className="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </button>
+
+                                        <div className="flex items-center gap-4 pl-[8.5rem]">
+                                            <div className="flex-1">
+                                                <input
+                                                    type="text"
+                                                    value={activity.location_name || ''}
+                                                    onChange={(e) => updateActivity(activeDate, idx, { location_name: e.target.value })}
+                                                    placeholder="Location name (for Google Maps)"
+                                                    className="block w-full rounded-md border-gray-200 text-xs py-1 px-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                                                />
+                                            </div>
+                                            <div className="w-24 relative">
+                                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                                                <input
+                                                    type="number"
+                                                    value={activity.estimated_cost || ''}
+                                                    onChange={(e) => updateActivity(activeDate, idx, { estimated_cost: e.target.value ? Number(e.target.value) : undefined })}
+                                                    placeholder="Cost / Person"
+                                                    className="block w-full rounded-md border-gray-200 text-xs py-1 pl-5 pr-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
 

@@ -6,11 +6,14 @@ import { format } from 'date-fns'
 import TripActivityCard from '@/components/trips/TripActivityCard'
 import LodgingCard from '@/components/trips/LodgingCard'
 import LodgingSearchModal from '@/components/trips/LodgingSearchModal'
+import ActivitySearchModal from '@/components/activities/ActivitySearchModal'
 import { useRouter } from 'next/navigation'
 
 interface ScheduledActivity {
     time: string
     description: string
+    estimated_cost?: number
+    location_name?: string
 }
 
 interface DailySchedule {
@@ -25,6 +28,7 @@ interface Lodging {
     type: 'hotel' | 'airbnb' | 'other' | 'custom'
     price_level?: number
     total_cost?: number
+    estimated_cost_per_person?: number
     rating?: number
     user_rating_count?: number
     google_maps_uri?: string
@@ -61,6 +65,7 @@ export default function TripLegItem({
     const router = useRouter()
     const [activeTab, setActiveTab] = useState<'schedule' | 'lodging' | 'activities'>('schedule')
     const [searchModalOpen, setSearchModalOpen] = useState(false)
+    const [activitySearchOpen, setActivitySearchOpen] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
 
     const formatDate = (dateString: string | null | undefined, formatStr: string = 'MMM d, yyyy') => {
@@ -160,6 +165,15 @@ export default function TripLegItem({
                                                 <Clock className="h-3.5 w-3.5" />
                                                 {formatDate(day.date, 'EEEE, MMM d')}
                                             </h4>
+                                            {isEditable && (
+                                                <button
+                                                    onClick={() => setActivitySearchOpen(true)}
+                                                    className="ml-auto text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:bg-indigo-50 px-2 py-1 rounded transition-colors"
+                                                >
+                                                    <Plus className="w-3 h-3" />
+                                                    Add Activity
+                                                </button>
+                                            )}
                                             <div className="space-y-0 relative">
                                                 <div className="absolute left-[39px] top-6 bottom-6 w-0.5 bg-indigo-50" />
                                                 {day.activities.map((item, iIdx) => (
@@ -175,7 +189,28 @@ export default function TripLegItem({
                                                         </div>
                                                         <div className="relative z-10 mt-1.5 w-2 h-2 rounded-full bg-indigo-200 ring-4 ring-white group-hover:bg-indigo-600 transition-colors" />
                                                         <div className="flex-1 bg-gray-50 rounded-lg p-3 group-hover:bg-indigo-50/50 transition-colors border border-transparent group-hover:border-indigo-100">
-                                                            <p className="text-sm font-semibold text-gray-900">{item.description}</p>
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <div>
+                                                                    <p className="text-sm font-semibold text-gray-900">{item.description}</p>
+                                                                    {item.location_name && (
+                                                                        <a
+                                                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location_name)}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 hover:underline mt-1"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            <MapPin className="h-3 w-3" />
+                                                                            Get Directions
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                                {item.estimated_cost && item.estimated_cost > 0 && (
+                                                                    <div className="text-xs font-medium text-gray-600 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm whitespace-nowrap">
+                                                                        ${item.estimated_cost}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -189,10 +224,35 @@ export default function TripLegItem({
                                         <p className="text-xs text-gray-400 mt-1">
                                             Check &quot;Find Activities&quot; to add some fun!
                                         </p>
+                                        {isEditable && (
+                                            <button
+                                                onClick={() => setActivitySearchOpen(true)}
+                                                className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Add an activity now
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         )}
+
+                        <ActivitySearchModal
+                            isOpen={activitySearchOpen}
+                            onClose={() => setActivitySearchOpen(false)}
+                            activityName="Attractions" // Default search term
+                            locations={[leg.name]} // Default to leg location
+                            enableScheduling={true}
+                            tripId={tripId}
+                            legIndex={legIndex}
+                            initialStartDate={leg.start_date}
+                            initialEndDate={leg.end_date}
+                            onSchedule={() => {
+                                setActivitySearchOpen(false)
+                                router.refresh()
+                            }}
+                        />
 
                         {activeTab === 'lodging' && (
                             <div className="space-y-6 animate-in fade-in duration-300 slide-in-from-bottom-2">

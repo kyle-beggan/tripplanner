@@ -93,7 +93,7 @@ export async function addToTripAgenda(tripId: string, place: any) {
 }
 
 // Lodging actions
-export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingData: any) {
+export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingData: any, estimatedCostPerPerson?: number) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -136,7 +136,8 @@ export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingD
         user_rating_count: lodgingData.userRatingCount,
         google_maps_uri: lodgingData.googleMapsUri,
         website_uri: lodgingData.websiteUri,
-        booked: false
+        booked: false,
+        estimated_cost_per_person: estimatedCostPerPerson
     }
 
     leg.lodging.push(newLodging)
@@ -243,6 +244,7 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
     name: string
     address?: string
     total_cost?: number
+    estimated_cost_per_person?: number
     website_uri?: string
 }) {
     const supabase = await createClient()
@@ -287,7 +289,8 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
         rating: null,
         user_rating_count: null,
         google_maps_uri: null,
-        price_level: null
+        price_level: null,
+        estimated_cost_per_person: lodgingData.estimated_cost_per_person
     }
 
     leg.lodging.push(newLodging)
@@ -303,7 +306,7 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
     return { success: true }
 }
 
-export async function addActivityToLegSchedule(tripId: string, legIndex: number, date: string, time: string, description: string, placeDetails?: any) {
+export async function addActivityToLegSchedule(tripId: string, legIndex: number, date: string, time: string, description: string, placeDetails?: any, estimatedCost?: number, locationName?: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -359,7 +362,9 @@ export async function addActivityToLegSchedule(tripId: string, legIndex: number,
     // Add activity
     daySchedule.activities.push({
         time: time,
-        description: description
+        description: description,
+        estimated_cost: estimatedCost,
+        location_name: locationName
     })
 
     // Sort activities by time
@@ -390,7 +395,7 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
     // 2. Verify permissions (Owner or Admin)
     const { data: trip } = await supabase
         .from('trips')
-        .select('owner_id, name')
+        .select('owner_id, name, locations')
         .eq('id', tripId)
         .single()
 
@@ -437,6 +442,8 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
                             <p style="margin-top: 0; white-space: pre-wrap;">${message}</p>
                         </div>
 
+                        ${formatItineraryHTML(trip.locations)}
+
                         <a href="${process.env.NEXT_PUBLIC_APP_URL}/trips/${tripId}" 
                            style="display: inline-block; background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                            View Trip & RSVP
@@ -457,4 +464,122 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
         console.error('Resend error:', error)
         return { success: false, message: 'Failed to send emails.' }
     }
+}
+
+// Helper to format itinerary
+const formatItineraryHTML = (locations: any) => {
+    if (!Array.isArray(locations) || locations.length === 0) return ''
+
+    let html = '<div style="margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">'
+    html += '<div style="background-color: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #111827;">Trip Itinerary</div>'
+
+    locations.forEach((leg: any, index: number) => {
+        const hasActivities = leg.schedule && Array.isArray(leg.schedule) && leg.schedule.length > 0
+
+        html += `<div style="padding: 16px; border-bottom: ${index === locations.length - 1 ? 'none' : '1px solid #e5e7eb'};">`
+        html += `<h3 style="margin: 0 0 8px 0; color: #4f46e5; font-size: 16px;">${leg.name || `Leg ${index + 1}`}</h3>`
+
+        if (leg.start_date && leg.end_date) {
+            const start = new Date(leg.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            const end = new Date(leg.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            html += `<p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">${start} - ${end}</p>`
+        }
+
+        if (hasActivities) {
+            html += '<ul style="margin: 0; padding-left: 20px; color: #374151;">'
+            leg.schedule.forEach((day: any) => {
+                const date = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                html += `<li style="margin-bottom: 8px;"><strong>${date}</strong>`
+
+                if (day.activities && day.activities.length > 0) {
+                    html += '<ul style="margin: 4px 0 0 0; padding-left: 20px; list-style-type: circle;">'
+                    day.activities.forEach((activity: any) => {
+                        html += `<li style="margin-bottom: 4px; font-size: 14px;">${activity.time} - ${activity.description}</li>`
+                    })
+                    html += '</ul>'
+                } else {
+                    html += ' <span style="font-size: 14px; color: #9ca3af;">- No scheduled activities</span>'
+                }
+                html += '</li>'
+            })
+            html += '</ul>'
+        } else {
+            html += '<p style="margin: 0; color: #9ca3af; font-style: italic; font-size: 14px;">No itinerary details yet.</p>'
+        }
+        html += '</div>'
+    })
+
+    html += '</div>'
+    return html
+}
+
+export async function getTripItineraryPreview(tripId: string) {
+    const supabase = await createClient()
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return ''
+
+    return formatItineraryHTML(trip.locations)
+}
+
+export async function updateLodgingInLeg(tripId: string, legIndex: number, lodgingId: string, updates: {
+    name?: string
+    address?: string
+    total_cost?: number
+    estimated_cost_per_person?: number
+    website_uri?: string
+}) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id, locations')
+        .eq('id', tripId)
+        .single()
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip?.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!trip || (!isOwner && !isAdmin)) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+
+    if (!leg || !leg.lodging) return { success: false, message: 'Lodging not found' }
+
+    const lodgingIndex = leg.lodging.findIndex((l: any) => l.id === lodgingId)
+    if (lodgingIndex === -1) return { success: false, message: 'Lodging not found' }
+
+    // Merge updates
+    const currentLodging = leg.lodging[lodgingIndex]
+    leg.lodging[lodgingIndex] = {
+        ...currentLodging,
+        ...updates
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
 }

@@ -25,6 +25,10 @@ interface ActivitySearchModalProps {
     legIndex?: number
     startDate?: string | null
     endDate?: string | null
+    enableScheduling?: boolean
+    onSchedule?: () => void
+    initialStartDate?: string | null
+    initialEndDate?: string | null
 }
 
 export default function ActivitySearchModal({
@@ -36,7 +40,11 @@ export default function ActivitySearchModal({
     isEditable,
     legIndex,
     startDate,
-    endDate
+    endDate,
+    enableScheduling = false,
+    onSchedule,
+    initialStartDate,
+    initialEndDate
 }: ActivitySearchModalProps) {
     const [selectedLocation, setSelectedLocation] = useState<string>(locations[0] || '')
     const [places, setPlaces] = useState<Place[]>([])
@@ -49,10 +57,11 @@ export default function ActivitySearchModal({
     const [schedulePlace, setSchedulePlace] = useState<Place | null>(null)
     const [scheduleDate, setScheduleDate] = useState<string>('')
     const [scheduleTime, setScheduleTime] = useState<string>('12:00')
+    const [scheduleCost, setScheduleCost] = useState<string>('')
     const [isScheduling, setIsScheduling] = useState(false)
 
     const handleSearch = useCallback(async (location: string, pageToken?: string | null) => {
-        if (!location) return
+        if (!location || !activityName) return
 
         setLoading(true)
         setError(null)
@@ -129,12 +138,15 @@ export default function ActivitySearchModal({
                 scheduleDate,
                 scheduleTime,
                 schedulePlace.displayName.text,
-                schedulePlace
+                schedulePlace,
+                scheduleCost ? Number(scheduleCost) : undefined,
+                schedulePlace.formattedAddress
             )
 
             if (result.success) {
                 toast.success('Activity scheduled!')
                 setSchedulePlace(null) // Close schedule modal
+                onSchedule?.()
             } else {
                 toast.error(result.message || 'Failed to schedule')
             }
@@ -152,7 +164,9 @@ export default function ActivitySearchModal({
             setPlaces([])
             setError(null)
             setNextPageToken(null)
+            setNextPageToken(null)
             setSchedulePlace(null)
+            setScheduleCost('')
             // Optional: Auto-search on open
             if (locations.length > 0) {
                 handleSearch(locations[0])
@@ -227,6 +241,22 @@ export default function ActivitySearchModal({
                                         />
                                     </div>
                                 </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Est. Cost / Person</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={scheduleCost}
+                                            onChange={(e) => setScheduleCost(e.target.value)}
+                                            placeholder="0.00"
+                                            className="w-full pl-7 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex gap-3 pt-2">
@@ -248,7 +278,8 @@ export default function ActivitySearchModal({
                             </div>
                         </div>
                     </div>
-                )}
+                )
+                }
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white z-0">
@@ -360,7 +391,7 @@ export default function ActivitySearchModal({
                                             ) : (
                                                 <Plus className="h-3 w-3" />
                                             )}
-                                            <span>Add to Agenda</span>
+                                            <span>{enableScheduling ? 'Schedule' : 'Add to Agenda'}</span>
                                         </button>
                                     )}
                                     {place.googleMapsUri && (
@@ -415,8 +446,8 @@ export default function ActivitySearchModal({
                     <span>Results provided by Google Places</span>
                     <img src="https://developers.google.com/static/maps/documentation/images/google_on_white.png" alt="Powered by Google" className="h-4 opacity-70" />
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }
 

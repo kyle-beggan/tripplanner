@@ -105,6 +105,7 @@ export default function LodgingSearchModal({
     const [customName, setCustomName] = useState('')
     const [customAddress, setCustomAddress] = useState('')
     const [customCost, setCustomCost] = useState('')
+    const [customEstPerPerson, setCustomEstPerPerson] = useState('')
     const [customLink, setCustomLink] = useState('')
     const [isSubmittingCustom, setIsSubmittingCustom] = useState(false)
 
@@ -149,6 +150,7 @@ export default function LodgingSearchModal({
                 name: customName,
                 address: customAddress,
                 total_cost: customCost ? Number(customCost) : undefined,
+                estimated_cost_per_person: customEstPerPerson ? Number(customEstPerPerson) : undefined,
                 website_uri: customLink
             })
 
@@ -159,6 +161,7 @@ export default function LodgingSearchModal({
                 setCustomName('')
                 setCustomAddress('')
                 setCustomCost('')
+                setCustomEstPerPerson('')
                 setCustomLink('')
                 // Switch back to search or close? Maybe keep open
             } else {
@@ -497,6 +500,26 @@ export default function LodgingSearchModal({
                                         step="0.01"
                                         value={customCost}
                                         onChange={(e) => setCustomCost(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full rounded-md border border-gray-300 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Est. Cost Per Person
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-gray-500 sm:text-sm">$</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={customEstPerPerson}
+                                        onChange={(e) => setCustomEstPerPerson(e.target.value)}
                                         placeholder="0.00"
                                         className="w-full rounded-md border border-gray-300 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     />

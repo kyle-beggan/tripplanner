@@ -7,10 +7,15 @@ import TripRSVPButton from '@/components/trips/TripRSVPButton'
 import TripActivityCard from '@/components/trips/TripActivityCard'
 import TripLegs from '@/components/trips/TripLegs'
 import TripInviteButton from '@/components/trips/TripInviteButton'
+import TripCostSummary from '@/components/trips/TripCostSummary'
+import FlightEstimateCard from '@/components/trips/FlightEstimateCard'
+import { getEstimateFlightPrice } from '@/app/trips/flight-actions'
 
 interface ScheduledActivity {
     time: string
     description: string
+    estimated_cost?: number
+    location_name?: string
 }
 
 interface DailySchedule {
@@ -38,6 +43,8 @@ interface Lodging {
     google_maps_uri?: string
     website_uri?: string
     booked: boolean
+    estimated_cost_per_person?: number
+    total_cost?: number
 }
 
 interface PageProps {
@@ -170,7 +177,36 @@ export default async function TripDetailsPage({ params }: PageProps) {
         return acc + 1 + guestCount
     }, 0)
 
+
+
+    // Calculate estimated costs
+    // 1. Lodging: Sum of all total_cost / estimated participants
+    // User request: "The estimated cost for lodging should be the total of all lodging entries for the entire trip divided by the estimated number of participants for the trip."
+
+    const totalLodgingCost = legs.reduce((total, leg) => {
+        const legLodging = leg.lodging || []
+        const legCost = legLodging.reduce((acc, l) => acc + (l.total_cost || 0), 0)
+        return total + legCost
+    }, 0)
+
+    const estimatedParticipantsCount = trip.estimated_participants || 1 // Fallback to 1 to avoid division by zero
+    const lodgingEstPerPerson = totalLodgingCost / estimatedParticipantsCount
+
+    // 2. Activities: Sum of all estimated_cost in schedule
+    const activityEstPerPerson = legs.reduce((total, leg) => {
+        const schedule = leg.schedule || []
+        const legActivityCost = schedule.reduce((accDay, day) => {
+            return accDay + day.activities.reduce((accAct, act) => accAct + (act.estimated_cost || 0), 0)
+        }, 0)
+        return total + legActivityCost
+    }, 0)
+
     const userParticipation = user ? participants.find(p => p.user_id === user.id) : null
+
+
+    // Fetch Flight Estimate (Server Side)
+    const flightEstimate = await getEstimateFlightPrice(trip.id)
+    const flightCost = flightEstimate.success && flightEstimate.total ? Number(flightEstimate.total) : null
 
     return (
         <div className="min-h-full pb-12">
@@ -225,16 +261,37 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-                {/* Details Section */}
-                <section className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
-                    <div className="prose max-w-none text-gray-600">
-                        {trip.description ? (
-                            <p className="whitespace-pre-wrap">{trip.description}</p>
-                        ) : (
-                            <p className="italic text-gray-500">No description provided.</p>
-                        )}
+                {/* Details & Cost Summary Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Left Column: Details */}
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
+                        <div className="prose max-w-none text-gray-600">
+                            {trip.description ? (
+                                <p className="whitespace-pre-wrap">{trip.description}</p>
+                            ) : (
+                                <p className="italic text-gray-500">No description provided.</p>
+                            )}
+                        </div>
                     </div>
+
+                    {/* Right Column: Cost Summary */}
+                    <div>
+                        <TripCostSummary
+                            flightEstimate={flightCost}
+                            lodgingEstPerPerson={lodgingEstPerPerson}
+                            activityEstPerPerson={activityEstPerPerson}
+                            estimatedParticipants={trip.estimated_participants || 0}
+                        />
+                    </div>
+                </div>
+
+                {/* Flight Estimate Row */}
+                <section>
+                    <FlightEstimateCard
+                        tripId={trip.id}
+                        initialEstimate={flightEstimate}
+                    />
                 </section>
 
                 {/* Itinerary Section */}

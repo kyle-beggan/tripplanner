@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
+import TripInviteButton from './TripInviteButton'
 
 interface TripLeg {
     name: string
@@ -136,13 +137,18 @@ export default function TripCard({ trip, currentUserId, isAdmin }: TripCardProps
                     </div>
                 </div>
 
-                <div className="border-t border-gray-100 bg-gray-50 p-4">
+                <div className="border-t border-gray-100 bg-gray-50 p-4 flex gap-3">
                     <Link
                         href={`/trips/${trip.id}`}
-                        className="flex w-full items-center justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors"
+                        className="flex-1 flex items-center justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors"
                     >
                         View Trip Details
                     </Link>
+                    <TripInviteButton
+                        tripId={trip.id}
+                        tripName={trip.name}
+                        isOwnerOrAdmin={!!canDelete}
+                    />
                 </div>
             </div>
 

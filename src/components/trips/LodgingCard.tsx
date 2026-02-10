@@ -1,9 +1,11 @@
 'use client'
 
-import { MapPin, Globe, ExternalLink, Trash2, Check, Home, Star } from 'lucide-react'
+import { MapPin, Globe, ExternalLink, Trash2, Check, Home, Star, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { toggleLodgingBookingStatus, removeLodgingFromLeg } from '@/app/trips/actions'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
+import LodgingEditModal from './LodgingEditModal'
 
 interface Lodging {
     id: string
@@ -12,6 +14,7 @@ interface Lodging {
     type: 'hotel' | 'airbnb' | 'other' | 'custom'
     price_level?: number
     total_cost?: number
+    estimated_cost_per_person?: number
     rating?: number
     user_rating_count?: number
     google_maps_uri?: string
@@ -30,6 +33,8 @@ interface LodgingCardProps {
 
 export default function LodgingCard({ lodging, tripId, legIndex, isEditable, canManageBooking, onUpdate }: LodgingCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
 
     const handleToggleBooked = async () => {
         setIsUpdating(true)
@@ -48,9 +53,11 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
         }
     }
 
-    const handleRemove = async () => {
-        if (!confirm('Are you sure you want to remove this lodging option?')) return
+    const handleRemoveClick = () => {
+        setShowDeleteModal(true)
+    }
 
+    const handleConfirmRemove = async () => {
         setIsUpdating(true)
         try {
             const result = await removeLodgingFromLeg(tripId, legIndex, lodging.id)
@@ -146,34 +153,74 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
                 </div>
             </div>
 
-            {isEditable && (
-                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100/50">
-                    {canManageBooking && (
-                        <button
-                            onClick={handleToggleBooked}
-                            disabled={isUpdating}
-                            className={`
+
+            {
+                lodging.estimated_cost_per_person && (
+                    <div className="mt-2 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded inline-block border border-gray-100">
+                        Est: <span className="font-semibold text-gray-900">${lodging.estimated_cost_per_person}</span>
+                        <span className="text-gray-400">/ person</span>
+                    </div>
+                )
+            }
+
+            {
+                isEditable && (
+                    <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100/50">
+                        {canManageBooking && (
+                            <button
+                                onClick={handleToggleBooked}
+                                disabled={isUpdating}
+                                className={`
                                 flex-1 text-xs font-semibold py-2 px-3 rounded-lg transition-colors
                                 ${lodging.booked
-                                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'}
+                                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'}
                             `}
-                        >
-                            {lodging.booked ? 'Mark Unbooked' : 'Mark as Booked'}
-                        </button>
-                    )}
-                    {!lodging.booked && (
+                            >
+                                {lodging.booked ? 'Mark Unbooked' : 'Mark as Booked'}
+                            </button>
+                        )}
                         <button
-                            onClick={handleRemove}
+                            onClick={() => setShowEditModal(true)}
                             disabled={isUpdating}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Remove"
+                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="Edit"
                         >
-                            <Trash2 className="w-4 h-4" />
+                            <Pencil className="w-4 h-4" />
                         </button>
-                    )}
-                </div>
-            )}
-        </div>
+                        {!lodging.booked && (
+                            <button
+                                onClick={handleRemoveClick}
+                                disabled={isUpdating}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Remove"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                )
+            }
+
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleConfirmRemove}
+                title="Remove Lodging"
+                message={`Are you sure you want to remove ${lodging.name} from the lodging options?`}
+                confirmLabel="Remove"
+                isDestructive={true}
+                isLoading={isUpdating}
+            />
+
+            <LodgingEditModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                lodging={lodging}
+                tripId={tripId}
+                legIndex={legIndex}
+                onUpdate={onUpdate}
+            />
+        </div >
     )
 }

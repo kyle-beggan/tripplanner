@@ -17,6 +17,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
     const [lastName, setLastName] = useState(profile?.last_name || '')
     const [username, setUsername] = useState(profile?.username || '')
     const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number || '')
+    const [homeAirport, setHomeAirport] = useState(profile?.home_airport || '')
     const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || user?.user_metadata?.avatar_url || '')
 
     const updateProfile = async (e: React.FormEvent) => {
@@ -31,6 +32,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
             full_name: `${firstName} ${lastName}`.trim(),
             username,
             phone_number: phoneNumber,
+            home_airport: homeAirport.toUpperCase(),
             avatar_url: avatarUrl,
             updated_at: new Date().toISOString(),
         }
@@ -145,13 +147,32 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                             />
                         </div>
                     </div>
-                </div>
+
+                    <div className="sm:col-span-2">
+                        <label htmlFor="home_airport" className="block text-sm font-medium leading-6 text-gray-900">
+                            Home Airport <span className="text-gray-400 font-normal">(Optional)</span>
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                type="text"
+                                id="home_airport"
+                                value={homeAirport}
+                                onChange={(e) => setHomeAirport(e.target.value)}
+                                placeholder="e.g. JFK, LHR"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 uppercase"
+                                maxLength={3}
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Enter your 3-letter airport code (IATA).</p>
+                        </div>
+                    </div>
+                </div >
 
                 {message && (
                     <div className={`p-4 rounded-md text-sm ${message.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
                         {message}
                     </div>
-                )}
+                )
+                }
 
                 <div className="flex justify-end pt-6 border-t border-gray-100">
                     <button
@@ -163,7 +184,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                         {loading ? 'Saving...' : 'Save Profile'}
                     </button>
                 </div>
-            </form>
-        </div>
+            </form >
+        </div >
     )
 }

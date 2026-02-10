@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Mail, Send, Loader2, Plus, Info } from 'lucide-react'
-import { sendTripInvitation } from '@/app/trips/actions'
+import { sendTripInvitation, getTripItineraryPreview } from '@/app/trips/actions'
 import { toast } from 'sonner'
 
 interface InviteModalProps {
@@ -18,6 +18,13 @@ export default function InviteModal({ isOpen, onClose, tripId, tripName }: Invit
         `Hey! I'm planning a trip to ${tripName} and thought you might want to join. Check out the details and RSVP here:`
     )
     const [isSending, setIsSending] = useState(false)
+    const [itineraryHtml, setItineraryHtml] = useState<string>('')
+
+    useEffect(() => {
+        if (isOpen) {
+            getTripItineraryPreview(tripId).then(setItineraryHtml)
+        }
+    }, [isOpen, tripId])
 
     if (!isOpen) return null
 
@@ -123,6 +130,23 @@ export default function InviteModal({ isOpen, onClose, tripId, tripName }: Invit
                             A link to this trip page will be automatically appended to your message.
                         </p>
                     </div>
+
+                    {/* Itinerary Preview */}
+                    {itineraryHtml && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 block">
+                                Itinerary Included
+                            </label>
+                            <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                <div className="max-h-60 overflow-y-auto p-2 bg-white">
+                                    <div
+                                        className="scale-95 origin-top-left w-[105%]"
+                                        dangerouslySetInnerHTML={{ __html: itineraryHtml }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                 </div>
 
