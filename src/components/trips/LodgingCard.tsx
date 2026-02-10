@@ -9,8 +9,9 @@ interface Lodging {
     id: string
     name: string
     address: string
-    type: 'hotel' | 'airbnb' | 'other'
+    type: 'hotel' | 'airbnb' | 'other' | 'custom'
     price_level?: number
+    total_cost?: number
     rating?: number
     user_rating_count?: number
     google_maps_uri?: string
@@ -100,6 +101,11 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, onU
                             {lodging.price_level && (
                                 <span className="font-medium text-gray-600">
                                     {Array(lodging.price_level).fill('$').join('')}
+                                </span>
+                            )}
+                            {lodging.total_cost && (
+                                <span className="font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded text-xs">
+                                    ${lodging.total_cost.toLocaleString()}
                                 </span>
                             )}
                         </div>

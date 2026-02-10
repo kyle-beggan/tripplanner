@@ -96,16 +96,61 @@ export default function LodgingSearchModal({
         }
     }
 
+    // Custom Lodging State
+    const [activeTab, setActiveTab] = useState<'search' | 'custom'>('search')
+    const [customName, setCustomName] = useState('')
+    const [customAddress, setCustomAddress] = useState('')
+    const [customCost, setCustomCost] = useState('')
+    const [customLink, setCustomLink] = useState('')
+    const [isSubmittingCustom, setIsSubmittingCustom] = useState(false)
+
+    const handleAddCustom = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!customName.trim()) {
+            toast.error('Name is required')
+            return
+        }
+
+        setIsSubmittingCustom(true)
+        try {
+            const { addCustomLodgingToLeg } = await import('@/app/trips/actions')
+            const result = await addCustomLodgingToLeg(tripId, legIndex, {
+                name: customName,
+                address: customAddress,
+                total_cost: customCost ? Number(customCost) : undefined,
+                website_uri: customLink
+            })
+
+            if (result.success) {
+                toast.success('Custom lodging added!')
+                onAdd?.()
+                // Reset form
+                setCustomName('')
+                setCustomAddress('')
+                setCustomCost('')
+                setCustomLink('')
+                // Switch back to search or close? Maybe keep open
+            } else {
+                toast.error(result.message || 'Failed to add lodging')
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error('Failed to add lodging')
+        } finally {
+            setIsSubmittingCustom(false)
+        }
+    }
+
     // Auto-search logic
     useEffect(() => {
-        if (isOpen && locationName) {
-            setPlaces([])
-            setNextPageToken(null)
-            setSearchQuery(`hotels in ${locationName}`)
-            handleSearch(`hotels in ${locationName}`)
+        if (isOpen && locationName && activeTab === 'search') {
+            if (places.length === 0) {
+                setSearchQuery(`hotels in ${locationName}`)
+                handleSearch(`hotels in ${locationName}`)
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, locationName])
+    }, [isOpen, locationName, activeTab])
 
     if (!isOpen) return null
 
@@ -120,7 +165,7 @@ export default function LodgingSearchModal({
                             Find Lodging in {locationName}
                         </h2>
                         <p className="text-sm text-gray-500 mt-1">
-                            Search for hotels, hostels, or other places to stay.
+                            Search for hotels or add your own.
                         </p>
                     </div>
                     <button
@@ -131,130 +176,229 @@ export default function LodgingSearchModal({
                     </button>
                 </div>
 
-                {/* Search Bar */}
-                <div className="p-4 bg-gray-50 border-b border-gray-100 flex gap-2">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="e.g. Luxury hotels, budget hostels..."
-                        className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                    />
+                {/* Tabs */}
+                <div className="flex border-b border-gray-100">
                     <button
-                        onClick={() => handleSearch(searchQuery)}
-                        className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
+                        onClick={() => setActiveTab('search')}
+                        className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'search' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                     >
-                        Search
+                        Search Places
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('custom')}
+                        className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'custom' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Add Custom (Airbnb/VRBO)
                     </button>
                 </div>
 
-                {/* Results List */}
-                <div className="flex-1 overflow-y-auto p-6 min-h-[300px]">
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center h-full space-y-4 text-gray-500">
-                            <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
-                            <p className="animate-pulse">Checking availability...</p>
-                        </div>
-                    ) : error ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
-                            <div className="text-5xl">⚠️</div>
-                            <p className="text-red-500 font-medium">{error}</p>
+                {activeTab === 'search' ? (
+                    <>
+                        {/* Search Bar */}
+                        <div className="p-4 bg-gray-50 border-b border-gray-100 flex gap-2">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="e.g. Luxury hotels, budget hostels..."
+                                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
+                            />
                             <button
                                 onClick={() => handleSearch(searchQuery)}
-                                className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline"
+                                className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
                             >
-                                Try again
+                                Search
                             </button>
                         </div>
-                    ) : places.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-3">
-                            <div className="p-4 bg-gray-100 rounded-full">
-                                <BedDouble className="h-8 w-8 text-gray-400" />
-                            </div>
-                            <p className="text-lg font-medium text-gray-900">No places found</p>
-                            <p className="text-sm">
-                                Try adjusting your search terms.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 gap-4">
-                            {places.map((place) => (
-                                <div
-                                    key={place.id}
-                                    className="flex flex-col sm:flex-row gap-4 p-4 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-shadow"
-                                >
-                                    <div className="flex-1 space-y-1">
-                                        <div className="flex items-start justify-between">
-                                            <h3 className="font-semibold text-gray-900">
-                                                {place.displayName.text}
-                                            </h3>
-                                            {place.rating && (
-                                                <div className="flex items-center bg-yellow-50 px-2 py-1 rounded text-xs font-medium text-yellow-700">
-                                                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
-                                                    {place.rating} ({place.userRatingCount || 0})
-                                                </div>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-gray-600 flex items-start gap-1.5">
-                                            <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
-                                            {place.formattedAddress}
-                                        </p>
-                                    </div>
-                                    <div className="flex sm:flex-col gap-2 justify-center sm:min-w-[140px]">
-                                        <button
-                                            onClick={() => handleAdd(place)}
-                                            disabled={addingId === place.id}
-                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-md shadow-sm transition-colors whitespace-nowrap disabled:opacity-50"
-                                        >
-                                            {addingId === place.id ? (
-                                                <Loader2 className="h-3 w-3 animate-spin" />
-                                            ) : (
-                                                <Plus className="h-3 w-3" />
-                                            )}
-                                            <span>Add Option</span>
-                                        </button>
 
-                                        {place.googleMapsUri && (
-                                            <a
-                                                href={place.googleMapsUri}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm transition-colors whitespace-nowrap"
-                                            >
-                                                <span>View on Maps</span>
-                                                <ExternalLink className="h-3 w-3" />
-                                            </a>
-                                        )}
-                                    </div>
+                        {/* Results List */}
+                        <div className="flex-1 overflow-y-auto p-6 min-h-[300px]">
+                            {loading ? (
+                                <div className="flex flex-col items-center justify-center h-full space-y-4 text-gray-500">
+                                    <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+                                    <p className="animate-pulse">Checking availability...</p>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                    {loading && (
-                        <div className="flex flex-col items-center justify-center py-8 space-y-4 text-gray-500">
-                            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-                            <p className="animate-pulse text-sm">Finding more spots...</p>
-                        </div>
-                    )}
+                            ) : error ? (
+                                <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
+                                    <div className="text-5xl">⚠️</div>
+                                    <p className="text-red-500 font-medium">{error}</p>
+                                    <button
+                                        onClick={() => handleSearch(searchQuery)}
+                                        className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline"
+                                    >
+                                        Try again
+                                    </button>
+                                </div>
+                            ) : places.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-3">
+                                    <div className="p-4 bg-gray-100 rounded-full">
+                                        <BedDouble className="h-8 w-8 text-gray-400" />
+                                    </div>
+                                    <p className="text-lg font-medium text-gray-900">No places found</p>
+                                    <p className="text-sm">
+                                        Try adjusting your search terms.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-4">
+                                    {places.map((place) => (
+                                        <div
+                                            key={place.id}
+                                            className="flex flex-col sm:flex-row gap-4 p-4 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                                        >
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-start justify-between">
+                                                    <h3 className="font-semibold text-gray-900">
+                                                        {place.displayName.text}
+                                                    </h3>
+                                                    {place.rating && (
+                                                        <div className="flex items-center bg-yellow-50 px-2 py-1 rounded text-xs font-medium text-yellow-700">
+                                                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
+                                                            {place.rating} ({place.userRatingCount || 0})
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-gray-600 flex items-start gap-1.5">
+                                                    <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
+                                                    {place.formattedAddress}
+                                                </p>
+                                            </div>
+                                            <div className="flex sm:flex-col gap-2 justify-center sm:min-w-[140px]">
+                                                <button
+                                                    onClick={() => handleAdd(place)}
+                                                    disabled={addingId === place.id}
+                                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-md shadow-sm transition-colors whitespace-nowrap disabled:opacity-50"
+                                                >
+                                                    {addingId === place.id ? (
+                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                    ) : (
+                                                        <Plus className="h-3 w-3" />
+                                                    )}
+                                                    <span>Add Option</span>
+                                                </button>
 
-                    {!loading && nextPageToken && (
-                        <div className="mt-6 flex justify-center">
-                            <button
-                                onClick={() => handleSearch(searchQuery, nextPageToken)}
-                                className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-700 font-medium rounded-full hover:bg-indigo-50 hover:shadow-sm transition-all flex items-center gap-2"
-                            >
-                                <Plus className="h-4 w-4" />
-                                Find More Results
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                                {place.googleMapsUri && (
+                                                    <a
+                                                        href={place.googleMapsUri}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm transition-colors whitespace-nowrap"
+                                                    >
+                                                        <span>View on Maps</span>
+                                                        <ExternalLink className="h-3 w-3" />
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {loading && (
+                                <div className="flex flex-col items-center justify-center py-8 space-y-4 text-gray-500">
+                                    <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                                    <p className="animate-pulse text-sm">Finding more spots...</p>
+                                </div>
+                            )}
 
-                <div className="p-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400 bg-gray-50 rounded-b-xl">
-                    <span>Results provided by Google Places</span>
-                    <img src="https://developers.google.com/static/maps/documentation/images/google_on_white.png" alt="Powered by Google" className="h-4 opacity-70" />
-                </div>
+                            {!loading && nextPageToken && (
+                                <div className="mt-6 flex justify-center">
+                                    <button
+                                        onClick={() => handleSearch(searchQuery, nextPageToken)}
+                                        className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-700 font-medium rounded-full hover:bg-indigo-50 hover:shadow-sm transition-all flex items-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Find More Results
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400 bg-gray-50 rounded-b-xl">
+                            <span>Results provided by Google Places</span>
+                            <img src="https://developers.google.com/static/maps/documentation/images/google_on_white.png" alt="Powered by Google" className="h-4 opacity-70" />
+                        </div>
+                    </>
+                ) : (
+                    <div className="p-6">
+                        <form onSubmit={handleAddCustom} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Lodging Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={customName}
+                                    onChange={(e) => setCustomName(e.target.value)}
+                                    placeholder="e.g. Specific Airbnb House"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Address (Optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={customAddress}
+                                    onChange={(e) => setCustomAddress(e.target.value)}
+                                    placeholder="e.g. 123 Vacation Way"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Total Cost (Estimate)
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-gray-500 sm:text-sm">$</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={customCost}
+                                        onChange={(e) => setCustomCost(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full rounded-md border border-gray-300 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Link to Details (Optional)
+                                </label>
+                                <input
+                                    type="url"
+                                    value={customLink}
+                                    onChange={(e) => setCustomLink(e.target.value)}
+                                    placeholder="https://airbnb.com/..."
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+
+                            <div className="pt-4 flex justify-end">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmittingCustom}
+                                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {isSubmittingCustom ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Plus className="h-4 w-4" />
+                                    )}
+                                    Add Custom Lodging
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
             </div>
         </div>
     )

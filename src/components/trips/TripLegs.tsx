@@ -22,8 +22,9 @@ interface Lodging {
     id: string
     name: string
     address: string
-    type: 'hotel' | 'airbnb' | 'other'
+    type: 'hotel' | 'airbnb' | 'other' | 'custom'
     price_level?: number
+    total_cost?: number
     rating?: number
     user_rating_count?: number
     google_maps_uri?: string
