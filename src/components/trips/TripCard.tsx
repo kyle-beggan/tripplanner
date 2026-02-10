@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, X } from 'lucide-react'
+import { Calendar, X, MapPin } from 'lucide-react'
 import { format } from 'date-fns'
 import { deleteTrip } from '@/app/trips/actions'
 import { useRouter } from 'next/navigation'
@@ -9,13 +9,23 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
+interface TripLeg {
+    name: string
+    start_date: string | null
+    end_date: string | null
+    activities: string[]
+}
+
 interface Trip {
     id: string
     name: string
     description: string | null
     start_date: string | null
     end_date: string | null
+    location?: string | null
+    locations?: TripLeg[] | null
     owner_id: string
+    owner_name?: string
 }
 
 interface TripCardProps {
@@ -51,6 +61,23 @@ export default function TripCard({ trip, currentUserId, isAdmin }: TripCardProps
         }
     }
 
+    const formatDate = (dateString: string | null | undefined, formatStr: string = 'MMM d, yyyy') => {
+        if (!dateString) return ''
+        try {
+            const datePart = dateString.split('T')[0]
+            const parts = datePart.split('-')
+            if (parts.length !== 3) return ''
+            const [year, month, day] = parts.map(Number)
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return ''
+            const date = new Date(year, month - 1, day)
+            if (isNaN(date.getTime())) return ''
+            return format(date, formatStr)
+        } catch (e) {
+            console.error('Date formatting error:', e)
+            return ''
+        }
+    }
+
     return (
         <>
             <div className="group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:shadow-md border border-gray-200">
@@ -68,11 +95,29 @@ export default function TripCard({ trip, currentUserId, isAdmin }: TripCardProps
                     <div className="flex items-start justify-between">
                         <div>
                             <h3 className="text-xl font-semibold text-gray-900 line-clamp-1 pr-6">{trip.name}</h3>
-                            {isOwner && (
-                                <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 mt-2">
-                                    Owner
+                            <div className="flex flex-col gap-2 mt-2">
+                                {(() => {
+                                    const locs = Array.isArray(trip.locations) && trip.locations.length > 0
+                                        ? trip.locations
+                                        : []
+
+                                    if (locs.length === 0) return null
+
+                                    return (
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-indigo-600 font-medium">
+                                            {locs.map((leg, idx) => (
+                                                <div key={idx} className="flex items-center gap-1 bg-indigo-50 px-2 py-0.5 rounded-full ring-1 ring-inset ring-indigo-600/10">
+                                                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                                                    <span>{typeof leg === 'string' ? leg : leg.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )
+                                })()}
+                                <span className="inline-flex items-center text-xs font-semibold text-gray-500">
+                                    Hosted by: {trip.owner_name || '...'}
                                 </span>
-                            )}
+                            </div>
                         </div>
                     </div>
 
@@ -80,12 +125,12 @@ export default function TripCard({ trip, currentUserId, isAdmin }: TripCardProps
                         {trip.description || 'No description provided.'}
                     </p>
 
-                    <div className="mt-6 flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1.5">
+                    <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
                             <Calendar className="h-4 w-4" />
                             <span>
-                                {trip.start_date ? format(new Date(trip.start_date), 'MMM d, yyyy') : 'TBD'}
-                                {trip.end_date && ` - ${format(new Date(trip.end_date), 'MMM d, yyyy')}`}
+                                {trip.start_date ? formatDate(trip.start_date) : 'TBD'}
+                                {trip.end_date && ` - ${formatDate(trip.end_date)}`}
                             </span>
                         </div>
                     </div>

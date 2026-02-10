@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { MapPin, Star, ExternalLink, Loader2, Navigation, X } from 'lucide-react'
+import { MapPin, Star, ExternalLink, Loader2, Navigation, X, Plus, Check } from 'lucide-react'
+import { addToTripAgenda } from '@/app/trips/actions'
+import { toast } from 'sonner'
 
 interface Place {
     id: string
@@ -19,20 +21,26 @@ interface ActivitySearchModalProps {
     onClose: () => void
     activityName: string
     locations: string[]
+    tripId?: string
+    isEditable?: boolean
 }
 
 export default function ActivitySearchModal({
     isOpen,
     onClose,
     activityName,
-    locations
+    locations,
+    tripId,
+    isEditable
 }: ActivitySearchModalProps) {
     const [selectedLocation, setSelectedLocation] = useState<string>(locations[0] || '')
     const [places, setPlaces] = useState<Place[]>([])
     const [loading, setLoading] = useState(false)
+    const [addingToAgenda, setAddingToAgenda] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [nextPageToken, setNextPageToken] = useState<string | null>(null)
 
-    const handleSearch = useCallback(async (location: string) => {
+    const handleSearch = useCallback(async (location: string, pageToken?: string | null) => {
         if (!location) return
 
         setLoading(true)
@@ -44,7 +52,8 @@ export default function ActivitySearchModal({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     query: activityName,
-                    location: location
+                    location: location,
+                    pageToken: pageToken
                 }),
             })
 
@@ -54,14 +63,40 @@ export default function ActivitySearchModal({
                 throw new Error(data.error || 'Failed to fetch places')
             }
 
-            setPlaces(data.places || [])
+            if (pageToken) {
+                setPlaces(prev => [...prev, ...(data.places || [])])
+            } else {
+                setPlaces(data.places || [])
+            }
+
+            setNextPageToken(data.nextPageToken || null)
+
         } catch (err: any) {
-            console.error('Search error:', err)
+            console.error('Search error in component:', err)
             setError(err.message || 'Something went wrong')
         } finally {
             setLoading(false)
         }
     }, [activityName])
+
+    const handleAddToAgenda = async (place: Place) => {
+        if (!tripId) return
+
+        const placeName = place.displayName.text
+        setAddingToAgenda(placeName)
+        try {
+            const result = await addToTripAgenda(tripId, place)
+            if (result.success) {
+                toast.success(`"${placeName}" added to trip agenda!`)
+            } else {
+                toast.error(result.message || 'Failed to add to agenda')
+            }
+        } catch (err) {
+            toast.error('Failed to add to agenda')
+        } finally {
+            setAddingToAgenda(null)
+        }
+    }
 
     // Reset state when modal opens
     useEffect(() => {
@@ -69,6 +104,7 @@ export default function ActivitySearchModal({
             setSelectedLocation(locations[0] || '')
             setPlaces([])
             setError(null)
+            setNextPageToken(null)
             // Optional: Auto-search on open
             if (locations.length > 0) {
                 handleSearch(locations[0])
@@ -131,12 +167,19 @@ export default function ActivitySearchModal({
 
                 {/* Results List */}
                 <div className="flex-1 overflow-y-auto p-6 min-h-[300px]">
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center h-full space-y-4 text-gray-500">
-                            <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
-                            <p className="animate-pulse">Scouting the best spots...</p>
+                    {places.length === 0 && !loading && !error && (
+                        <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-3">
+                            <div className="p-4 bg-gray-100 rounded-full">
+                                <MapPin className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <p className="text-lg font-medium text-gray-900">No results found</p>
+                            <p className="text-sm">
+                                We couldn&apos;t find &quot;{activityName}&quot; near {selectedLocation}.
+                            </p>
                         </div>
-                    ) : error ? (
+                    )}
+
+                    {error && (
                         <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
                             <div className="text-5xl">⚠️</div>
                             <p className="text-red-500 font-medium">{error}</p>
@@ -147,66 +190,90 @@ export default function ActivitySearchModal({
                                 Try again
                             </button>
                         </div>
-                    ) : places.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-3">
-                            <div className="p-4 bg-gray-100 rounded-full">
-                                <MapPin className="h-8 w-8 text-gray-400" />
-                            </div>
-                            <p className="text-lg font-medium text-gray-900">No results found</p>
-                            <p className="text-sm">
-                                We couldn&apos;t find &quot;{activityName}&quot; near {selectedLocation}.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 gap-4">
-                            {places.map((place) => (
-                                <div
-                                    key={place.id}
-                                    className="flex flex-col sm:flex-row gap-4 p-4 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-shadow"
-                                >
-                                    <div className="flex-1 space-y-1">
-                                        <div className="flex items-start justify-between">
-                                            <h3 className="font-semibold text-gray-900">
-                                                {place.displayName.text}
-                                            </h3>
-                                            {place.rating && (
-                                                <div className="flex items-center bg-yellow-50 px-2 py-1 rounded text-xs font-medium text-yellow-700">
-                                                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
-                                                    {place.rating} ({place.userRatingCount || 0})
-                                                </div>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-gray-600 flex items-start gap-1.5">
-                                            <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
-                                            {place.formattedAddress}
-                                        </p>
-                                    </div>
-                                    <div className="flex sm:flex-col gap-2 justify-center sm:min-w-[120px]">
-                                        {place.googleMapsUri && (
-                                            <a
-                                                href={place.googleMapsUri}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm transition-colors whitespace-nowrap"
-                                            >
-                                                <span>View on Maps</span>
-                                                <ExternalLink className="h-3 w-3" />
-                                            </a>
-                                        )}
-                                        {place.websiteUri && (
-                                            <a
-                                                href={place.websiteUri}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-md shadow-sm transition-colors whitespace-nowrap"
-                                            >
-                                                <span>Website</span>
-                                                <ExternalLink className="h-3 w-3" />
-                                            </a>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4">
+                        {places.map((place) => (
+                            <div
+                                key={place.id}
+                                className="flex flex-col sm:flex-row gap-4 p-4 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                            >
+                                <div className="flex-1 space-y-1">
+                                    <div className="flex items-start justify-between">
+                                        <h3 className="font-semibold text-gray-900">
+                                            {place.displayName.text}
+                                        </h3>
+                                        {place.rating && (
+                                            <div className="flex items-center bg-yellow-50 px-2 py-1 rounded text-xs font-medium text-yellow-700">
+                                                <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
+                                                {place.rating} ({place.userRatingCount || 0})
+                                            </div>
                                         )}
                                     </div>
+                                    <p className="text-sm text-gray-600 flex items-start gap-1.5">
+                                        <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
+                                        {place.formattedAddress}
+                                    </p>
                                 </div>
-                            ))}
+                                <div className="flex sm:flex-col gap-2 justify-center sm:min-w-[140px]">
+                                    {isEditable && tripId && (
+                                        <button
+                                            onClick={() => handleAddToAgenda(place)}
+                                            disabled={addingToAgenda === place.displayName.text}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-md shadow-sm transition-colors whitespace-nowrap disabled:opacity-50"
+                                        >
+                                            {addingToAgenda === place.displayName.text ? (
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                            ) : (
+                                                <Plus className="h-3 w-3" />
+                                            )}
+                                            <span>Add to Agenda</span>
+                                        </button>
+                                    )}
+                                    {place.googleMapsUri && (
+                                        <a
+                                            href={place.googleMapsUri}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm transition-colors whitespace-nowrap"
+                                        >
+                                            <span>View on Maps</span>
+                                            <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    )}
+                                    {place.websiteUri && (
+                                        <a
+                                            href={place.websiteUri}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-md shadow-sm transition-colors whitespace-nowrap"
+                                        >
+                                            <span>Website</span>
+                                            <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Load More / Loading State */}
+                    {loading && (
+                        <div className="flex flex-col items-center justify-center py-8 space-y-4 text-gray-500">
+                            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                            <p className="animate-pulse text-sm">Finding more spots...</p>
+                        </div>
+                    )}
+
+                    {!loading && nextPageToken && (
+                        <div className="mt-6 flex justify-center">
+                            <button
+                                onClick={() => handleSearch(selectedLocation, nextPageToken)}
+                                className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-700 font-medium rounded-full hover:bg-indigo-50 hover:shadow-sm transition-all flex items-center gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Find More Results
+                            </button>
                         </div>
                     )}
                 </div>
@@ -219,3 +286,4 @@ export default function ActivitySearchModal({
         </div>
     )
 }
+

@@ -36,15 +36,26 @@ export async function updateUserStatus(userId: string, status: 'approved' | 'rej
         return { error: 'Unauthorized: Admin access required' }
     }
 
-    const { error } = await supabase
+    const updateData: any = { status }
+    if (role) updateData.role = role
+
+    const { error, data } = await supabase
         .from('profiles')
-        .update({ status, role }) // Also update role if needed, but primarily status
+        .update(updateData)
         .eq('id', userId)
+        .select()
 
     if (error) {
+        console.error('Database update error:', error)
         return { error: error.message }
     }
 
+    if (!data || data.length === 0) {
+        console.warn('No rows updated for user:', userId)
+        return { error: 'User not found or no changes applied' }
+    }
+
+    revalidatePath('/admin/users')
     revalidatePath('/admin')
     return { success: true }
 }

@@ -35,13 +35,14 @@ export async function POST(request: Request) {
                 'Content-Type': 'application/json',
                 'X-Goog-Api-Key': apiKey,
                 // Request specific fields to manage billing/latency
-                'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.googleMapsUri,places.photos,places.priceLevel,places.websiteUri'
+                'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.googleMapsUri,places.photos,places.priceLevel,places.websiteUri,nextPageToken'
             },
             body: JSON.stringify({
                 textQuery: textQuery,
                 // Optional: Bias results to the provided location if we had lat/lng
                 // For now, "near location" in textQuery is surprisingly effective
-                maxResultCount: 10
+                maxResultCount: 10,
+                pageToken: body.pageToken // Pass the page token if it exists
             })
         })
 

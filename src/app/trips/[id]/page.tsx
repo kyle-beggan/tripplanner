@@ -1,40 +1,109 @@
 import { createClient } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, ArrowLeft, User } from 'lucide-react'
+import { Calendar, MapPin, ArrowLeft, User, Star, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import TripRSVPButton from '@/components/trips/TripRSVPButton'
 import TripActivityCard from '@/components/trips/TripActivityCard'
+import TripLegs from '@/components/trips/TripLegs'
+
+interface ScheduledActivity {
+    time: string
+    description: string
+}
+
+interface DailySchedule {
+    date: string
+    activities: ScheduledActivity[]
+}
+
+interface TripLeg {
+    name: string
+    start_date: string | null
+    end_date: string | null
+    activities: string[]
+    schedule?: DailySchedule[]
+    lodging?: Lodging[]
+}
+
+interface Lodging {
+    id: string
+    name: string
+    address: string
+    type: 'hotel' | 'airbnb' | 'other'
+    price_level?: number
+    rating?: number
+    user_rating_count?: number
+    google_maps_uri?: string
+    website_uri?: string
+    booked: boolean
+}
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 export default async function TripDetailsPage({ params }: PageProps) {
     const supabase = await createClient()
-    const { id } = await params
+    const { id: rawId } = await params
+    const id = typeof rawId === 'string' ? rawId.trim() : ''
 
-    // Fetch trip and owner
-    const { data: trip, error } = await supabase
-        .from('trips')
-        .select(`
-            *,
-            owner:profiles!trips_owner_id_fkey(full_name, avatar_url)
-        `)
-        .eq('id', id)
-        .single()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (error || !trip) {
+    console.log('TripDetailsPage - Diagnostics:', {
+        id,
+        userId: user?.id,
+        authError: authError?.message
+    })
+
+    if (!id || id.length < 32) {
+        console.error('Invalid ID:', id)
         notFound()
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
+    // Simplified fetch to identify if join is the issue
+    const { data: trip, error: tripError } = await supabase
+        .from('trips')
+        .select(`*`)
+        .eq('id', id)
+        .single()
+
+    if (tripError || !trip) {
+        console.error('Trip fetch error details:', {
+            message: tripError?.message,
+            details: tripError?.details,
+            hint: tripError?.hint,
+            code: tripError?.code
+        })
+        notFound()
+    }
+
+    // Secondary fetch for owner if trip succeeded
+    let owner = null
+    if (trip) {
+        const { data: ownerData } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', trip.owner_id)
+            .single()
+        owner = ownerData
+    }
+
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user?.id || '00000000-0000-0000-0000-000000000000')
+        .single()
+
     const isOwner = user?.id === trip.owner_id
+    const isAdmin = profile?.role === 'admin'
+    const isEditable = isOwner || isAdmin
 
     // Fetch participants with their profiles
-    const { data: participantsData } = await supabase
+    const { data: participantsData, error: participantsError } = await supabase
         .from('trip_participants')
         .select(`
             *,
@@ -48,37 +117,43 @@ export default async function TripDetailsPage({ params }: PageProps) {
         `)
         .eq('trip_id', trip.id)
 
-    // Fetch full activity objects to check GPS requirement
-    const { data: activitiesData } = await supabase
-        .from('activities')
-        .select('name, requires_gps')
-        .in('name', trip.activities || [])
+    if (participantsError) {
+        console.error('Participants fetch error:', participantsError)
+    }
+
+    const legs = Array.isArray(trip.locations) ? (trip.locations as TripLeg[]) : []
+    const tripActivities = Array.isArray(trip.activities) ? (trip.activities as string[]) : []
+
+    // Fetch full activity objects to check GPS requirement for ALL activities (top-level and legs)
+    const legActivities = legs.flatMap(l => (Array.isArray(l.activities) ? l.activities : []))
+    const allUniqueActivities = Array.from(new Set([...tripActivities, ...legActivities]))
+
+    let activitiesData: any[] = []
+    if (allUniqueActivities.length > 0) {
+        const { data } = await supabase
+            .from('activities')
+            .select('name, requires_gps')
+            .in('name', allUniqueActivities)
+        activitiesData = data || []
+    }
 
     // Create a map for quick activity lookup
-    const activityMap = new Map(activitiesData?.map(a => [a.name, a]))
-
+    const activityMap = new Map(activitiesData.map(a => [a.name, a]))
 
     // Process participants
     const participants = participantsData || []
+
     // Helper to format dates consistently without timezone shifts
     const formatDate = (dateString: string | null | undefined, formatStr: string = 'MMM d, yyyy') => {
         if (!dateString) return ''
         try {
-            // Handle ISO strings (e.g. 2024-01-01T00:00:00+00:00) by taking only the date part
             const datePart = dateString.split('T')[0]
             const parts = datePart.split('-')
-
             if (parts.length !== 3) return ''
             const [year, month, day] = parts.map(Number)
-
             if (isNaN(year) || isNaN(month) || isNaN(day)) return ''
-
-            // Create date ensuring month is 0-indexed (local time)
             const date = new Date(year, month - 1, day)
-
-            // Check if date is valid
             if (isNaN(date.getTime())) return ''
-
             return format(date, formatStr)
         } catch (e) {
             console.error('Date formatting error:', e)
@@ -89,13 +164,11 @@ export default async function TripDetailsPage({ params }: PageProps) {
     const going = participants.filter(p => p.status === 'going')
     const notComing = participants.filter(p => p.status === 'declined')
 
-    // Calculate total confirmed (participants + their guests)
     const totalConfirmed = going.reduce((acc, p) => {
         const guestCount = Array.isArray(p.guests) ? p.guests.length : 0
         return acc + 1 + guestCount
     }, 0)
 
-    // Find current user's participation for the button
     const userParticipation = user ? participants.find(p => p.user_id === user.id) : null
 
     return (
@@ -122,7 +195,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                 </div>
                                 <div className="mt-2 flex items-center text-sm text-gray-500">
                                     <User className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
-                                    Hosted by {trip.owner?.full_name || 'Unknown'}
+                                    Hosted by {owner?.full_name || 'Unknown'}
                                 </div>
                                 <div className="mt-2 flex items-center text-sm text-gray-500">
                                     <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded">
@@ -151,7 +224,6 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
                 {/* Details Section */}
                 <section className="bg-white shadow rounded-lg p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
@@ -161,44 +233,22 @@ export default async function TripDetailsPage({ params }: PageProps) {
                         ) : (
                             <p className="italic text-gray-500">No description provided.</p>
                         )}
-
                     </div>
                 </section>
 
-                {/* Location Section */}
-                {(() => {
-                    // Normalize locations to ensure we handle both legacy single location and new array
-                    const locations = Array.isArray(trip.locations) && trip.locations.length > 0
-                        ? trip.locations
-                        : trip.location
-                            ? [trip.location]
-                            : []
+                {/* Itinerary Section */}
+                <section className="bg-white shadow rounded-lg p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                        Trip Itinerary
+                    </h2>
 
-                    if (locations.length === 0) return null
-
-                    return (
-                        <section className="bg-white shadow rounded-lg p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                                Location{locations.length > 1 ? 's' : ''}
-                            </h2>
-                            {locations.length > 1 ? (
-                                <div className="flex flex-wrap gap-3">
-                                    {locations.map((loc: string, index: number) => (
-                                        <div key={index} className="flex items-center gap-2 bg-indigo-50 rounded-full px-4 py-2 text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                                            <MapPin className="h-4 w-4" />
-                                            <span className="font-medium">{loc}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="flex items-start gap-3 text-gray-600">
-                                    <MapPin className="h-6 w-6 text-indigo-500 mt-0.5 flex-shrink-0" />
-                                    <span className="text-lg">{locations[0]}</span>
-                                </div>
-                            )}
-                        </section>
-                    )
-                })()}
+                    <TripLegs
+                        legs={legs}
+                        tripId={trip.id}
+                        isEditable={isEditable}
+                        activityMap={activityMap}
+                    />
+                </section>
 
                 {/* Who's Coming Section */}
                 <section className="bg-white shadow rounded-lg p-6">
@@ -232,7 +282,6 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                         </p>
                                         <p className="text-xs text-indigo-600 font-medium mb-1">
                                             {participant.role === 'owner' ? 'Host' : 'Guest'}
-                                            {participant.guests && participant.guests.length > 0 && ` + ${participant.guests.length} ${participant.guests.length === 1 ? 'guest' : 'guests'}`}
                                         </p>
                                         {participant.arrival_date && participant.departure_date && (
                                             <p className="text-xs text-gray-500">
@@ -282,30 +331,6 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     </section>
                 )}
 
-                {/* Activities Section */}
-                <section className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Activities</h2>
-                    {trip.activities && trip.activities.length > 0 ? (
-                        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {trip.activities.map((activityName: string, index: number) => {
-                                const activityDetails = activityMap.get(activityName)
-                                const requiresGps = activityDetails?.requires_gps
-
-                                return (
-                                    <li key={index} className="h-full">
-                                        <TripActivityCard
-                                            name={activityName}
-                                            requiresGps={!!requiresGps}
-                                            locations={trip.locations || (trip.location ? [trip.location] : [])}
-                                        />
-                                    </li>
-                                )
-                            })}
-                        </ul>
-                    ) : (
-                        <p className="text-gray-500 italic">No activities listed for this trip yet.</p>
-                    )}
-                </section>
             </div>
         </div>
     )

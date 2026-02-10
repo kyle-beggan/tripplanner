@@ -23,8 +23,12 @@ export default async function MyTripsPage() {
         <div className="p-8 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">My Trips</h1>
-                    <p className="text-gray-600">You haven&apos;t planned any trips yet.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Trips</h1>
+                    <p className="text-gray-600">
+                        {trips && trips.length > 0
+                            ? "Browse and manage your adventures."
+                            : "You haven't planned any trips yet."}
+                    </p>
                 </div>
                 {/* Temporary Create Button - User didn't filter this out but it's essential */}
                 <Link

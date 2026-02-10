@@ -49,14 +49,21 @@ export default function AdminPage() {
     }
 
     const handleStatusUpdate = async (userId: string, status: 'approved' | 'rejected') => {
+        setProcessingAction(true)
         // Optimistic update
-        setUsers(users.map(u => u.id === userId ? { ...u, status } : u))
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u))
 
         const result = await updateUserStatus(userId, status)
         if (result.error) {
             alert('Failed to update status: ' + result.error)
-            loadUsers() // Revert on error
+            await loadUsers() // Revert on error
+        } else {
+            // Optional: loadUsers() again to be absolutely sure, 
+            // but the revalidatePath should handle it if using server components.
+            // For client state, let's just confirm it worked.
+            await loadUsers()
         }
+        setProcessingAction(false)
     }
 
     const handleMakeAdmin = (userId: string) => {
