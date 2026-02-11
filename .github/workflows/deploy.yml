@@ -35,41 +35,46 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # Load environment (for npm/pm2)
-            export NVM_DIR="$HOME/.nvm"
-            if [ -s "$NVM_DIR/nvm.sh" ]; then
-              . "$NVM_DIR/nvm.sh"
-            else
-              echo "WARNING: nvm.sh not found in default location"
-            fi
-            
-            # Source profile files to load nvm/node from other locations
-            source ~/.profile || true
-            source ~/.bashrc || true
-            
-            # Check availability
-            command -v nvm || echo "nvm not found"
-            command -v node || echo "node not found"
-            command -v npm || echo "npm not found"
+            # DEBUG: Confirm script start
+            echo "--- SCRIPT STARTING ---"
 
-            # Create Swap if low memory (critical for 1GB instances)
+            # 1. Try to find Node/NPM manually if not in PATH
+            # Common Bitnami path
+            export PATH=$PATH:/opt/bitnami/node/bin
+            # Common NVM path
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+            # Check if we found them
+            echo "Node Path: $(which node || echo 'NOT FOUND')"
+            echo "NPM Path: $(which npm || echo 'NOT FOUND')"
+
+            # Create Swap (Safe Mode: fail if password needed)
             if [ $(free -m | grep Mem: | awk '{print $2}') -lt 2000 ]; then
-                echo "Detected low memory environment. Checking for swap..."
+                echo "Detected low memory. Attempting to create swap..."
                 if [ $(free -m | grep Swap: | awk '{print $2}') -eq 0 ]; then
-                    echo "Creating 1GB Swap file..."
-                    sudo fallocate -l 1G /swapfile
-                    sudo chmod 600 /swapfile
-                    sudo mkswap /swapfile
-                    sudo swapon /swapfile
-                    echo "Swap created."
+                    # Try sudo without password (-n). If it fails, skips swap but continues script.
+                    if sudo -n fallocate -l 1G /swapfile 2>/dev/null; then
+                        echo "Swap file created."
+                        sudo -n chmod 600 /swapfile
+                        sudo -n mkswap /swapfile
+                        sudo -n swapon /swapfile
+                        echo "Swap enabled."
+                    else
+                        echo "WARNING: Could not create swap (sudo requires password). Proceeding without it."
+                        echo "If build fails with OOM, please manually set up swap on server."
+                    fi
                 else
                     echo "Swap already exists."
                 fi
             fi
 
-            # Ensure proper Node version (v20)
-            nvm install 20 || echo "nvm install failed, continuing with system node..."
-            nvm use 20 || echo "nvm use failed, continuing..."
+            # Check again
+            if ! command -v npm &> /dev/null; then
+                echo "CRITICAL: npm not found. Sourcing .profile as last resort..."
+                # Only source if absolutely necessary, and hope it's not interactive
+                source ~/.profile || true
+            fi
 
             # Debug info
             echo "Deploying as: $(whoami)"
