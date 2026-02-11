@@ -37,9 +37,11 @@ jobs:
           script: |
             # Load environment (for npm/pm2)
             export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            source ~/.profile || true
-            source ~/.bashrc || true
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              . "$NVM_DIR/nvm.sh"
+            else
+              echo "WARNING: nvm.sh not found"
+            fi
             
             # Ensure proper Node version (v20)
             nvm install 20
@@ -94,9 +96,10 @@ jobs:
             # Clean build artifact to force fresh build
             rm -rf .next
             
-            echo "Starting Build..."
+            echo "Starting Build with Memory Limit..."
+            # Limit Node memory to 512MB to prevent OOM on 1GB instance
             # Run build with pipefail to catch errors while logging
-            if npm run build 2>&1 | tee build.log; then
+            if NODE_OPTIONS='--max-old-space-size=512' npm run build 2>&1 | tee build.log; then
                 echo "Build SUCCESS"
             else
                 echo "❌ BUILD FAILED"
