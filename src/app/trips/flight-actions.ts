@@ -4,7 +4,11 @@ import { createClient } from '@/utils/supabase/server'
 // @ts-ignore - amadeus types are not perfect
 import Amadeus from 'amadeus'
 
-export async function getEstimateFlightPrice(tripId: string) {
+export type FlightEstimateResponse =
+    | { success: true; currency: string; total: string; airline: string; origin: string; destination: string; deepLink: string }
+    | { success: false; message: string; code?: string; debugError?: any; origin?: string; destination?: string; deepLink?: string }
+
+export async function getEstimateFlightPrice(tripId: string): Promise<FlightEstimateResponse> {
     console.log('[getEstimateFlightPrice] Starting for trip:', tripId)
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

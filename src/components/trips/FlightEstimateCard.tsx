@@ -2,36 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { Plane, Loader2, AlertCircle, ExternalLink } from 'lucide-react'
-import { getEstimateFlightPrice } from '@/app/trips/flight-actions'
+import { getEstimateFlightPrice, type FlightEstimateResponse } from '@/app/trips/flight-actions'
 
 interface FlightEstimateCardProps {
     tripId: string
     initialEstimate?: any
 }
 
-interface FlightEstimateResult {
-    success: boolean
-    message?: string
-    code?: string
-    currency?: string
-    total?: string
-    airline?: string
-    origin?: string
-    destination?: string
-    deepLink?: string
-    debugError?: any
-}
+
 
 export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEstimateCardProps) {
     const [loading, setLoading] = useState(!initialEstimate)
-    const [estimate, setEstimate] = useState<FlightEstimateResult | null>(initialEstimate || null)
+    const [estimate, setEstimate] = useState<FlightEstimateResponse | null>(initialEstimate || null)
     const [error, setError] = useState<string | null>(initialEstimate && !initialEstimate.success ? initialEstimate.message : null)
 
     useEffect(() => {
         if (initialEstimate) return
 
         getEstimateFlightPrice(tripId)
-            .then((result: any) => {
+            .then((result: FlightEstimateResponse) => {
                 if (result.success) {
                     setEstimate(result)
                 } else if (result.deepLink) {
@@ -179,7 +168,7 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
 
             <div className="flex items-baseline justify-between">
                 <div className="flex items-baseline gap-1">
-                    {estimate.currency && estimate.total ? (
+                    {estimate.success && estimate.currency && estimate.total ? (
                         <span className="text-2xl font-bold text-gray-900">
                             {new Intl.NumberFormat('en-US', { style: 'currency', currency: estimate.currency }).format(Number(estimate.total))}
                         </span>
@@ -188,7 +177,7 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
                             Estimate Unavailable
                         </span>
                     )}
-                    {estimate.currency && estimate.total && (
+                    {estimate.success && estimate.currency && estimate.total && (
                         <span className="text-sm text-gray-500">per person</span>
                     )}
                 </div>
@@ -200,13 +189,13 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                     >
-                        {estimate.total ? 'View Flights' : 'Check Prices'} <ExternalLink className="h-3 w-3" />
+                        {estimate.success && estimate.total ? 'View Flights' : 'Check Prices'} <ExternalLink className="h-3 w-3" />
                     </a>
                 )}
             </div>
 
             <p className="text-xs text-gray-400 mt-2">
-                {estimate.total
+                {estimate.success && estimate.total
                     ? '*Estimated lowest fare via Amadeus. Prices subject to change.'
                     : '*Unable to fetch live estimate. Please check Google Flights directly.'}
             </p>

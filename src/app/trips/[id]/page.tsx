@@ -263,6 +263,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
     // Fetch Flight Estimate (Server Side)
     const flightEstimate = await getEstimateFlightPrice(trip.id)
+    // @ts-ignore - TS isn't narrowing the union correctly despite the check
     const flightCost = flightEstimate.success && flightEstimate.total ? Number(flightEstimate.total) : null
 
     return (
