@@ -163,9 +163,9 @@ jobs:
             pm2 delete lfg-places || true
             
             # Start strict process using bash wrapper to ensure environment is loaded
-            # We source nvm explicitly in the command to be safe
+            # We use the npm found in path (which includes /opt/bitnami/node/bin)
             echo "Starting PM2..."
-            pm2 start bash --name "lfg-places" -- -c "source \$HOME/.nvm/nvm.sh && nvm use 20 && npm start -- -p 3000"
+            pm2 start npm --name "lfg-places" -- start
             pm2 save
             
             # Process Diagnostics
