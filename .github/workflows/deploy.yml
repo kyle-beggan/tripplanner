@@ -155,22 +155,23 @@ jobs:
             echo "--------------------------"
             
             # Kill anything on port 3000
+            # Kill anything on port 3000 (Try fuser if available, otherwise rely on PM2)
             echo "Killing process on port 3000..."
             sudo fuser -k 3000/tcp || true
-            sudo kill -9 $(sudo lsof -t -i:3000) || true
             
-            # Force restart from THIS directory with CORRECT Node version
+            # Force restart from THIS directory
             pm2 delete lfg-places || true
             
-            # Identify correct Node path
-            NODE_PATH=$(nvm which 20)
-            echo "Using Node (Server Binary): $NODE_PATH"
-            echo "Using Node (Current Shell): $(node -v)"
-            echo "Using NPM (Current Shell): $(npm -v)"
-            
             # Start strict process using bash wrapper to ensure environment is loaded
-            # This is the "Nuclear Option" for NVM + PM2
-            pm2 start bash --name "lfg-places" -- -c "source $HOME/.nvm/nvm.sh && nvm use 20 && npm start -- -p 3000"
+            # We source nvm explicitly in the command to be safe
+            echo "Starting PM2..."
+            pm2 start bash --name "lfg-places" -- -c "source \$HOME/.nvm/nvm.sh && nvm use 20 && npm start -- -p 3000"
+            pm2 save
+            
+            # Process Diagnostics
+            echo "--- PROCESS DIAGNOSTICS ---"
+            pm2 describe lfg-places
+            echo "---------------------------"
             pm2 save
             
             # Process Diagnostics
