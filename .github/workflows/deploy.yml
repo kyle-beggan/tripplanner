@@ -48,6 +48,12 @@ jobs:
             # Debug info
             echo "Deploying as: $(whoami)"
             echo "In directory: $(pwd)"
+            echo "Node Version: $(node -v)"
+            echo "NPM Version: $(npm -v)"
+            
+            echo "--- ENV VARS (Keys Only) ---"
+            printenv | cut -d= -f1 | sort
+            echo "----------------------------"
 
             # Fix permissions
             sudo chown -R $USER:$USER tripplanner || true
@@ -73,12 +79,42 @@ jobs:
             # Create a version file to verify build
             echo "Build Date: $(date)" > public/version.txt
             
+            # Enable strict error handling
+            set -e
+            set -o pipefail
+
+            # Resource Check
+            echo "--- RESOURCE CHECK ---"
+            echo "Disk Space:"
+            df -h
+            echo "Memory:"
+            free -m
+            echo "----------------------"
+
             # Clean build artifact to force fresh build
             rm -rf .next
-            npm run build 2>&1 | tee build.log
+            
+            echo "Starting Build..."
+            # Run build with pipefail to catch errors while logging
+            if npm run build 2>&1 | tee build.log; then
+                echo "Build SUCCESS"
+            else
+                echo "❌ BUILD FAILED"
+                echo "--- BUILD LOG (Last 50 lines) ---"
+                tail -n 50 build.log
+                echo "---------------------------------"
+                exit 1
+            fi
             
             # Verify build output
             echo "--- BUILD VERIFICATION ---"
+            if [ -d ".next" ]; then
+                echo "✅ .next directory exists"
+                ls -la .next
+            else
+                echo "❌ .next directory MISSING"
+                exit 1
+            fi
             grep "api/version" build.log || echo "WARNING: api/version NOT found in build output"
             echo "--------------------------"
             
