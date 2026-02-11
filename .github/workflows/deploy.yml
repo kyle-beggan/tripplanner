@@ -34,6 +34,10 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
+          # Enable verbose SSH debugging
+          debug: true
+          # Increase timeout from default 30s to 60s
+          timeout: "60s"
           script: |
             # DEBUG: Confirm script start
             echo "--- SCRIPT STARTING ---"
