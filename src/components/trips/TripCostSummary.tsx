@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plane, Hotel, Ticket, Calculator, HelpCircle } from 'lucide-react'
+import { Plane, House, Ticket, Calculator, HelpCircle } from 'lucide-react'
 import { updateParticipantIsFlying } from '@/app/trips/actions'
 import { useRouter } from 'next/navigation'
 
@@ -104,7 +104,7 @@ export default function TripCostSummary({
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                            <Hotel className="h-4 w-4" />
+                            <House className="h-4 w-4" />
                         </div>
                         <span className="text-sm font-medium text-gray-700">Lodging</span>
                     </div>
