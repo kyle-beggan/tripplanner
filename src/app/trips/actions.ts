@@ -2,6 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { differenceInDays } from 'date-fns'
+import { getEstimateFlightPrice } from './flight-actions'
 
 export async function deleteTrip(tripId: string) {
     const supabase = await createClient()
@@ -396,7 +398,7 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
     // 2. Verify permissions (Owner or Admin)
     const { data: trip } = await supabase
         .from('trips')
-        .select('owner_id, name, locations')
+        .select('owner_id, name, locations, estimated_participants')
         .eq('id', tripId)
         .single()
 
@@ -414,6 +416,50 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
     if (!isOwner && !isAdmin) {
         return { success: false, message: 'You do not have permission to invite people to this trip.' }
     }
+
+    // --- Calculate Costs ---
+    const estimatedParticipantsCount = trip.estimated_participants || 1
+    const legs = Array.isArray(trip.locations) ? (trip.locations as any[]) : []
+
+    // 1. Lodging Cost calculation
+    const lodgingTotalPerPerson = legs.reduce((totalPerPerson, leg) => {
+        const legLodging = leg.lodging || []
+        let nights = 0
+        if (leg.start_date && leg.end_date) {
+            try {
+                nights = differenceInDays(new Date(leg.end_date), new Date(leg.start_date))
+            } catch (e) {
+                console.error('Date error in lodging calc:', e)
+            }
+        }
+
+        return totalPerPerson + legLodging.reduce((acc: number, l: any) => {
+            if (l.type === 'hotel') {
+                return acc + ((l.estimated_cost_per_person || 0) * (nights || 1))
+            } else {
+                return acc + ((l.total_cost || 0) / estimatedParticipantsCount)
+            }
+        }, 0)
+    }, 0)
+
+    // 2. Activities Cost calculation (Potential total)
+    let activityTotalPotential = 0
+    legs.forEach(leg => {
+        const schedule = leg.schedule || []
+        schedule.forEach((day: any) => {
+            day.activities?.forEach((act: any) => {
+                activityTotalPotential += (act.estimated_cost || 0)
+            })
+        })
+    })
+
+    // 3. Flight Cost (Estimate)
+    const flightEstimateResult = await getEstimateFlightPrice(tripId)
+    // @ts-ignore
+    const flightCost = flightEstimateResult.success && flightEstimateResult.total ? Number(flightEstimateResult.total) : 0
+
+    const blufTotal = flightCost + lodgingTotalPerPerson + activityTotalPotential
+    // --- End Costs ---
 
     // 3. Send Emails via Resend
     const resendApiKey = process.env.RESEND_API_KEY
@@ -446,11 +492,38 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
                             <p style="color: #6b7280; font-size: 16px; margin-top: 8px;">Find your next adventure together.</p>
                         </div>
                         
-                        <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 32px; border-radius: 16px; color: #ffffff; margin-bottom: 32px; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2);">
+                        <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 32px; border-radius: 16px; color: #ffffff; margin-bottom: 24px; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2);">
                             <h2 style="margin: 0; font-size: 22px; font-weight: 700;">You're invited!</h2>
-                            <p style="margin: 12px 0 0 0; font-size: 16px; opacity: 0.9;">
+                            <p style="margin: 12px 0 0 0; font-size: 16px; opacity: 0.96;">
                                 ${user.user_metadata?.full_name || 'A friend'} invited you to join <strong>${trip.name}</strong>.
                             </p>
+                        </div>
+
+                        <!-- BLUF Section -->
+                        <div style="background-color: #f0f7ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 24px; margin-bottom: 32px;">
+                            <div style="text-align: center; border-bottom: 1px solid #bae6fd; padding-bottom: 16px; margin-bottom: 16px;">
+                                <div style="text-transform: uppercase; font-size: 12px; font-weight: 800; color: #0369a1; letter-spacing: 0.1em; margin-bottom: 4px;">Estimated Cost Per Person</div>
+                                <div style="font-size: 36px; font-weight: 800; color: #0c4a6e;">$${blufTotal.toLocaleString()}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-around; font-size: 14px; text-align: center;">
+                                <div>
+                                    <div style="color: #64748b; margin-bottom: 4px;">Flights</div>
+                                    <div style="font-weight: 700; color: #1e293b;">$${flightCost.toLocaleString()}</div>
+                                </div>
+                                <div style="border-left: 1px solid #bae6fd; height: 32px; margin: 0 10px;"></div>
+                                <div>
+                                    <div style="color: #64748b; margin-bottom: 4px;">Lodging</div>
+                                    <div style="font-weight: 700; color: #1e293b;">$${lodgingTotalPerPerson.toLocaleString()}</div>
+                                </div>
+                                <div style="border-left: 1px solid #bae6fd; height: 32px; margin: 0 10px;"></div>
+                                <div>
+                                    <div style="color: #64748b; margin-bottom: 4px;">Activities</div>
+                                    <div style="font-weight: 700; color: #1e293b;">$${activityTotalPotential.toLocaleString()}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
+                                Estimates are per person and subject to change. Lodging costs assume a full group of ${estimatedParticipantsCount} participants.
+                            </div>
                         </div>
 
                         <div style="background-color: #f9fafb; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
