@@ -236,7 +236,7 @@ export default function TripLegItem({
                                     fullSchedule.map((day, dIdx) => (
                                         <div key={dIdx} className="space-y-4">
                                             <div className="flex items-center">
-                                                <h4 className="w-full flex items-center gap-2 text-[10px] sm:text-[11px] font-bold text-indigo-600 uppercase tracking-wider bg-purple-50 px-3 py-1.5 rounded-full border border-purple-100 shadow-sm">
+                                                <h4 className="w-full flex items-center gap-2 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider bg-indigo-600 px-3 py-1.5 rounded-full shadow-sm">
                                                     <Clock className="h-3.5 w-3.5" />
                                                     {formatDate(day.date, 'EEEE, MMM d')}
                                                 </h4>

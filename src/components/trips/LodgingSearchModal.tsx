@@ -107,7 +107,7 @@ export default function LodgingSearchModal({
     }
 
     // Custom Lodging State
-    const [activeTab, setActiveTab] = useState<'search' | 'custom' | 'airbnb'>('search')
+    const [activeTab, setActiveTab] = useState<'search' | 'custom' | 'airbnb'>('custom')
     const [customName, setCustomName] = useState('')
     const [customAddress, setCustomAddress] = useState('')
     const [customCost, setCustomCost] = useState('')
@@ -219,10 +219,10 @@ export default function LodgingSearchModal({
                 {/* Tabs */}
                 <div className="flex border-b border-gray-100">
                     <button
-                        onClick={() => setActiveTab('search')}
-                        className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'search' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        onClick={() => setActiveTab('custom')}
+                        className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'custom' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                     >
-                        Find Hotels
+                        Add Custom
                     </button>
                     <button
                         onClick={() => setActiveTab('airbnb')}
@@ -231,10 +231,10 @@ export default function LodgingSearchModal({
                         Search Airbnb
                     </button>
                     <button
-                        onClick={() => setActiveTab('custom')}
-                        className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'custom' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        onClick={() => setActiveTab('search')}
+                        className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${activeTab === 'search' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                     >
-                        Add Custom
+                        Find Hotels
                     </button>
                 </div>
 
