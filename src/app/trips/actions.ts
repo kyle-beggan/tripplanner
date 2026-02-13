@@ -493,6 +493,7 @@ const formatItineraryHTML = (locations: any) => {
 
     locations.forEach((leg: any, index: number) => {
         const hasActivities = leg.schedule && Array.isArray(leg.schedule) && leg.schedule.length > 0
+        const hasLodging = leg.lodging && Array.isArray(leg.lodging) && leg.lodging.length > 0
 
         html += `<div style="padding: 24px; border-bottom: ${index === locations.length - 1 ? 'none' : '1px solid #f3f4f6'};">`
         html += `<h3 style="margin: 0 0 4px 0; color: #4f46e5; font-size: 18px; font-weight: 700;">${leg.name || `Leg ${index + 1}`}</h3>`
@@ -503,7 +504,23 @@ const formatItineraryHTML = (locations: any) => {
             html += `<p style="margin: 0 0 16px 0; color: #9ca3af; font-size: 13px; font-weight: 500;">${start} — ${end}</p>`
         }
 
+        // Add Lodging section if exists
+        if (hasLodging) {
+            html += '<div style="margin-bottom: 20px;">'
+            html += '<div style="font-size: 13px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 8px;">Lodging</div>'
+            leg.lodging.forEach((hotel: any) => {
+                html += `<div style="background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">`
+                html += `<div style="font-weight: 600; color: #1e293b; font-size: 14px;">${hotel.name}</div>`
+                if (hotel.estimated_cost_per_person) {
+                    html += `<div style="color: #059669; font-weight: 700; font-size: 13px; margin-top: 4px;">Est. $${hotel.estimated_cost_per_person.toLocaleString()} per person</div>`
+                }
+                html += `</div>`
+            })
+            html += '</div>'
+        }
+
         if (hasActivities) {
+            html += '<div style="font-size: 13px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 12px;">Activities</div>'
             html += '<div style="space-y: 12px;">'
             leg.schedule.forEach((day: any) => {
                 const date = new Date(day.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
@@ -518,6 +535,9 @@ const formatItineraryHTML = (locations: any) => {
                         html += `<div style="margin-bottom: 8px; font-size: 14px; color: #4b5563;">`
                         html += `<span style="color: #6366f1; font-weight: 600; margin-right: 8px;">${activity.time}</span>`
                         html += `<span>${activity.description}</span>`
+                        if (activity.estimated_cost) {
+                            html += `<span style="color: #059669; font-weight: 600; margin-left: 8px;">($${activity.estimated_cost.toLocaleString()})</span>`
+                        }
                         html += `</div>`
                     })
                     html += '</div>'
@@ -527,7 +547,7 @@ const formatItineraryHTML = (locations: any) => {
                 html += '</div>'
             })
             html += '</div>'
-        } else {
+        } else if (!hasLodging) {
             html += '<p style="margin: 0; color: #9ca3af; font-style: italic; font-size: 14px; text-align: center; padding: 20px 0;">No itinerary details yet.</p>'
         }
         html += '</div>'
