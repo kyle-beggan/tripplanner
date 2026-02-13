@@ -368,7 +368,7 @@ export default function TripLegItem({
                                                                                         {/* Join/Leave Button */}
                                                                                         {userId && (
                                                                                             <div className="flex items-center gap-2">
-                                                                                                {item.venmo_link && item.estimated_cost && (
+                                                                                                {item.venmo_link && item.estimated_cost && isParticipating && (
                                                                                                     <div className="flex items-center gap-1.5 bg-indigo-50/50 p-1 rounded-full border border-indigo-100">
                                                                                                         {(() => {
                                                                                                             const key = `${dIdx}-${iIdx}`
