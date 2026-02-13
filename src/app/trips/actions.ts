@@ -425,7 +425,13 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
 
     try {
         const { Resend } = await import('resend')
+        const { headers } = await import('next/headers')
         const resend = new Resend(resendApiKey)
+
+        // Dynamically determine the base URL from headers
+        const host = (await headers()).get('host')
+        const protocol = host?.includes('localhost') ? 'http' : 'https'
+        const baseUrl = host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_APP_URL || 'https://lfgplaces.com'
 
         // Send to each recipient
         const emailPromises = emails.map(email => {
@@ -456,7 +462,7 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
                         </div>
 
                         <div style="text-align: center;">
-                            <a href="${process.env.NEXT_PUBLIC_APP_URL}/trips/${tripId}" 
+                            <a href="${baseUrl}/trips/${tripId}" 
                                style="display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; transition: all 0.2s ease-in-out; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);">
                                View Trip & RSVP
                             </a>
