@@ -428,31 +428,48 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
         const resend = new Resend(resendApiKey)
 
         // Send to each recipient
-        // In production, you might want to batch this or use a queue
         const emailPromises = emails.map(email => {
             return resend.emails.send({
-                from: 'LFG Places <onboarding@resend.dev>', // Update this with your verified domain
+                from: 'LFG Places <invites@lfgplaces.com>',
                 to: email,
                 subject: `Invitation to ${trip.name}`,
                 html: `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #4f46e5;">You're invited!</h2>
-                        <p>${user.user_metadata?.full_name || 'A friend'} invited you to join <strong>${trip.name}</strong> on LFG Places.</p>
+                    <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #ffffff; color: #1f2937;">
+                        <div style="text-align: center; margin-bottom: 32px;">
+                            <h1 style="color: #4f46e5; font-size: 28px; font-weight: 800; margin: 0;">LFG Places</h1>
+                            <p style="color: #6b7280; font-size: 16px; margin-top: 8px;">Find your next adventure together.</p>
+                        </div>
                         
-                        <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
-                            <p style="margin-top: 0; white-space: pre-wrap;">${message}</p>
+                        <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 32px; border-radius: 16px; color: #ffffff; margin-bottom: 32px; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2);">
+                            <h2 style="margin: 0; font-size: 22px; font-weight: 700;">You're invited!</h2>
+                            <p style="margin: 12px 0 0 0; font-size: 16px; opacity: 0.9;">
+                                ${user.user_metadata?.full_name || 'A friend'} invited you to join <strong>${trip.name}</strong>.
+                            </p>
                         </div>
 
-                        ${formatItineraryHTML(trip.locations)}
+                        <div style="background-color: #f9fafb; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 32px;">
+                            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #374151; white-space: pre-wrap;">${message}</p>
+                        </div>
 
-                        <a href="${process.env.NEXT_PUBLIC_APP_URL}/trips/${tripId}" 
-                           style="display: inline-block; background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                           View Trip & RSVP
-                        </a>
+                        <div style="margin-bottom: 32px;">
+                            ${formatItineraryHTML(trip.locations)}
+                        </div>
+
+                        <div style="text-align: center;">
+                            <a href="${process.env.NEXT_PUBLIC_APP_URL}/trips/${tripId}" 
+                               style="display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; transition: all 0.2s ease-in-out; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);">
+                               View Trip & RSVP
+                            </a>
+                        </div>
                         
-                        <p style="color: #6b7280; font-size: 12px; margin-top: 32px;">
-                            Sent via LFG Places
-                        </p>
+                        <div style="text-align: center; margin-top: 48px; border-top: 1px solid #f3f4f6; padding-top: 24px;">
+                            <p style="color: #9ca3af; font-size: 13px; margin: 0;">
+                                Sent with ❤️ from LFG Places
+                            </p>
+                            <p style="color: #d1d5db; font-size: 11px; margin-top: 8px;">
+                                if you didn't expect this, you can safely ignore this email.
+                            </p>
+                        </div>
                     </div>
                 `
             })
@@ -471,41 +488,47 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
 const formatItineraryHTML = (locations: any) => {
     if (!Array.isArray(locations) || locations.length === 0) return ''
 
-    let html = '<div style="margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">'
-    html += '<div style="background-color: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #111827;">Trip Itinerary</div>'
+    let html = '<div style="margin: 24px 0; border: 1px solid #f3f4f6; border-radius: 12px; overflow: hidden; background-color: #ffffff;">'
+    html += '<div style="background-color: #f9fafb; padding: 14px 20px; border-bottom: 1px solid #f3f4f6; font-weight: 700; color: #111827; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Trip Itinerary</div>'
 
     locations.forEach((leg: any, index: number) => {
         const hasActivities = leg.schedule && Array.isArray(leg.schedule) && leg.schedule.length > 0
 
-        html += `<div style="padding: 16px; border-bottom: ${index === locations.length - 1 ? 'none' : '1px solid #e5e7eb'};">`
-        html += `<h3 style="margin: 0 0 8px 0; color: #4f46e5; font-size: 16px;">${leg.name || `Leg ${index + 1}`}</h3>`
+        html += `<div style="padding: 24px; border-bottom: ${index === locations.length - 1 ? 'none' : '1px solid #f3f4f6'};">`
+        html += `<h3 style="margin: 0 0 4px 0; color: #4f46e5; font-size: 18px; font-weight: 700;">${leg.name || `Leg ${index + 1}`}</h3>`
 
         if (leg.start_date && leg.end_date) {
-            const start = new Date(leg.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            const end = new Date(leg.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            html += `<p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">${start} - ${end}</p>`
+            const start = new Date(leg.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            const end = new Date(leg.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            html += `<p style="margin: 0 0 16px 0; color: #9ca3af; font-size: 13px; font-weight: 500;">${start} — ${end}</p>`
         }
 
         if (hasActivities) {
-            html += '<ul style="margin: 0; padding-left: 20px; color: #374151;">'
+            html += '<div style="space-y: 12px;">'
             leg.schedule.forEach((day: any) => {
-                const date = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-                html += `<li style="margin-bottom: 8px;"><strong>${date}</strong>`
+                const date = new Date(day.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+                html += `<div style="margin-bottom: 16px;">`
+                html += `<div style="font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 8px; display: flex; align-items: center;">`
+                html += `<span style="width: 8px; height: 8px; background-color: #6366f1; border-radius: 50%; display: inline-block; margin-right: 8px;"></span>${date}`
+                html += `</div>`
 
                 if (day.activities && day.activities.length > 0) {
-                    html += '<ul style="margin: 4px 0 0 0; padding-left: 20px; list-style-type: circle;">'
+                    html += '<div style="padding-left: 16px; border-left: 2px solid #f3f4f6; margin-left: 3px;">'
                     day.activities.forEach((activity: any) => {
-                        html += `<li style="margin-bottom: 4px; font-size: 14px;">${activity.time} - ${activity.description}</li>`
+                        html += `<div style="margin-bottom: 8px; font-size: 14px; color: #4b5563;">`
+                        html += `<span style="color: #6366f1; font-weight: 600; margin-right: 8px;">${activity.time}</span>`
+                        html += `<span>${activity.description}</span>`
+                        html += `</div>`
                     })
-                    html += '</ul>'
+                    html += '</div>'
                 } else {
-                    html += ' <span style="font-size: 14px; color: #9ca3af;">- No scheduled activities</span>'
+                    html += '<p style="margin: 4px 0 0 16px; font-size: 13px; color: #9ca3af; font-style: italic;">No activities scheduled</p>'
                 }
-                html += '</li>'
+                html += '</div>'
             })
-            html += '</ul>'
+            html += '</div>'
         } else {
-            html += '<p style="margin: 0; color: #9ca3af; font-style: italic; font-size: 14px;">No itinerary details yet.</p>'
+            html += '<p style="margin: 0; color: #9ca3af; font-style: italic; font-size: 14px; text-align: center; padding: 20px 0;">No itinerary details yet.</p>'
         }
         html += '</div>'
     })

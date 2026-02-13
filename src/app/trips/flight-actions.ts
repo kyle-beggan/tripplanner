@@ -169,7 +169,7 @@ export async function getEstimateFlightPrice(tripId: string): Promise<FlightEsti
         }
 
     } catch (error: any) {
-        console.error('Amadeus API Error:', error.message)
+        console.error('Amadeus API Error:', error?.message || error)
 
         // Return debug info to client since user can't see server logs
         return {
