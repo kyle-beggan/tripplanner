@@ -6,6 +6,7 @@ import { Loader2, Check, X, Shield, User, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
+import { toast } from 'sonner'
 
 interface Profile {
     id: string
@@ -55,7 +56,7 @@ export default function AdminPage() {
 
         const result = await updateUserStatus(userId, status)
         if (result.error) {
-            alert('Failed to update status: ' + result.error)
+            toast.error('Failed to update status: ' + result.error)
             await loadUsers() // Revert on error
         } else {
             // Optional: loadUsers() again to be absolutely sure, 
@@ -75,7 +76,7 @@ export default function AdminPage() {
             action: async () => {
                 const result = await updateUserStatus(userId, 'approved', 'admin')
                 if (result.error) {
-                    alert('Failed to update role: ' + result.error)
+                    toast.error('Failed to update role: ' + result.error)
                 } else {
                     loadUsers()
                 }
@@ -94,7 +95,7 @@ export default function AdminPage() {
                 if (result.success) {
                     loadUsers()
                 } else {
-                    alert('Failed to delete user: ' + result.error)
+                    toast.error('Failed to delete user: ' + result.error)
                 }
             }
         })
@@ -203,7 +204,7 @@ export default function AdminPage() {
                                         )}
 
                                         <button
-                                            onClick={() => alert('Edit functionality to be implemented')}
+                                            onClick={() => toast.info('Edit functionality to be implemented')}
                                             className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 rounded hover:bg-indigo-50 transition-colors"
                                         >
                                             Edit

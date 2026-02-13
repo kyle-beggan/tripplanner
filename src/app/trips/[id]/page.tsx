@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { Calendar, MapPin, ArrowLeft, User, Star, Clock } from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
 import TripRSVPButton from '@/components/trips/TripRSVPButton'
-import TripActivityCard from '@/components/trips/TripActivityCard'
 import TripLegs from '@/components/trips/TripLegs'
 import TripInviteButton from '@/components/trips/TripInviteButton'
 import TripCostSummary from '@/components/trips/TripCostSummary'
@@ -134,20 +133,13 @@ export default async function TripDetailsPage({ params }: PageProps) {
     const tripActivities = Array.isArray(trip.activities) ? (trip.activities as string[]) : []
 
     // Fetch full activity objects to check GPS requirement for ALL activities (top-level and legs)
-    const legActivities = legs.flatMap(l => (Array.isArray(l.activities) ? l.activities : []))
-    const allUniqueActivities = Array.from(new Set([...tripActivities, ...legActivities]))
+    // Fetch all available activities from the database
+    const { data: activitiesData } = await supabase
+        .from('activities')
+        .select('name, requires_gps')
+        .order('name', { ascending: true })
 
-    let activitiesData: any[] = []
-    if (allUniqueActivities.length > 0) {
-        const { data } = await supabase
-            .from('activities')
-            .select('name, requires_gps')
-            .in('name', allUniqueActivities)
-        activitiesData = data || []
-    }
-
-    // Create a map for quick activity lookup
-    const activityMap = new Map(activitiesData.map(a => [a.name, a]))
+    const activityMap = new Map((activitiesData || []).map(a => [a.name, a]))
 
     // Process participants
     const participants = participantsData || []

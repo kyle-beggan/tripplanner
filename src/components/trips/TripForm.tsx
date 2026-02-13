@@ -419,6 +419,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                 startDate={locations[editingLegIndex].start_date || startDate}
                                 endDate={locations[editingLegIndex].end_date || endDate}
                                 legActivities={locations[editingLegIndex].activities}
+                                availableActivities={availableActivities}
                                 initialSchedule={locations[editingLegIndex].schedule}
                                 onSave={(schedule) => {
                                     updateLeg(editingLegIndex, { schedule })

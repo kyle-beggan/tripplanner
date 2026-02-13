@@ -169,12 +169,30 @@ export async function getEstimateFlightPrice(tripId: string): Promise<FlightEsti
         }
 
     } catch (error: any) {
-        console.error('Amadeus API Error:', error?.message || error)
+        // Attempt to extract response body safely
+        let responseBody = null
+        try {
+            if (error.response?.body) {
+                responseBody = typeof error.response.body === 'string'
+                    ? JSON.parse(error.response.body)
+                    : error.response.body
+            }
+        } catch (e) {
+            responseBody = error.response?.body
+        }
+
+        console.error('Amadeus API Error Details:', {
+            message: error.message,
+            code: error.code,
+            response: responseBody || error.response,
+            stack: error.stack
+        })
 
         // Return debug info to client since user can't see server logs
         return {
             success: false,
-            message: 'Could not fetch estimate', // Generic message
+            message: 'Could not fetch estimate',
+            debugError: responseBody || { message: error.message },
             // Return the deep link so UI can still be helpful!
             ...fallbackResult
         }

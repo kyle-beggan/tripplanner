@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Check, CheckCheck, Loader2, Plus, X } from 'lucide-react'
 import { joinAllTripActivities, unjoinAllTripActivities } from '@/app/trips/actions'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface TripJoinAllButtonProps {
     tripId: string
@@ -23,11 +24,11 @@ export default function TripJoinAllButton({ tripId, joinedCount, totalCount }: T
             if (result.success) {
                 router.refresh()
             } else {
-                alert('Failed to join all activities')
+                toast.error('Failed to join all activities')
             }
         } catch (error) {
             console.error('Error joining all:', error)
-            alert('An error occurred')
+            toast.error('An error occurred')
         } finally {
             setLoading(false)
         }
@@ -41,11 +42,11 @@ export default function TripJoinAllButton({ tripId, joinedCount, totalCount }: T
             if (result.success) {
                 router.refresh()
             } else {
-                alert('Failed to unjoin all activities')
+                toast.error('Failed to unjoin all activities')
             }
         } catch (error) {
             console.error('Error unjoining all:', error)
-            alert('An error occurred')
+            toast.error('An error occurred')
         } finally {
             setLoading(false)
         }

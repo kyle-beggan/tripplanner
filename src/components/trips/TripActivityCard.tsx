@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { MapPin, Search } from 'lucide-react'
-import ActivitySearchModal from '@/components/activities/ActivitySearchModal'
+import AddActivityModal from '@/components/activities/AddActivityModal'
 
 interface TripActivityCardProps {
     name: string
@@ -13,6 +13,7 @@ interface TripActivityCardProps {
     legIndex?: number
     startDate?: string | null
     endDate?: string | null
+    availableActivities?: any[]
 }
 
 export default function TripActivityCard({
@@ -23,7 +24,8 @@ export default function TripActivityCard({
     isEditable,
     legIndex,
     startDate,
-    endDate
+    endDate,
+    availableActivities = []
 }: TripActivityCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -51,16 +53,16 @@ export default function TripActivityCard({
                     Find {name}
                 </span>
             </button>
-            <ActivitySearchModal
+            <AddActivityModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                activityName={name}
-                locations={locations}
                 tripId={tripId}
-                isEditable={isEditable}
                 legIndex={legIndex}
                 startDate={startDate}
                 endDate={endDate}
+                availableActivities={availableActivities}
+                initialTab="find"
+                initialCategory={name}
             />
         </>
     )

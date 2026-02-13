@@ -308,7 +308,7 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
     return { success: true }
 }
 
-export async function addActivityToLegSchedule(tripId: string, legIndex: number, date: string, time: string, description: string, placeDetails?: any, estimatedCost?: number, locationName?: string) {
+export async function addActivityToLegSchedule(tripId: string, legIndex: number, date: string, time: string, description: string, placeDetails?: any, estimatedCost?: number, locationName?: string, venmoLink?: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -367,6 +367,7 @@ export async function addActivityToLegSchedule(tripId: string, legIndex: number,
         description: description,
         estimated_cost: estimatedCost,
         location_name: locationName,
+        venmo_link: venmoLink,
         participants: [] // Initialize with empty participants
     })
 
@@ -881,6 +882,151 @@ export async function updateParticipantIsFlying(tripId: string, isFlying: boolea
         console.error('Error updating flight status:', error)
         return { success: false, message: 'Failed to update status' }
     }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function removeActivityFromLegSchedule(tripId: string, legIndex: number, date: string, activityIndex: number) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id, locations')
+        .eq('id', tripId)
+        .single()
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip?.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!trip || (!isOwner && !isAdmin)) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+
+    if (!leg || !leg.schedule) return { success: false, message: 'Schedule not found' }
+
+    const daySchedule = leg.schedule.find((d: any) => d.date.split('T')[0] === date.split('T')[0])
+    if (!daySchedule || !daySchedule.activities) return { success: false, message: 'Activity not found' }
+
+    // Sort to ensure index matches UI if needed, though toggleActivityParticipation does this
+    daySchedule.activities.sort((a: any, b: any) => {
+        const timeA = a.time.replace(':', '')
+        const timeB = b.time.replace(':', '')
+        return parseInt(timeA) - parseInt(timeB)
+    })
+
+    if (activityIndex < 0 || activityIndex >= daySchedule.activities.length) {
+        return { success: false, message: 'Invalid activity index' }
+    }
+
+    // Remove the activity
+    daySchedule.activities.splice(activityIndex, 1)
+
+    // Optional: If day is now empty, we could remove the day entry entirely
+    // if (daySchedule.activities.length === 0) {
+    //     leg.schedule = leg.schedule.filter((d: any) => d.date.split('T')[0] !== date.split('T')[0])
+    // }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function updateActivityInLegSchedule(
+    tripId: string,
+    legIndex: number,
+    date: string,
+    activityIndex: number,
+    updatedData: {
+        time: string,
+        description: string,
+        estimatedCost?: number,
+        locationName?: string,
+        venmoLink?: string
+    }
+) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id, locations')
+        .eq('id', tripId)
+        .single()
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip?.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!trip || (!isOwner && !isAdmin)) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+
+    if (!leg || !leg.schedule) return { success: false, message: 'Schedule not found' }
+
+    const daySchedule = leg.schedule.find((d: any) => d.date.split('T')[0] === date.split('T')[0])
+    if (!daySchedule || !daySchedule.activities) return { success: false, message: 'Activity not found' }
+
+    // Ensure activities are sorted to match index logic
+    daySchedule.activities.sort((a: any, b: any) => {
+        const timeA = a.time.replace(':', '')
+        const timeB = b.time.replace(':', '')
+        return parseInt(timeA) - parseInt(timeB)
+    })
+
+    if (activityIndex < 0 || activityIndex >= daySchedule.activities.length) {
+        return { success: false, message: 'Invalid activity index' }
+    }
+
+    // Update the activity
+    const activity = daySchedule.activities[activityIndex]
+    activity.time = updatedData.time
+    activity.description = updatedData.description
+    activity.estimated_cost = updatedData.estimatedCost
+    activity.location_name = updatedData.locationName
+    activity.venmo_link = updatedData.venmoLink
+
+    // Re-sort activities if time changed
+    daySchedule.activities.sort((a: any, b: any) => {
+        const timeA = a.time.replace(':', '')
+        const timeB = b.time.replace(':', '')
+        return parseInt(timeA) - parseInt(timeB)
+    })
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
 
     revalidatePath(`/trips/${tripId}`)
     return { success: true }

@@ -16,11 +16,14 @@ interface DailySchedule {
     activities: ScheduledActivity[]
 }
 
+import AddActivityModal from '@/components/activities/AddActivityModal'
+
 interface LegItineraryBuilderProps {
     legName: string
     startDate: string | null
     endDate: string | null
     legActivities: string[]
+    availableActivities: any[]
     initialSchedule?: DailySchedule[]
     onSave: (schedule: DailySchedule[]) => void
     onCancel: () => void
@@ -41,12 +44,14 @@ export default function LegItineraryBuilder({
     startDate,
     endDate,
     legActivities,
+    availableActivities,
     initialSchedule = [],
     onSave,
     onCancel
 }: LegItineraryBuilderProps) {
     const [schedule, setSchedule] = useState<DailySchedule[]>(initialSchedule)
     const [activeDate, setActiveDate] = useState<string | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     // Generate days when dates change
     useEffect(() => {
@@ -80,16 +85,24 @@ export default function LegItineraryBuilder({
 
     const activeSchedule = schedule.find(s => s.date === activeDate)
 
-    const addActivity = (date: string) => {
+    const handleModalAdd = (activity: any) => {
+        const date = activity.date
         setSchedule(prev => prev.map(s => {
             if (s.date === date) {
-                return {
-                    ...s,
-                    activities: [...s.activities, { time: '08:00', description: '' }]
+                const newActivity = {
+                    time: activity.time,
+                    description: activity.description,
+                    location_name: activity.location_name,
+                    estimated_cost: activity.estimated_cost
                 }
+                const nextActivities = [...s.activities, newActivity]
+                // Sort activities by time
+                nextActivities.sort((a, b) => a.time.localeCompare(b.time))
+                return { ...s, activities: nextActivities }
             }
             return s
         }))
+        setIsModalOpen(false)
     }
 
     const updateActivity = (date: string, index: number, updates: Partial<ScheduledActivity>) => {
@@ -169,7 +182,7 @@ export default function LegItineraryBuilder({
                                 </h4>
                                 <button
                                     type="button"
-                                    onClick={() => addActivity(activeDate)}
+                                    onClick={() => setIsModalOpen(true)}
                                     className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full transition-colors"
                                 >
                                     <Plus className="h-3.5 w-3.5" />
@@ -259,7 +272,7 @@ export default function LegItineraryBuilder({
                                         <p className="text-sm text-gray-400">No activities scheduled for this day.</p>
                                         <button
                                             type="button"
-                                            onClick={() => addActivity(activeDate)}
+                                            onClick={() => setIsModalOpen(true)}
                                             className="mt-3 text-xs font-bold text-indigo-600 hover:underline"
                                         >
                                             Add something now
@@ -276,6 +289,17 @@ export default function LegItineraryBuilder({
                     )}
                 </div>
             </div>
+
+            <AddActivityModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                startDate={startDate}
+                endDate={endDate}
+                availableActivities={availableActivities}
+                onAdd={handleModalAdd}
+                initialDate={activeDate}
+                locationName={legName}
+            />
 
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-3">
                 <button

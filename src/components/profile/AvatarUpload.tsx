@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Image from 'next/image'
 import { Upload, X, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface AvatarUploadProps {
     uid: string
@@ -48,7 +49,7 @@ export default function AvatarUpload({ uid, url, onUpload, size = 150 }: AvatarU
             }
 
         } catch (error) {
-            alert('Error uploading avatar!')
+            toast.error('Error uploading avatar!')
             console.log(error)
         } finally {
             setUploading(false)
