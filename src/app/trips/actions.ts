@@ -522,7 +522,7 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
                                 </div>
                             </div>
                             <div style="margin-top: 16px; font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
-                                Estimates are per person and subject to change. Lodging costs assume a full group of ${estimatedParticipantsCount} participants.
+                                Estimates are per person and subject to change. Lodging costs assume a full group of 20 participants. You have the ability to opt-in or out of activities on the itinerary to customize your overall price.
                             </div>
                         </div>
 

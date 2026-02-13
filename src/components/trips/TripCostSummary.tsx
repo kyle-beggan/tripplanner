@@ -66,7 +66,7 @@ export default function TripCostSummary({
                     <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                         <div className="absolute -top-1 right-2 w-2 h-2 bg-gray-900 rotate-45"></div>
                         <p>
-                            Estimates are per person and subject to change. Lodging costs assume a full group of {estimatedParticipants} participants.
+                            Estimates are per person and subject to change. Lodging costs assume a full group of 20 participants. You have the ability to opt-in or out of activities on the itinerary to customize your overall price.
                         </p>
                     </div>
                 </div>
