@@ -475,10 +475,13 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
         const { headers } = await import('next/headers')
         const resend = new Resend(resendApiKey)
 
-        // Dynamically determine the base URL from headers
-        const host = (await headers()).get('host')
-        const protocol = host?.includes('localhost') ? 'http' : 'https'
-        const baseUrl = host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_APP_URL || 'https://lfgplaces.com'
+        // Dynamically determine the base URL - prioritize env var for production
+        let baseUrl = process.env.NEXT_PUBLIC_APP_URL
+        if (!baseUrl) {
+            const host = (await headers()).get('host')
+            const protocol = host?.includes('localhost') ? 'http' : 'https'
+            baseUrl = host ? `${protocol}://${host}` : 'https://lfgplaces.com'
+        }
 
         // Send to each recipient
         const emailPromises = emails.map(email => {
