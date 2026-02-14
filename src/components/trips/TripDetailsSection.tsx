@@ -6,6 +6,7 @@ import { format, differenceInDays } from 'date-fns'
 import { updateTripDescription } from '@/app/trips/actions'
 import { toast } from 'sonner'
 import PersonaSelectModal, { POP_ICONS } from '@/components/trips/PersonaSelectModal'
+import CountdownClock from '@/components/trips/CountdownClock'
 
 interface TripLeg {
     name: string
@@ -24,6 +25,7 @@ interface TripDetailsSectionProps {
     endDate: string | null
     participants: any[]
     isEditable: boolean
+    isLive: boolean
 }
 
 export default function TripDetailsSection({
@@ -34,7 +36,8 @@ export default function TripDetailsSection({
     startDate,
     endDate,
     participants,
-    isEditable
+    isEditable,
+    isLive
 }: TripDetailsSectionProps) {
     const [isGenerated, setIsGenerated] = useState(false)
     const [generatedSummary, setGeneratedSummary] = useState<string | null>(null)
@@ -185,6 +188,12 @@ export default function TripDetailsSection({
                         </div>
                     )}
                 </div>
+
+                {!isLive && startDate && new Date(startDate) > new Date() && (
+                    <div className="mt-8 pt-8 border-t border-gray-100">
+                        <CountdownClock startDate={startDate} isCompact />
+                    </div>
+                )}
             </div>
 
             <PersonaSelectModal

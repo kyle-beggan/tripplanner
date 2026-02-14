@@ -1171,3 +1171,36 @@ export async function updateTripDescription(tripId: string, description: string)
     revalidatePath(`/trips/${tripId}`)
     return { success: true }
 }
+
+export async function createNewActivityCategory(name: string, requiresGps: boolean) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false, message: 'Unauthorized' }
+
+    // Check if category already exists
+    const { data: existing } = await supabase
+        .from('activities')
+        .select('name')
+        .ilike('name', name)
+        .maybeSingle()
+
+    if (existing) {
+        return { success: false, message: 'A category with this name already exists.' }
+    }
+
+    const { error } = await supabase
+        .from('activities')
+        .insert({
+            name,
+            requires_gps: requiresGps
+        })
+
+    if (error) {
+        console.error('Error creating activity category:', error)
+        return { success: false, message: 'Failed to create category' }
+    }
+
+    revalidatePath('/trips') // Revalidate pages that use activities
+    return { success: true }
+}

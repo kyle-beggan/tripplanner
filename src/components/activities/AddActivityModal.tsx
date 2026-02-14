@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { X, Search, Plus, Calendar, Clock, MapPin, DollarSign, Loader2, Navigation, Check } from 'lucide-react'
 import { format, eachDayOfInterval, parseISO } from 'date-fns'
-import { addActivityToLegSchedule, updateActivityInLegSchedule } from '@/app/trips/actions'
+import { addActivityToLegSchedule, updateActivityInLegSchedule, createNewActivityCategory } from '@/app/trips/actions'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -59,7 +59,7 @@ export default function AddActivityModal({
 }: AddActivityModalProps) {
     const router = useRouter()
     const [activeTab, setActiveTab] = useState<'custom' | 'find'>(initialTab)
-    const [subView, setSubView] = useState<'categories' | 'search' | 'schedule'>('categories')
+    const [subView, setSubView] = useState<'categories' | 'search' | 'schedule' | 'create_category'>('categories')
 
     // Custom Form State
     const [customTitle, setCustomTitle] = useState('')
@@ -75,6 +75,11 @@ export default function AddActivityModal({
     const [loading, setLoading] = useState(false)
     const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // New Category Form State
+    const [newCategoryName, setNewCategoryName] = useState('')
+    const [newCategoryRequiresGps, setNewCategoryRequiresGps] = useState(true)
+    const [isCreatingCategory, setIsCreatingCategory] = useState(false)
 
     const handleSearch = useCallback(async (category: string) => {
         setLoading(true)
@@ -137,9 +142,33 @@ export default function AddActivityModal({
                 setSelectedCategory(null)
                 setPlaces([])
                 setSelectedPlace(null)
+                setNewCategoryName('')
+                setNewCategoryRequiresGps(true)
             }
         }
     }, [isOpen, startDate, initialDate, availableActivities, initialCategory, initialTab, handleSearch, initialActivityData])
+
+    const handleCreateCategory = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newCategoryName.trim()) return
+
+        setIsCreatingCategory(true)
+        try {
+            const result = await createNewActivityCategory(newCategoryName, newCategoryRequiresGps)
+            if (result.success) {
+                toast.success('Category created!')
+                setNewCategoryName('')
+                setSubView('categories')
+                router.refresh()
+            } else {
+                toast.error(result.message || 'Failed to create category')
+            }
+        } catch (err) {
+            toast.error('Something went wrong')
+        } finally {
+            setIsCreatingCategory(false)
+        }
+    }
 
     // Generate date options
     const dateOptions = []
@@ -236,6 +265,9 @@ export default function AddActivityModal({
     }
 
     if (!isOpen) return null
+
+    // For "Find Activities", we only show things that require GPS
+    const gpsActivities = availableActivities.filter(a => a.requires_gps)
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -374,23 +406,80 @@ export default function AddActivityModal({
                     ) : (
                         <div className="space-y-6">
                             {subView === 'categories' && (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {availableActivities.map((act, idx) => (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {gpsActivities.map((act, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => {
+                                                    setSelectedCategory(act)
+                                                    handleSearch(act.name)
+                                                }}
+                                                className="p-4 rounded-xl border border-gray-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 text-center transition-all group"
+                                            >
+                                                <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                                    <Search className="h-5 w-5" />
+                                                </div>
+                                                <span className="text-xs font-bold text-gray-900 line-clamp-1">{act.name}</span>
+                                            </button>
+                                        ))}
                                         <button
-                                            key={idx}
-                                            onClick={() => {
-                                                setSelectedCategory(act)
-                                                handleSearch(act.name)
-                                            }}
-                                            className="p-4 rounded-xl border border-gray-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 text-center transition-all group"
+                                            onClick={() => setSubView('create_category')}
+                                            className="p-4 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 hover:border-indigo-500 hover:bg-indigo-50 text-center transition-all group"
                                         >
-                                            <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                                <Search className="h-5 w-5" />
+                                            <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors border border-gray-200 shadow-sm">
+                                                <Plus className="h-5 w-5" />
                                             </div>
-                                            <span className="text-xs font-bold text-gray-900 line-clamp-1">{act.name}</span>
+                                            <span className="text-xs font-bold text-indigo-600">New Category</span>
                                         </button>
-                                    ))}
+                                    </div>
                                 </div>
+                            )}
+
+                            {subView === 'create_category' && (
+                                <form onSubmit={handleCreateCategory} className="space-y-6 animate-in slide-in-from-right-4 duration-200">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSubView('categories')}
+                                        className="text-xs font-bold text-gray-500 hover:text-indigo-600 flex items-center gap-1"
+                                    >
+                                        ← Back to categories
+                                    </button>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Category Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={newCategoryName}
+                                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                                placeholder="e.g. Rooftop Bar"
+                                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                                            <div className="flex-1">
+                                                <label className="text-sm font-bold text-gray-900">Requires GPS Search?</label>
+                                                <p className="text-xs text-gray-500">Enables searching for places by name.</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewCategoryRequiresGps(!newCategoryRequiresGps)}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${newCategoryRequiresGps ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                                            >
+                                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${newCategoryRequiresGps ? 'translate-x-6' : 'translate-x-1'}`} />
+                                            </button>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={isCreatingCategory || !newCategoryName.trim()}
+                                            className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            {isCreatingCategory ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                                            Add Category
+                                        </button>
+                                    </div>
+                                </form>
                             )}
 
                             {subView === 'search' && (
@@ -530,7 +619,7 @@ export default function AddActivityModal({
                     </button>
                     <button
                         onClick={() => handleSubmit()}
-                        disabled={isSubmitting || (activeTab === 'custom' && !customTitle) || (activeTab === 'find' && subView !== 'schedule')}
+                        disabled={isSubmitting || (activeTab === 'custom' && !customTitle) || (activeTab === 'find' && (subView !== 'schedule' && subView !== 'create_category')) || (subView === 'create_category')}
                         className="flex-[2] py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                     >
                         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}

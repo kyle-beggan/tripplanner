@@ -84,19 +84,42 @@ export default function TripLegItem({
     const [searchModalOpen, setSearchModalOpen] = useState(false)
     const [activitySearchOpen, setActivitySearchOpen] = useState(false)
     const [modalInitialDate, setModalInitialDate] = useState<string | null>(null)
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(() => {
+        if (!leg.start_date || !leg.end_date) return false
+        const now = new Date()
+        const start = parseISO(leg.start_date)
+        const end = parseISO(leg.end_date)
+        start.setHours(0, 0, 0, 0)
+        end.setHours(23, 59, 59, 999)
+        return now >= start && now <= end
+    })
+
     // Key: "dayIdx-actIdx", Value: string[] of participant IDs
     const [optimisticParticipants, setOptimisticParticipants] = useState<Record<string, string[]>>({})
-    const [activityToDelete, setActivityToDelete] = useState<{ date: string, index: number, description: string } | null>(null)
-    const [isDeletingActivity, setIsDeletingActivity] = useState(false)
-    const [multipliers, setMultipliers] = useState<Record<string, number>>({})
-    const [editingActivity, setEditingActivity] = useState<{ date: string, index: number, data: ScheduledActivity } | null>(null)
-    const [viewingActivity, setViewingActivity] = useState<{ dayDate: string, index: number, data: ScheduledActivity } | null>(null)
+
+    // Auto-scroll to today
+    useEffect(() => {
+        if (isOpen) {
+            const todayStr = format(new Date(), 'yyyy-MM-dd')
+            const element = document.getElementById(`day-${todayStr}`)
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }, 500) // Small delay to ensure render
+            }
+        }
+    }, [isOpen])
 
     // Clear optimistic state when server data updates
     useEffect(() => {
         setOptimisticParticipants({})
     }, [dataTimestamp])
+
+    const [activityToDelete, setActivityToDelete] = useState<{ date: string, index: number, description: string } | null>(null)
+    const [isDeletingActivity, setIsDeletingActivity] = useState(false)
+    const [multipliers, setMultipliers] = useState<Record<string, number>>({})
+    const [editingActivity, setEditingActivity] = useState<{ date: string, index: number, data: ScheduledActivity } | null>(null)
+    const [viewingActivity, setViewingActivity] = useState<{ dayDate: string, index: number, data: ScheduledActivity } | null>(null)
 
     const fullSchedule = useMemo(() => {
         if (!leg.start_date || !leg.end_date) return leg.schedule || []
@@ -237,293 +260,303 @@ export default function TripLegItem({
                         {activeTab === 'schedule' && (
                             <div className="space-y-8 animate-in fade-in duration-300 slide-in-from-bottom-2">
                                 {fullSchedule.length > 0 ? (
-                                    fullSchedule.map((day, dIdx) => (
-                                        <div key={dIdx} className="space-y-4">
-                                            <div className="flex items-center">
-                                                <h4 className="w-full flex items-center gap-2 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider bg-indigo-600 px-3 py-1.5 rounded-full shadow-sm">
-                                                    <Clock className="h-3.5 w-3.5" />
-                                                    {formatDate(day.date, 'EEEE, MMM d')}
-                                                </h4>
-                                            </div>
-
-                                            {day.activities.length === 0 ? (
-                                                <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30">
-                                                    <Clock className="h-6 w-6 text-gray-200 mx-auto mb-2" />
-                                                    <p className="text-xs text-gray-400">No activities scheduled for this day.</p>
-                                                    {isEditable && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleOpenAddActivity(day.date)}
-                                                            className="mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 mx-auto bg-indigo-50 px-4 py-2 rounded-full transition-colors border border-indigo-100 shadow-sm"
-                                                        >
-                                                            <Plus className="h-3.5 w-3.5" />
-                                                            Add Activity
-                                                        </button>
-                                                    )}
+                                    fullSchedule.map((day, dIdx) => {
+                                        const isToday = day.date.split('T')[0] === format(new Date(), 'yyyy-MM-dd')
+                                        return (
+                                            <div key={dIdx} id={`day-${day.date.split('T')[0]}`} className="space-y-4">
+                                                <div className="flex items-center">
+                                                    <h4 className={`w-full flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm ${isToday ? 'bg-gradient-to-r from-indigo-600 to-violet-600 ring-4 ring-indigo-50' : 'bg-indigo-600'}`}>
+                                                        <div className="flex items-center gap-2">
+                                                            <Clock className="h-3.5 w-3.5" />
+                                                            {formatDate(day.date, 'EEEE, MMM d')}
+                                                        </div>
+                                                        {isToday && (
+                                                            <span className="bg-white text-indigo-600 px-2 py-0.5 rounded-full text-[9px] animate-pulse">
+                                                                Today
+                                                            </span>
+                                                        )}
+                                                    </h4>
                                                 </div>
-                                            ) : (
-                                                <div className="space-y-0 relative">
-                                                    <div className="absolute left-[39px] top-6 bottom-6 w-0.5 bg-indigo-50" />
-                                                    {day.activities.map((item, iIdx) => {
-                                                        const optimisticKey = `${dIdx}-${iIdx}`
-                                                        const currentParticipants = optimisticParticipants[optimisticKey] !== undefined
-                                                            ? optimisticParticipants[optimisticKey]
-                                                            : (item.participants || [])
-                                                        const isParticipating = userId && currentParticipants.includes(userId)
 
-                                                        return (
-                                                            <div key={iIdx} className="relative flex items-start gap-4 py-3 group">
-                                                                <div className="w-20 pt-1 text-[10px] font-bold text-indigo-400 text-right tabular-nums uppercase">
-                                                                    {(() => {
-                                                                        const [h, m] = item.time.split(':')
-                                                                        const hour = parseInt(h)
-                                                                        const ampm = hour >= 12 ? 'PM' : 'AM'
-                                                                        const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)
-                                                                        return `${displayHour}:${m || '00'} ${ampm}`
-                                                                    })()}
-                                                                </div>
-                                                                <div className={`relative z-10 mt-1.5 w-2 h-2 rounded-full ring-4 ring-white transition-colors ${isParticipating ? 'bg-green-500' : 'bg-indigo-200 group-hover:bg-indigo-600'}`} />
-                                                                <div className={`flex-1 rounded-lg p-3 transition-colors border cursor-pointer ${isParticipating
-                                                                    ? 'bg-green-50 border-green-100 hover:bg-green-100/80'
-                                                                    : 'bg-gray-50 border-transparent group-hover:bg-indigo-50/50 group-hover:border-indigo-100 hover:bg-white hover:shadow-md'
-                                                                    }`}
-                                                                    onClick={() => setViewingActivity({
-                                                                        dayDate: day.date,
-                                                                        index: iIdx,
-                                                                        data: item
-                                                                    })}
-                                                                >
-                                                                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                                                        <div>
-                                                                            <p className="text-sm font-semibold text-gray-900">{item.description}</p>
-                                                                            {item.location_name && (
-                                                                                <a
-                                                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location_name)}`}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 hover:underline mt-1"
-                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                >
-                                                                                    <MapPin className="h-3 w-3" />
-                                                                                    Get Directions
-                                                                                </a>
-                                                                            )}
-                                                                        </div>
+                                                {day.activities.length === 0 ? (
+                                                    <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30">
+                                                        <Clock className="h-6 w-6 text-gray-200 mx-auto mb-2" />
+                                                        <p className="text-xs text-gray-400">No activities scheduled for this day.</p>
+                                                        {isEditable && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleOpenAddActivity(day.date)}
+                                                                className="mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 mx-auto bg-indigo-50 px-4 py-2 rounded-full transition-colors border border-indigo-100 shadow-sm"
+                                                            >
+                                                                <Plus className="h-3.5 w-3.5" />
+                                                                Add Activity
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-0 relative">
+                                                        <div className="absolute left-[39px] top-6 bottom-6 w-0.5 bg-indigo-50" />
+                                                        {day.activities.map((item, iIdx) => {
+                                                            const optimisticKey = `${dIdx}-${iIdx}`
+                                                            const currentParticipants = optimisticParticipants[optimisticKey] !== undefined
+                                                                ? optimisticParticipants[optimisticKey]
+                                                                : (item.participants || [])
+                                                            const isParticipating = userId && currentParticipants.includes(userId)
 
-                                                                        <div className="flex items-center gap-3 self-end sm:self-start">
-                                                                            {isEditable && (
-                                                                                <div className="flex items-center gap-1">
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            toast.info('Reminder feature coming soon!')
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                                                                                        title="Send reminder"
+                                                            return (
+                                                                <div key={iIdx} className="relative flex items-start gap-4 py-3 group">
+                                                                    <div className="w-20 pt-1 text-[10px] font-bold text-indigo-400 text-right tabular-nums uppercase">
+                                                                        {(() => {
+                                                                            const [h, m] = item.time.split(':')
+                                                                            const hour = parseInt(h)
+                                                                            const ampm = hour >= 12 ? 'PM' : 'AM'
+                                                                            const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)
+                                                                            return `${displayHour}:${m || '00'} ${ampm}`
+                                                                        })()}
+                                                                    </div>
+                                                                    <div className={`relative z-10 mt-1.5 w-2 h-2 rounded-full ring-4 ring-white transition-colors ${isParticipating ? 'bg-green-500' : 'bg-indigo-200 group-hover:bg-indigo-600'}`} />
+                                                                    <div className={`flex-1 rounded-lg p-3 transition-colors border cursor-pointer ${isParticipating
+                                                                        ? 'bg-green-50 border-green-100 hover:bg-green-100/80'
+                                                                        : 'bg-gray-50 border-transparent group-hover:bg-indigo-50/50 group-hover:border-indigo-100 hover:bg-white hover:shadow-md'
+                                                                        }`}
+                                                                        onClick={() => setViewingActivity({
+                                                                            dayDate: day.date,
+                                                                            index: iIdx,
+                                                                            data: item
+                                                                        })}
+                                                                    >
+                                                                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                                                            <div>
+                                                                                <p className="text-sm font-semibold text-gray-900">{item.description}</p>
+                                                                                {item.location_name && (
+                                                                                    <a
+                                                                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location_name)}`}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 hover:underline mt-1"
+                                                                                        onClick={(e) => e.stopPropagation()}
                                                                                     >
-                                                                                        <Bell className="w-4 h-4" />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            handleEditActivity(day.date, iIdx, item)
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
-                                                                                        title="Edit activity"
-                                                                                    >
-                                                                                        <Pencil className="w-4 h-4" />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            handleDeleteActivity(day.date, iIdx, item.description)
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                                                                        title="Remove activity"
-                                                                                    >
-                                                                                        <X className="w-4 h-4" />
-                                                                                    </button>
-                                                                                </div>
-                                                                            )}
-                                                                            {(() => {
-                                                                                return (
-                                                                                    <>
-                                                                                        {/* Participant Avatars & Count */}
-                                                                                        {currentParticipants.length > 0 && participants && (
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                <div className="flex -space-x-2">
-                                                                                                    {currentParticipants.slice(0, 3).map((pId) => {
-                                                                                                        const p = participants.find(part => part.user_id === pId)
-                                                                                                        if (!p) return null
-                                                                                                        return (
-                                                                                                            // eslint-disable-next-line @next/next/no-img-element
-                                                                                                            <img
-                                                                                                                key={pId}
-                                                                                                                src={p.profile?.avatar_url || `https://ui-avatars.com/api/?name=${p.profile?.full_name}&background=random`}
-                                                                                                                alt={p.profile?.full_name}
-                                                                                                                title={p.profile?.full_name}
-                                                                                                                className="h-6 w-6 rounded-full ring-2 ring-white"
-                                                                                                            />
-                                                                                                        )
-                                                                                                    })}
-                                                                                                    {currentParticipants.length > 3 && (
-                                                                                                        <div className="h-6 w-6 rounded-full bg-gray-100 ring-2 ring-white flex items-center justify-center text-[10px] font-medium text-gray-600">
-                                                                                                            +{currentParticipants.length - 3}
+                                                                                        <MapPin className="h-3 w-3" />
+                                                                                        Get Directions
+                                                                                    </a>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <div className="flex items-center gap-3 self-end sm:self-start">
+                                                                                {isEditable && (
+                                                                                    <div className="flex items-center gap-1">
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                toast.info('Reminder feature coming soon!')
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                                                                                            title="Send reminder"
+                                                                                        >
+                                                                                            <Bell className="w-4 h-4" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                handleEditActivity(day.date, iIdx, item)
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                                                                                            title="Edit activity"
+                                                                                        >
+                                                                                            <Pencil className="w-4 h-4" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                handleDeleteActivity(day.date, iIdx, item.description)
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                                                            title="Remove activity"
+                                                                                        >
+                                                                                            <X className="w-4 h-4" />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                )}
+                                                                                {(() => {
+                                                                                    return (
+                                                                                        <>
+                                                                                            {/* Participant Avatars & Count */}
+                                                                                            {currentParticipants.length > 0 && participants && (
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    <div className="flex -space-x-2">
+                                                                                                        {currentParticipants.slice(0, 3).map((pId) => {
+                                                                                                            const p = participants.find(part => part.user_id === pId)
+                                                                                                            if (!p) return null
+                                                                                                            return (
+                                                                                                                // eslint-disable-next-line @next/next/no-img-element
+                                                                                                                <img
+                                                                                                                    key={pId}
+                                                                                                                    src={p.profile?.avatar_url || `https://ui-avatars.com/api/?name=${p.profile?.full_name}&background=random`}
+                                                                                                                    alt={p.profile?.full_name}
+                                                                                                                    title={p.profile?.full_name}
+                                                                                                                    className="h-6 w-6 rounded-full ring-2 ring-white"
+                                                                                                                />
+                                                                                                            )
+                                                                                                        })}
+                                                                                                        {currentParticipants.length > 3 && (
+                                                                                                            <div className="h-6 w-6 rounded-full bg-gray-100 ring-2 ring-white flex items-center justify-center text-[10px] font-medium text-gray-600">
+                                                                                                                +{currentParticipants.length - 3}
+                                                                                                            </div>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isParticipating ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                                                                        {currentParticipants.length} committed
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            )}
+
+                                                                                            {/* Cost Badge */}
+                                                                                            {item.estimated_cost && item.estimated_cost > 0 && (
+                                                                                                <div className="text-xs font-medium text-gray-600 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm whitespace-nowrap">
+                                                                                                    ${item.estimated_cost}
+                                                                                                </div>
+                                                                                            )}
+
+                                                                                            {/* Join/Leave Button */}
+                                                                                            {userId && (
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    {item.venmo_link && item.estimated_cost && isParticipating && (
+                                                                                                        <div className="flex items-center gap-1.5 bg-indigo-50/50 p-1 rounded-full border border-indigo-100">
+                                                                                                            {(() => {
+                                                                                                                const key = `${dIdx}-${iIdx}`
+                                                                                                                const multiplier = multipliers[key] || 1
+
+                                                                                                                const getVenmoUrl = () => {
+                                                                                                                    const phoneOrUser = item.venmo_link?.replace('@', '')
+                                                                                                                    const amount = (item.estimated_cost || 0) * multiplier
+                                                                                                                    const note = encodeURIComponent(`${item.description} - ${multiplier} person${multiplier > 1 ? 's' : ''}`)
+                                                                                                                    return `https://venmo.com/?txn=pay&recipients=${phoneOrUser}&amount=${amount}&note=${note}`
+                                                                                                                }
+
+                                                                                                                return (
+                                                                                                                    <>
+                                                                                                                        <div className="flex items-center bg-white rounded-full border border-indigo-100 px-1">
+                                                                                                                            <button
+                                                                                                                                onClick={(e) => {
+                                                                                                                                    e.stopPropagation()
+                                                                                                                                    setMultipliers(prev => ({ ...prev, [key]: Math.max(1, (prev[key] || 1) - 1) }))
+                                                                                                                                }}
+                                                                                                                                className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
+                                                                                                                            >
+                                                                                                                                -
+                                                                                                                            </button>
+                                                                                                                            <span className="w-4 text-center text-[10px] font-bold text-indigo-600">{multiplier}</span>
+                                                                                                                            <button
+                                                                                                                                onClick={(e) => {
+                                                                                                                                    e.stopPropagation()
+                                                                                                                                    setMultipliers(prev => ({ ...prev, [key]: (prev[key] || 1) + 1 }))
+                                                                                                                                }}
+                                                                                                                                className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
+                                                                                                                            >
+                                                                                                                                +
+                                                                                                                            </button>
+                                                                                                                        </div>
+                                                                                                                        <a
+                                                                                                                            href={getVenmoUrl()}
+                                                                                                                            target="_blank"
+                                                                                                                            rel="noopener noreferrer"
+                                                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                                                            className="inline-flex items-center gap-1 px-3 py-1 bg-[#3396cd] hover:bg-[#2b7fad] text-white rounded-full text-xs font-medium transition-colors shadow-sm"
+                                                                                                                        >
+                                                                                                                            Pay ${((item.estimated_cost || 0) * multiplier).toFixed(2)}
+                                                                                                                        </a>
+                                                                                                                    </>
+                                                                                                                )
+                                                                                                            })()}
                                                                                                         </div>
                                                                                                     )}
-                                                                                                </div>
-                                                                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isParticipating ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                                                                                                    {currentParticipants.length} committed
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
 
-                                                                                        {/* Cost Badge */}
-                                                                                        {item.estimated_cost && item.estimated_cost > 0 && (
-                                                                                            <div className="text-xs font-medium text-gray-600 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm whitespace-nowrap">
-                                                                                                ${item.estimated_cost}
-                                                                                            </div>
-                                                                                        )}
+                                                                                                    <button
+                                                                                                        onClick={async (e) => {
+                                                                                                            e.stopPropagation()
 
-                                                                                        {/* Join/Leave Button */}
-                                                                                        {userId && (
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                {item.venmo_link && item.estimated_cost && isParticipating && (
-                                                                                                    <div className="flex items-center gap-1.5 bg-indigo-50/50 p-1 rounded-full border border-indigo-100">
-                                                                                                        {(() => {
-                                                                                                            const key = `${dIdx}-${iIdx}`
-                                                                                                            const multiplier = multipliers[key] || 1
-
-                                                                                                            const getVenmoUrl = () => {
-                                                                                                                const phoneOrUser = item.venmo_link?.replace('@', '')
-                                                                                                                const amount = (item.estimated_cost || 0) * multiplier
-                                                                                                                const note = encodeURIComponent(`${item.description} - ${multiplier} person${multiplier > 1 ? 's' : ''}`)
-                                                                                                                return `https://venmo.com/?txn=pay&recipients=${phoneOrUser}&amount=${amount}&note=${note}`
+                                                                                                            // Optimistic update
+                                                                                                            let newParticipants = [...currentParticipants]
+                                                                                                            if (isParticipating) {
+                                                                                                                newParticipants = newParticipants.filter(id => id !== userId)
+                                                                                                            } else {
+                                                                                                                newParticipants.push(userId)
                                                                                                             }
 
-                                                                                                            return (
-                                                                                                                <>
-                                                                                                                    <div className="flex items-center bg-white rounded-full border border-indigo-100 px-1">
-                                                                                                                        <button
-                                                                                                                            onClick={(e) => {
-                                                                                                                                e.stopPropagation()
-                                                                                                                                setMultipliers(prev => ({ ...prev, [key]: Math.max(1, (prev[key] || 1) - 1) }))
-                                                                                                                            }}
-                                                                                                                            className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
-                                                                                                                        >
-                                                                                                                            -
-                                                                                                                        </button>
-                                                                                                                        <span className="w-4 text-center text-[10px] font-bold text-indigo-600">{multiplier}</span>
-                                                                                                                        <button
-                                                                                                                            onClick={(e) => {
-                                                                                                                                e.stopPropagation()
-                                                                                                                                setMultipliers(prev => ({ ...prev, [key]: (prev[key] || 1) + 1 }))
-                                                                                                                            }}
-                                                                                                                            className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
-                                                                                                                        >
-                                                                                                                            +
-                                                                                                                        </button>
-                                                                                                                    </div>
-                                                                                                                    <a
-                                                                                                                        href={getVenmoUrl()}
-                                                                                                                        target="_blank"
-                                                                                                                        rel="noopener noreferrer"
-                                                                                                                        onClick={(e) => e.stopPropagation()}
-                                                                                                                        className="inline-flex items-center gap-1 px-3 py-1 bg-[#3396cd] hover:bg-[#2b7fad] text-white rounded-full text-xs font-medium transition-colors shadow-sm"
-                                                                                                                    >
-                                                                                                                        Pay ${((item.estimated_cost || 0) * multiplier).toFixed(2)}
-                                                                                                                    </a>
-                                                                                                                </>
-                                                                                                            )
-                                                                                                        })()}
-                                                                                                    </div>
-                                                                                                )}
+                                                                                                            setOptimisticParticipants(prev => ({
+                                                                                                                ...prev,
+                                                                                                                [optimisticKey]: newParticipants
+                                                                                                            }))
 
-                                                                                                <button
-                                                                                                    onClick={async (e) => {
-                                                                                                        e.stopPropagation()
+                                                                                                            // Prevent duplicate requests if already loading (though visual feedback is instant now)
+                                                                                                            if (loadingActivity) return
+                                                                                                            setLoadingActivity({ dayIdx: dIdx, actIdx: iIdx })
 
-                                                                                                        // Optimistic update
-                                                                                                        let newParticipants = [...currentParticipants]
-                                                                                                        if (isParticipating) {
-                                                                                                            newParticipants = newParticipants.filter(id => id !== userId)
-                                                                                                        } else {
-                                                                                                            newParticipants.push(userId)
-                                                                                                        }
-
-                                                                                                        setOptimisticParticipants(prev => ({
-                                                                                                            ...prev,
-                                                                                                            [optimisticKey]: newParticipants
-                                                                                                        }))
-
-                                                                                                        // Prevent duplicate requests if already loading (though visual feedback is instant now)
-                                                                                                        if (loadingActivity) return
-                                                                                                        setLoadingActivity({ dayIdx: dIdx, actIdx: iIdx })
-
-                                                                                                        try {
-                                                                                                            await toggleActivityParticipation(tripId, legIndex, day.date, iIdx)
-                                                                                                            router.refresh()
-                                                                                                        } catch (error) {
-                                                                                                            console.error('Failed to toggle participation', error)
-                                                                                                            toast.error('Failed to update participation')
-                                                                                                            // Revert optimistic update on error
-                                                                                                            setOptimisticParticipants(prev => {
-                                                                                                                const copy = { ...prev }
-                                                                                                                delete copy[optimisticKey]
-                                                                                                                return copy
-                                                                                                            })
-                                                                                                        } finally {
-                                                                                                            setLoadingActivity(null)
-                                                                                                        }
-                                                                                                    }}
-                                                                                                    disabled={!!loadingActivity}
-                                                                                                    className={`
+                                                                                                            try {
+                                                                                                                await toggleActivityParticipation(tripId, legIndex, day.date, iIdx)
+                                                                                                                router.refresh()
+                                                                                                            } catch (error) {
+                                                                                                                console.error('Failed to toggle participation', error)
+                                                                                                                toast.error('Failed to update participation')
+                                                                                                                // Revert optimistic update on error
+                                                                                                                setOptimisticParticipants(prev => {
+                                                                                                                    const copy = { ...prev }
+                                                                                                                    delete copy[optimisticKey]
+                                                                                                                    return copy
+                                                                                                                })
+                                                                                                            } finally {
+                                                                                                                setLoadingActivity(null)
+                                                                                                            }
+                                                                                                        }}
+                                                                                                        disabled={!!loadingActivity}
+                                                                                                        className={`
                                                                                                         inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors
                                                                                                         ${isParticipating
-                                                                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                                                                            : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-                                                                                                        }
+                                                                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                                                                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                                                                                            }
                                                                                                         ${loadingActivity?.dayIdx === dIdx && loadingActivity?.actIdx === iIdx ? 'cursor-wait' : ''}
                                                                                                     `}
-                                                                                                >
-                                                                                                    {isParticipating ? (
-                                                                                                        <>
-                                                                                                            <Check className="w-3 h-3" />
-                                                                                                            Going
-                                                                                                        </>
-                                                                                                    ) : (
-                                                                                                        <>
-                                                                                                            <Plus className="w-3 h-3" />
-                                                                                                            Join
-                                                                                                        </>
-                                                                                                    )}
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </>
-                                                                                )
-                                                                            })()}
+                                                                                                    >
+                                                                                                        {isParticipating ? (
+                                                                                                            <>
+                                                                                                                <Check className="w-3 h-3" />
+                                                                                                                Going
+                                                                                                            </>
+                                                                                                        ) : (
+                                                                                                            <>
+                                                                                                                <Plus className="w-3 h-3" />
+                                                                                                                Join
+                                                                                                            </>
+                                                                                                        )}
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </>
+                                                                                    )
+                                                                                })()}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                            )
+                                                        })}
+                                                        {isEditable && (
+                                                            <div className="flex justify-center pt-2">
+                                                                <button
+                                                                    onClick={() => handleOpenAddActivity(day.date)}
+                                                                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-4 py-2 rounded-full transition-colors border border-indigo-100 shadow-sm"
+                                                                >
+                                                                    <Plus className="w-3.5 h-3.5" />
+                                                                    Add Activity
+                                                                </button>
                                                             </div>
-                                                        )
-                                                    })}
-                                                    {isEditable && (
-                                                        <div className="flex justify-center pt-2">
-                                                            <button
-                                                                onClick={() => handleOpenAddActivity(day.date)}
-                                                                className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-4 py-2 rounded-full transition-colors border border-indigo-100 shadow-sm"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" />
-                                                                Add Activity
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    })
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                                         <List className="h-8 w-8 text-gray-300 mb-2" />

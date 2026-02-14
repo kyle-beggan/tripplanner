@@ -79,6 +79,24 @@ export default function TripCard({ trip, currentUserId, isAdmin }: TripCardProps
         }
     }
 
+    const checkIsLive = () => {
+        if (!trip.start_date || !trip.end_date) return false
+        try {
+            const startStr = trip.start_date.split('T')[0]
+            const endStr = trip.end_date.split('T')[0]
+            const [sY, sM, sD] = startStr.split('-').map(Number)
+            const [eY, eM, eD] = endStr.split('-').map(Number)
+            const start = new Date(sY, sM - 1, sD)
+            const end = new Date(eY, eM - 1, eD)
+            end.setHours(23, 59, 59, 999)
+            const now = new Date()
+            return now >= start && now <= end
+        } catch (e) {
+            return false
+        }
+    }
+    const isLive = checkIsLive()
+
     return (
         <>
             <div className="group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:shadow-md border border-gray-200">
@@ -134,6 +152,15 @@ export default function TripCard({ trip, currentUserId, isAdmin }: TripCardProps
                                 {trip.end_date && ` - ${formatDate(trip.end_date)}`}
                             </span>
                         </div>
+                        {isLive && (
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[9px] font-bold shadow-sm animate-in fade-in slide-in-from-left-2 duration-300">
+                                <span className="relative flex h-1.5 w-1.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                                </span>
+                                LIVE NOW
+                            </div>
+                        )}
                     </div>
                 </div>
 

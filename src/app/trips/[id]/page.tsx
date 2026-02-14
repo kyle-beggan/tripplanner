@@ -13,6 +13,7 @@ import TripJoinAllButton from '@/components/trips/TripJoinAllButton'
 import CollapsibleSection from '@/components/ui/CollapsibleSection'
 import TripPhotosSection from '@/components/trips/TripPhotosSection'
 import TripDetailsSection from '@/components/trips/TripDetailsSection'
+import LiveTripStatus from '@/components/trips/LiveTripStatus'
 
 interface ScheduledActivity {
     time: string
@@ -258,6 +259,48 @@ export default async function TripDetailsPage({ params }: PageProps) {
             })
         })
     })
+    // Live Trip Detection
+    const now = new Date()
+    const todayStr = format(now, 'yyyy-MM-dd')
+
+    let isLive = false
+    let currentActivity = null
+    let nextActivity = null
+    let currentDayLeg = null
+
+    if (trip.start_date && trip.end_date) {
+        const tripStart = new Date(trip.start_date)
+        const tripEnd = new Date(trip.end_date)
+        // Set to start/end of day to be inclusive
+        tripStart.setHours(0, 0, 0, 0)
+        tripEnd.setHours(23, 59, 59, 999)
+
+        isLive = now >= tripStart && now <= tripEnd
+    }
+
+    if (isLive) {
+        // Find today's activities to show Now/Next
+        legs.forEach(leg => {
+            leg.schedule?.forEach(day => {
+                if (day.date.split('T')[0] === todayStr) {
+                    currentDayLeg = leg
+                    const sortedActs = [...day.activities].sort((a, b) => a.time.localeCompare(b.time))
+
+                    const nowTime = format(now, 'HH:mm')
+
+                    // Find current (last one that has passed)
+                    for (let i = 0; i < sortedActs.length; i++) {
+                        if (sortedActs[i].time <= nowTime) {
+                            currentActivity = sortedActs[i]
+                        } else {
+                            nextActivity = sortedActs[i]
+                            break
+                        }
+                    }
+                }
+            })
+        })
+    }
 
     return (
         <div className="min-h-full pb-12">
@@ -312,6 +355,13 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                {isLive && (
+                    <LiveTripStatus
+                        currentActivity={currentActivity}
+                        nextActivity={nextActivity}
+                        tripId={trip.id}
+                    />
+                )}
                 {/* Details & Cost Summary Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
@@ -324,6 +374,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                             endDate={trip.end_date}
                             participants={participants}
                             isEditable={isEditable}
+                            isLive={isLive}
                         />
                     </div>
 
