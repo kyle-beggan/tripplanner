@@ -1,15 +1,18 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Home, Tent, Pencil } from 'lucide-react'
+import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Home, Tent, Pencil, Bell } from 'lucide-react'
 import { format, eachDayOfInterval, parseISO, isAfter } from 'date-fns'
-import TripActivityCard from '@/components/trips/TripActivityCard'
-import LodgingCard from '@/components/trips/LodgingCard'
-import LodgingSearchModal from '@/components/trips/LodgingSearchModal'
-import AddActivityModal from '@/components/activities/AddActivityModal'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import ConfirmationModal from '@/components/ui/ConfirmationModal'
+
+const TripActivityCard = dynamic(() => import('@/components/trips/TripActivityCard'), { ssr: false })
+const LodgingCard = dynamic(() => import('@/components/trips/LodgingCard'), { ssr: false })
+const LodgingSearchModal = dynamic(() => import('@/components/trips/LodgingSearchModal'), { ssr: false })
+const AddActivityModal = dynamic(() => import('@/components/activities/AddActivityModal'), { ssr: false })
+const ActivityDetailsModal = dynamic(() => import('@/components/activities/ActivityDetailsModal'), { ssr: false })
+const ConfirmationModal = dynamic(() => import('@/components/ui/ConfirmationModal'), { ssr: false })
 
 interface ScheduledActivity {
     time: string
@@ -88,6 +91,7 @@ export default function TripLegItem({
     const [isDeletingActivity, setIsDeletingActivity] = useState(false)
     const [multipliers, setMultipliers] = useState<Record<string, number>>({})
     const [editingActivity, setEditingActivity] = useState<{ date: string, index: number, data: ScheduledActivity } | null>(null)
+    const [viewingActivity, setViewingActivity] = useState<{ dayDate: string, index: number, data: ScheduledActivity } | null>(null)
 
     // Clear optimistic state when server data updates
     useEffect(() => {
@@ -271,18 +275,24 @@ export default function TripLegItem({
                                                             <div key={iIdx} className="relative flex items-start gap-4 py-3 group">
                                                                 <div className="w-20 pt-1 text-[10px] font-bold text-indigo-400 text-right tabular-nums uppercase">
                                                                     {(() => {
-                                                                        const [h] = item.time.split(':')
+                                                                        const [h, m] = item.time.split(':')
                                                                         const hour = parseInt(h)
                                                                         const ampm = hour >= 12 ? 'PM' : 'AM'
                                                                         const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)
-                                                                        return `${displayHour}:00 ${ampm}`
+                                                                        return `${displayHour}:${m || '00'} ${ampm}`
                                                                     })()}
                                                                 </div>
                                                                 <div className={`relative z-10 mt-1.5 w-2 h-2 rounded-full ring-4 ring-white transition-colors ${isParticipating ? 'bg-green-500' : 'bg-indigo-200 group-hover:bg-indigo-600'}`} />
-                                                                <div className={`flex-1 rounded-lg p-3 transition-colors border ${isParticipating
-                                                                    ? 'bg-green-50 border-green-100'
-                                                                    : 'bg-gray-50 border-transparent group-hover:bg-indigo-50/50 group-hover:border-indigo-100'
-                                                                    }`}>
+                                                                <div className={`flex-1 rounded-lg p-3 transition-colors border cursor-pointer ${isParticipating
+                                                                    ? 'bg-green-50 border-green-100 hover:bg-green-100/80'
+                                                                    : 'bg-gray-50 border-transparent group-hover:bg-indigo-50/50 group-hover:border-indigo-100 hover:bg-white hover:shadow-md'
+                                                                    }`}
+                                                                    onClick={() => setViewingActivity({
+                                                                        dayDate: day.date,
+                                                                        index: iIdx,
+                                                                        data: item
+                                                                    })}
+                                                                >
                                                                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                                                                         <div>
                                                                             <p className="text-sm font-semibold text-gray-900">{item.description}</p>
@@ -303,6 +313,16 @@ export default function TripLegItem({
                                                                         <div className="flex items-center gap-3 self-end sm:self-start">
                                                                             {isEditable && (
                                                                                 <div className="flex items-center gap-1">
+                                                                                    <button
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation()
+                                                                                            toast.info('Reminder feature coming soon!')
+                                                                                        }}
+                                                                                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                                                                                        title="Send reminder"
+                                                                                    >
+                                                                                        <Bell className="w-4 h-4" />
+                                                                                    </button>
                                                                                     <button
                                                                                         onClick={(e) => {
                                                                                             e.stopPropagation()
@@ -558,6 +578,26 @@ export default function TripLegItem({
                             isDestructive={true}
                             isLoading={isDeletingActivity}
                         />
+
+                        {viewingActivity && (() => {
+                            const day = fullSchedule.find(d => d.date === viewingActivity.dayDate)
+                            const liveActivity = day?.activities[viewingActivity.index]
+                            if (!liveActivity) return null
+
+                            return (
+                                <ActivityDetailsModal
+                                    isOpen={!!viewingActivity}
+                                    onClose={() => setViewingActivity(null)}
+                                    tripId={tripId}
+                                    legIndex={legIndex}
+                                    date={viewingActivity.dayDate}
+                                    activityIndex={viewingActivity.index}
+                                    activity={liveActivity}
+                                    participants={participants || []}
+                                    userId={userId}
+                                />
+                            )
+                        })()}
                         {activeTab === 'lodging' && (
                             <div className="space-y-6 animate-in fade-in duration-300 slide-in-from-bottom-2">
                                 <div className="flex items-center justify-between">

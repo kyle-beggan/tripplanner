@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, ArrowLeft, User, Star, Clock } from 'lucide-react'
+import { Calendar, MapPin, ArrowLeft, User, Star, Clock, Camera, Users, ImageIcon } from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
 import TripRSVPButton from '@/components/trips/TripRSVPButton'
 import TripLegs from '@/components/trips/TripLegs'
@@ -10,6 +10,9 @@ import TripCostSummary from '@/components/trips/TripCostSummary'
 import FlightEstimateCard from '@/components/trips/FlightEstimateCard'
 import { getEstimateFlightPrice } from '@/app/trips/flight-actions'
 import TripJoinAllButton from '@/components/trips/TripJoinAllButton'
+import CollapsibleSection from '@/components/ui/CollapsibleSection'
+import TripPhotosSection from '@/components/trips/TripPhotosSection'
+import TripDetailsSection from '@/components/trips/TripDetailsSection'
 
 interface ScheduledActivity {
     time: string
@@ -71,12 +74,27 @@ export default async function TripDetailsPage({ params }: PageProps) {
         notFound()
     }
 
-    // Simplified fetch to identify if join is the issue
-    const { data: trip, error: tripError } = await supabase
-        .from('trips')
-        .select(`*`)
-        .eq('id', id)
-        .single()
+    // Fetch core data in parallel
+    const [
+        { data: trip, error: tripError },
+        { data: profile },
+        { data: participantsData, error: participantsError },
+        { data: activitiesData }
+    ] = await Promise.all([
+        supabase.from('trips').select('*').eq('id', id).single(),
+        supabase.from('profiles').select('role, home_airport').eq('id', user?.id || '00000000-0000-0000-0000-000000000000').single(),
+        supabase.from('trip_participants').select(`
+            *,
+            profile:profiles!trip_participants_user_id_fkey(
+                first_name,
+                last_name,
+                full_name,
+                avatar_url,
+                username
+            )
+        `).eq('trip_id', id),
+        supabase.from('activities').select('name, requires_gps').order('name', { ascending: true })
+    ])
 
     if (tripError || !trip) {
         console.error('Trip fetch error details:', {
@@ -88,56 +106,23 @@ export default async function TripDetailsPage({ params }: PageProps) {
         notFound()
     }
 
-    // Secondary fetch for owner if trip succeeded
-    let owner = null
-    if (trip) {
-        const { data: ownerData } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_url')
-            .eq('id', trip.owner_id)
-            .single()
-        owner = ownerData
+    if (participantsError) {
+        console.error('Participants fetch error:', participantsError)
     }
 
-
-    const { data: profile } = await supabase
+    // Fetch owner profile (depends on trip data)
+    const { data: owner } = await supabase
         .from('profiles')
-        .select('role')
-        .eq('id', user?.id || '00000000-0000-0000-0000-000000000000')
+        .select('full_name, avatar_url')
+        .eq('id', trip.owner_id)
         .single()
 
     const isOwner = user?.id === trip.owner_id
     const isAdmin = profile?.role === 'admin'
     const isEditable = isOwner || isAdmin
 
-    // Fetch participants with their profiles
-    const { data: participantsData, error: participantsError } = await supabase
-        .from('trip_participants')
-        .select(`
-            *,
-            profile:profiles!trip_participants_user_id_fkey(
-                first_name,
-                last_name,
-                full_name,
-                avatar_url,
-                username
-            )
-        `)
-        .eq('trip_id', trip.id)
-
-    if (participantsError) {
-        console.error('Participants fetch error:', participantsError)
-    }
-
     const legs = Array.isArray(trip.locations) ? (trip.locations as TripLeg[]) : []
     const tripActivities = Array.isArray(trip.activities) ? (trip.activities as string[]) : []
-
-    // Fetch full activity objects to check GPS requirement for ALL activities (top-level and legs)
-    // Fetch all available activities from the database
-    const { data: activitiesData } = await supabase
-        .from('activities')
-        .select('name, requires_gps')
-        .order('name', { ascending: true })
 
     const activityMap = new Map((activitiesData || []).map(a => [a.name, a]))
 
@@ -253,10 +238,26 @@ export default async function TripDetailsPage({ params }: PageProps) {
     }
 
 
-    // Fetch Flight Estimate (Server Side)
-    const flightEstimate = await getEstimateFlightPrice(trip.id)
-    // @ts-ignore - TS isn't narrowing the union correctly despite the check
-    const flightCost = flightEstimate.success && flightEstimate.total ? Number(flightEstimate.total) : null
+    // Flight estimates are now handled client-side on-demand to speed up page load
+    const flightEstimate = null
+    const flightCost = null
+
+    // Aggregate all photos from all activities
+    const allPhotos: { url: string; activityName: string }[] = []
+    legs.forEach(leg => {
+        leg.schedule?.forEach(day => {
+            day.activities.forEach((act: any) => {
+                if (act.photos && Array.isArray(act.photos)) {
+                    act.photos.forEach((url: string) => {
+                        allPhotos.push({
+                            url,
+                            activityName: act.description
+                        })
+                    })
+                }
+            })
+        })
+    })
 
     return (
         <div className="min-h-full pb-12">
@@ -313,16 +314,17 @@ export default async function TripDetailsPage({ params }: PageProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
                 {/* Details & Cost Summary Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Left Column: Details */}
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
-                        <div className="prose max-w-none text-gray-600">
-                            {trip.description ? (
-                                <p className="whitespace-pre-wrap">{trip.description}</p>
-                            ) : (
-                                <p className="italic text-gray-500">No description provided.</p>
-                            )}
-                        </div>
+                    <div>
+                        <TripDetailsSection
+                            tripId={trip.id}
+                            tripName={trip.name}
+                            description={trip.description}
+                            legs={legs}
+                            startDate={trip.start_date}
+                            endDate={trip.end_date}
+                            participants={participants}
+                            isEditable={isEditable}
+                        />
                     </div>
 
                     {/* Right Column: Cost Summary */}
@@ -344,6 +346,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     <FlightEstimateCard
                         tripId={trip.id}
                         initialEstimate={flightEstimate}
+                        hasHomeAirport={!!profile?.home_airport}
                     />
                 </section>
 
@@ -373,22 +376,28 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     />
                 </section>
 
+                {/* Aggregate Photos Section */}
+                <CollapsibleSection
+                    title="Photos"
+                    badge={allPhotos.length}
+                    icon={<ImageIcon className="w-5 h-5 text-indigo-500" />}
+                >
+                    <TripPhotosSection photos={allPhotos} />
+                </CollapsibleSection>
+
                 {/* Who's Coming Section */}
-                <section className="bg-white shadow rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-xl font-semibold text-gray-900">Who&apos;s Coming</h2>
-                            <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                {totalConfirmed} confirmed
-                            </span>
-                        </div>
+                <CollapsibleSection
+                    title="Who's Coming"
+                    badge={`${totalConfirmed} confirmed`}
+                    icon={<Users className="w-5 h-5 text-indigo-500" />}
+                    headerAction={
                         <TripInviteButton
                             tripId={trip.id}
                             tripName={trip.name}
                             isOwnerOrAdmin={isOwner || isAdmin}
                         />
-                    </div>
-
+                    }
+                >
                     {going.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {going.map((participant) => (
@@ -399,7 +408,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
                                                     src={participant.profile.avatar_url}
-                                                    alt={participant.profile.full_name}
+                                                    alt={participant.profile.full_name || participant.profile.username || 'User avatar'}
                                                     className="h-16 w-16 rounded-full object-cover bg-gray-100 ring-2 ring-white"
                                                 />
                                             </>
@@ -428,17 +437,15 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     ) : (
                         <p className="text-gray-500 italic">No one has RSVP&apos;d yet. Be the first!</p>
                     )}
-                </section>
+                </CollapsibleSection>
 
                 {/* Who's Not Coming Section */}
                 {notComing.length > 0 && (
-                    <section className="bg-white shadow rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-900">Who&apos;s Not Coming</h2>
-                            <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                {notComing.length} declined
-                            </span>
-                        </div>
+                    <CollapsibleSection
+                        title="Who's Not Coming"
+                        badge={`${notComing.length} declined`}
+                        icon={<Users className="w-5 h-5 text-red-500" />}
+                    >
                         <div className="flex flex-wrap gap-3">
                             {notComing.map((participant) => (
                                 <div key={participant.id} className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1">
@@ -448,25 +455,24 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
                                                     src={participant.profile.avatar_url}
-                                                    alt={participant.profile.full_name}
-                                                    className="h-6 w-6 rounded-full object-cover bg-gray-200"
+                                                    alt={participant.profile.username}
+                                                    className="h-6 w-6 rounded-full object-cover bg-gray-100 ring-1 ring-white"
                                                 />
                                             </>
                                         ) : (
-                                            <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 font-bold">
+                                            <div className="h-6 w-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-[10px] ring-1 ring-white">
                                                 {participant.profile?.full_name?.charAt(0) || participant.profile?.username?.charAt(0) || '?'}
                                             </div>
                                         )}
                                     </div>
-                                    <span className="text-sm text-gray-600">
-                                        {participant.profile?.full_name || participant.profile?.username || 'Unknown'}
+                                    <span className="text-xs font-medium text-gray-700">
+                                        {participant.profile?.full_name || participant.profile?.username || 'Unknown User'}
                                     </span>
                                 </div>
                             ))}
                         </div>
-                    </section>
+                    </CollapsibleSection>
                 )}
-
             </div>
         </div>
     )

@@ -1034,3 +1034,140 @@ export async function updateActivityInLegSchedule(
     revalidatePath(`/trips/${tripId}`)
     return { success: true }
 }
+
+export async function addActivityPhoto(
+    tripId: string,
+    legIndex: number,
+    date: string,
+    activityIndex: number,
+    photoUrl: string
+) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+    if (!leg || !leg.schedule) return { success: false, message: 'Schedule not found' }
+
+    const daySchedule = leg.schedule.find((d: any) => d.date.split('T')[0] === date)
+    if (!daySchedule || !daySchedule.activities) return { success: false, message: 'Activity not found' }
+
+    // Sort to match index
+    daySchedule.activities.sort((a: any, b: any) => {
+        const timeA = a.time.replace(':', '')
+        const timeB = b.time.replace(':', '')
+        return parseInt(timeA) - parseInt(timeB)
+    })
+
+    const activity = daySchedule.activities[activityIndex]
+    if (!activity) return { success: false, message: 'Activity not found' }
+
+    if (!activity.photos) activity.photos = []
+    activity.photos.push(photoUrl)
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function removeActivityPhoto(
+    tripId: string,
+    legIndex: number,
+    date: string,
+    activityIndex: number,
+    photoUrl: string
+) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+    if (!leg || !leg.schedule) return { success: false, message: 'Schedule not found' }
+
+    const daySchedule = leg.schedule.find((d: any) => d.date.split('T')[0] === date)
+    if (!daySchedule || !daySchedule.activities) return { success: false, message: 'Activity not found' }
+
+    // Sort to match index
+    daySchedule.activities.sort((a: any, b: any) => {
+        const timeA = a.time.replace(':', '')
+        const timeB = b.time.replace(':', '')
+        return parseInt(timeA) - parseInt(timeB)
+    })
+
+    const activity = daySchedule.activities[activityIndex]
+    if (!activity) return { success: false, message: 'Activity not found' }
+
+    if (activity.photos) {
+        activity.photos = activity.photos.filter((p: string) => p !== photoUrl)
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function updateTripDescription(tripId: string, description: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('owner_id')
+        .eq('id', tripId)
+        .single()
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const isOwner = trip?.owner_id === user.id
+    const isAdmin = profile?.role === 'admin'
+
+    if (!trip || (!isOwner && !isAdmin)) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ description })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}

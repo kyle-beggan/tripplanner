@@ -7,47 +7,61 @@ import { getEstimateFlightPrice, type FlightEstimateResponse } from '@/app/trips
 interface FlightEstimateCardProps {
     tripId: string
     initialEstimate?: any
+    hasHomeAirport?: boolean
 }
 
 
 
-export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEstimateCardProps) {
-    const [loading, setLoading] = useState(!initialEstimate)
+export default function FlightEstimateCard({ tripId, initialEstimate, hasHomeAirport = true }: FlightEstimateCardProps) {
+    const [loading, setLoading] = useState(false)
     const [estimate, setEstimate] = useState<FlightEstimateResponse | null>(initialEstimate || null)
-    const [error, setError] = useState<string | null>(initialEstimate && !initialEstimate.success ? initialEstimate.message : null)
+    const [error, setError] = useState<string | null>(
+        !hasHomeAirport ? 'No home airport set' :
+            initialEstimate && !initialEstimate.success ? initialEstimate.message : null
+    )
 
-    useEffect(() => {
-        if (initialEstimate) return
-
-        getEstimateFlightPrice(tripId)
-            .then((result: FlightEstimateResponse) => {
-                if (result.success) {
-                    setEstimate(result)
-                } else if (result.deepLink) {
-                    // Fallback: API failed but we have a link
-                    setEstimate({
-                        ...result,
-                        success: false
-                    })
-                    setError(null)
-                } else {
-                    setError(result.message || 'Unknown error')
+    const handleFetch = async () => {
+        setLoading(true)
+        setError(null)
+        try {
+            const result = await getEstimateFlightPrice(tripId)
+            if (result.success) {
+                setEstimate(result)
+                // Dispatch custom event for TripCostSummary
+                if (result.total) {
+                    window.dispatchEvent(new CustomEvent('flight-estimate-updated', {
+                        detail: { tripId, total: Number(result.total) }
+                    }))
                 }
-            })
-            .catch(err => {
-                console.error(err)
-                setError('Failed to load estimate')
-            })
-            .finally(() => setLoading(false))
-    }, [tripId, initialEstimate])
+            } else if (result.deepLink) {
+                setEstimate({ ...result, success: false })
+            } else {
+                setError(result.message || 'Unknown error')
+            }
+        } catch (err) {
+            console.error(err)
+            setError('Failed to load estimate')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Effect for initial calculation if provided
+    useEffect(() => {
+        if (initialEstimate) {
+            setEstimate(initialEstimate)
+        }
+    }, [initialEstimate])
 
     if (loading) {
         return (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 animate-pulse">
-                <div className="h-10 w-10 bg-gray-100 rounded-full"></div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3">
+                <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center animate-spin">
+                    <Loader2 className="h-5 w-5 text-indigo-600" />
+                </div>
                 <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-100 rounded w-1/3"></div>
-                    <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-100 rounded w-1/3 animate-pulse"></div>
+                    <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse"></div>
                 </div>
             </div>
         )
@@ -146,6 +160,30 @@ export default function FlightEstimateCard({ tripId, initialEstimate }: FlightEs
             <div className="bg-red-50 rounded-lg p-4 flex gap-2 text-red-700 text-sm items-center">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>Flight Estimate Error: {error}</span>
+            </div>
+        )
+    }
+
+    if (!estimate && !error) {
+        return (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-indigo-50 rounded-full flex items-center justify-center">
+                            <Plane className="h-5 w-5 text-indigo-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-900">Flight Estimates</h3>
+                            <p className="text-xs text-gray-500">Live prices from Amadeus</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleFetch}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    >
+                        Find Best Price
+                    </button>
+                </div>
             </div>
         )
     }

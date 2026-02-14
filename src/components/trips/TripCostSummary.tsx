@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plane, House, Ticket, Calculator, HelpCircle } from 'lucide-react'
 import { updateParticipantIsFlying } from '@/app/trips/actions'
 import { useRouter } from 'next/navigation'
@@ -27,6 +27,24 @@ export default function TripCostSummary({
     const router = useRouter()
     const [isFlying, setIsFlying] = useState(initialIsFlying)
     const [isUpdating, setIsUpdating] = useState(false)
+    const [currentFlightEstimate, setCurrentFlightEstimate] = useState<number | null>(flightEstimate)
+
+    // Listen for manual flight estimate updates
+    useEffect(() => {
+        const handleEstimateUpdate = (event: any) => {
+            if (event.detail?.tripId === tripId && event.detail?.total) {
+                setCurrentFlightEstimate(Number(event.detail.total))
+            }
+        }
+
+        window.addEventListener('flight-estimate-updated', handleEstimateUpdate)
+        return () => window.removeEventListener('flight-estimate-updated', handleEstimateUpdate)
+    }, [tripId])
+
+    // Sync with prop if it changes (e.g. initial load or server refresh)
+    useEffect(() => {
+        setCurrentFlightEstimate(flightEstimate)
+    }, [flightEstimate])
 
     const handleFlightToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const checked = e.target.checked
@@ -47,12 +65,10 @@ export default function TripCostSummary({
     const effectiveActivityCost = myActivityCost !== undefined ? myActivityCost : activityEstPerPerson
 
     // Only include flight cost if user is flying
-    const applicableFlightCost = isFlying ? (flightEstimate || 0) : 0
+    const applicableFlightCost = isFlying ? (currentFlightEstimate || 0) : 0
     const totalEst = applicableFlightCost + lodgingEstPerPerson + effectiveActivityCost
 
-    if (totalEst === 0 && !flightEstimate && lodgingEstPerPerson === 0 && effectiveActivityCost === 0) {
-        return null
-    }
+    // We always show the card now, even if individual costs are TBD/zero
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -82,7 +98,7 @@ export default function TripCostSummary({
                             <span className="text-sm font-medium text-gray-700">Flights</span>
                         </div>
                         <span className={`text-sm font-bold ${isFlying ? 'text-gray-900' : 'text-gray-500 line-through'}`}>
-                            {flightEstimate ? `$${flightEstimate.toFixed(0)}` : 'TBD'}
+                            {currentFlightEstimate ? `$${currentFlightEstimate.toFixed(0)}` : 'TBD'}
                         </span>
                     </div>
                     {/* Toggle Switch */}
