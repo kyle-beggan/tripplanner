@@ -107,6 +107,13 @@ export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingD
         .eq('id', tripId)
         .single()
 
+    const { data: participant } = await supabase
+        .from('trip_participants')
+        .select('id')
+        .eq('trip_id', tripId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
     const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -115,8 +122,9 @@ export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingD
 
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
+    const isParticipant = !!participant
 
-    if (!trip || (!isOwner && !isAdmin)) {
+    if (!trip || (!isOwner && !isAdmin && !isParticipant)) {
         return { success: false, message: 'Unauthorized' }
     }
 
@@ -181,14 +189,21 @@ export async function removeLodgingFromLeg(tripId: string, legIndex: number, lod
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
 
-    if (!trip || (!isOwner && !isAdmin)) {
-        return { success: false, message: 'Unauthorized' }
-    }
+    if (!trip) return { success: false, message: 'Trip not found' }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
     const leg = locations[legIndex]
 
     if (!leg || !leg.lodging) return { success: false, message: 'Lodging not found' }
+
+    const lodging = leg.lodging.find((l: any) => l.id === lodgingId)
+    if (!lodging) return { success: false, message: 'Lodging not found' }
+
+    const isHost = lodging.host_id === user.id
+
+    if (!isOwner && !isAdmin && !isHost) {
+        return { success: false, message: 'Unauthorized' }
+    }
 
     leg.lodging = leg.lodging.filter((l: any) => l.id !== lodgingId)
 
@@ -224,9 +239,7 @@ export async function toggleLodgingBookingStatus(tripId: string, legIndex: numbe
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
 
-    if (!trip || (!isOwner && !isAdmin)) {
-        return { success: false, message: 'Unauthorized' }
-    }
+    if (!trip) return { success: false, message: 'Trip not found' }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
     const leg = locations[legIndex]
@@ -234,6 +247,14 @@ export async function toggleLodgingBookingStatus(tripId: string, legIndex: numbe
     if (!leg || !leg.lodging) return { success: false, message: 'Lodging not found' }
 
     const lodging = leg.lodging.find((l: any) => l.id === lodgingId)
+    if (!lodging) return { success: false, message: 'Lodging not found' }
+
+    const isHost = lodging.host_id === user.id
+
+    if (!isOwner && !isAdmin && !isHost) {
+        return { success: false, message: 'Unauthorized' }
+    }
+
     if (lodging) lodging.booked = isBooked
 
     const { error } = await supabase
@@ -267,6 +288,13 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
         .eq('id', tripId)
         .single()
 
+    const { data: participant } = await supabase
+        .from('trip_participants')
+        .select('id')
+        .eq('trip_id', tripId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
     const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -275,8 +303,9 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
 
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
+    const isParticipant = !!participant
 
-    if (!trip || (!isOwner && !isAdmin)) {
+    if (!trip || (!isOwner && !isAdmin && !isParticipant)) {
         return { success: false, message: 'Unauthorized' }
     }
 
@@ -695,9 +724,7 @@ export async function updateLodgingInLeg(tripId: string, legIndex: number, lodgi
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
 
-    if (!trip || (!isOwner && !isAdmin)) {
-        return { success: false, message: 'Unauthorized' }
-    }
+    if (!trip) return { success: false, message: 'Trip not found' }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
     const leg = locations[legIndex]
@@ -706,6 +733,13 @@ export async function updateLodgingInLeg(tripId: string, legIndex: number, lodgi
 
     const lodgingIndex = leg.lodging.findIndex((l: any) => l.id === lodgingId)
     if (lodgingIndex === -1) return { success: false, message: 'Lodging not found' }
+
+    const lodging = leg.lodging[lodgingIndex]
+    const isHost = lodging.host_id === user.id
+
+    if (!isOwner && !isAdmin && !isHost) {
+        return { success: false, message: 'Unauthorized' }
+    }
 
     // Merge updates
     const currentLodging = leg.lodging[lodgingIndex]
