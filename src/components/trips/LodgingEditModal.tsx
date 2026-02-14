@@ -27,6 +27,8 @@ export default function LodgingEditModal({
     const [website, setWebsite] = useState('')
     const [totalCost, setTotalCost] = useState('')
     const [estCostPerPerson, setEstCostPerPerson] = useState('')
+    const [totalBedrooms, setTotalBedrooms] = useState('')
+    const [availableBedrooms, setAvailableBedrooms] = useState('')
     const [isSaving, setIsSaving] = useState(false)
 
     useEffect(() => {
@@ -36,6 +38,8 @@ export default function LodgingEditModal({
             setWebsite(lodging.website_uri || '')
             setTotalCost(lodging.total_cost ? lodging.total_cost.toString() : '')
             setEstCostPerPerson(lodging.estimated_cost_per_person ? lodging.estimated_cost_per_person.toString() : '')
+            setTotalBedrooms(lodging.total_bedrooms !== undefined ? lodging.total_bedrooms.toString() : '')
+            setAvailableBedrooms(lodging.available_bedrooms !== undefined ? lodging.available_bedrooms.toString() : '')
         }
     }, [isOpen, lodging])
 
@@ -53,7 +57,9 @@ export default function LodgingEditModal({
                 address,
                 website_uri: website,
                 total_cost: totalCost ? Number(totalCost) : undefined,
-                estimated_cost_per_person: estCostPerPerson ? Number(estCostPerPerson) : undefined
+                estimated_cost_per_person: estCostPerPerson ? Number(estCostPerPerson) : undefined,
+                total_bedrooms: totalBedrooms ? Number(totalBedrooms) : undefined,
+                available_bedrooms: availableBedrooms ? Number(availableBedrooms) : undefined
             }
 
             const result = await updateLodgingInLeg(tripId, legIndex, lodging.id, updates)
@@ -177,6 +183,35 @@ export default function LodgingEditModal({
                                     placeholder="0.00"
                                 />
                             </div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Total Bedrooms
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={totalBedrooms}
+                                onChange={(e) => setTotalBedrooms(e.target.value)}
+                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="0"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Avail. Bedrooms
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                max={totalBedrooms || undefined}
+                                value={availableBedrooms}
+                                onChange={(e) => setAvailableBedrooms(e.target.value)}
+                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="0"
+                            />
                         </div>
                     </div>
 

@@ -113,6 +113,8 @@ export default function LodgingSearchModal({
     const [customCost, setCustomCost] = useState('')
     const [customEstPerPerson, setCustomEstPerPerson] = useState('')
     const [customLink, setCustomLink] = useState('')
+    const [customTotalBedrooms, setCustomTotalBedrooms] = useState('')
+    const [customAvailBedrooms, setCustomAvailBedrooms] = useState('')
     const [isSubmittingCustom, setIsSubmittingCustom] = useState(false)
 
     // Airbnb State
@@ -157,7 +159,9 @@ export default function LodgingSearchModal({
                 address: customAddress,
                 total_cost: customCost ? Number(customCost) : undefined,
                 estimated_cost_per_person: customEstPerPerson ? Number(customEstPerPerson) : undefined,
-                website_uri: customLink
+                website_uri: customLink,
+                total_bedrooms: customTotalBedrooms ? Number(customTotalBedrooms) : undefined,
+                available_bedrooms: customAvailBedrooms ? Number(customAvailBedrooms) : undefined
             })
 
             if (result.success) {
@@ -169,7 +173,9 @@ export default function LodgingSearchModal({
                 setCustomCost('')
                 setCustomEstPerPerson('')
                 setCustomLink('')
-                // Switch back to search or close? Maybe keep open
+                setCustomTotalBedrooms('')
+                setCustomAvailBedrooms('')
+                onClose()
             } else {
                 toast.error(result.message || 'Failed to add lodging')
             }
@@ -572,6 +578,35 @@ export default function LodgingSearchModal({
                                         onChange={(e) => setCustomEstPerPerson(e.target.value)}
                                         placeholder="0.00"
                                         className="w-full rounded-md border border-gray-300 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Total Bedrooms
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={customTotalBedrooms}
+                                        onChange={(e) => setCustomTotalBedrooms(e.target.value)}
+                                        placeholder="0"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Avail. Bedrooms
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max={customTotalBedrooms || undefined}
+                                        value={customAvailBedrooms}
+                                        onChange={(e) => setCustomAvailBedrooms(e.target.value)}
+                                        placeholder="0"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     />
                                 </div>
                             </div>

@@ -1,9 +1,9 @@
 'use client'
 
-import { MapPin, Globe, ExternalLink, Trash2, Check, Home, Star, Pencil } from 'lucide-react'
+import { MapPin, Globe, ExternalLink, Trash2, Check, Home, Star, Pencil, BedDouble } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { toggleLodgingBookingStatus, removeLodgingFromLeg } from '@/app/trips/actions'
+import { toggleLodgingBookingStatus, removeLodgingFromLeg, joinLodging, leaveLodging } from '@/app/trips/actions'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
 import LodgingEditModal from './LodgingEditModal'
 
@@ -20,6 +20,11 @@ interface Lodging {
     google_maps_uri?: string
     website_uri?: string
     booked: boolean
+    host_id?: string
+    host_name?: string
+    total_bedrooms?: number
+    available_bedrooms?: number
+    guest_ids?: string[]
 }
 
 interface LodgingCardProps {
@@ -28,10 +33,11 @@ interface LodgingCardProps {
     legIndex: number
     isEditable: boolean
     canManageBooking: boolean
+    currentUserId?: string
     onUpdate?: () => void
 }
 
-export default function LodgingCard({ lodging, tripId, legIndex, isEditable, canManageBooking, onUpdate }: LodgingCardProps) {
+export default function LodgingCard({ lodging, tripId, legIndex, isEditable, canManageBooking, currentUserId, onUpdate }: LodgingCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -74,6 +80,45 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
         }
     }
 
+    const handleJoin = async () => {
+        if (!currentUserId) return
+        setIsUpdating(true)
+        try {
+            const result = await joinLodging(tripId, legIndex, lodging.id)
+            if (result.success) {
+                toast.success('Joined lodging!')
+                onUpdate?.()
+            } else {
+                toast.error(result.message || 'Failed to join')
+            }
+        } catch (error) {
+            toast.error('Failed to join')
+        } finally {
+            setIsUpdating(false)
+        }
+    }
+
+    const handleLeave = async () => {
+        if (!currentUserId) return
+        setIsUpdating(true)
+        try {
+            const result = await leaveLodging(tripId, legIndex, lodging.id)
+            if (result.success) {
+                toast.success('Left lodging')
+                onUpdate?.()
+            } else {
+                toast.error(result.message || 'Failed to leave')
+            }
+        } catch (error) {
+            toast.error('Failed to leave')
+        } finally {
+            setIsUpdating(false)
+        }
+    }
+
+    const isHost = currentUserId === lodging.host_id
+    const isGuest = lodging.guest_ids?.includes(currentUserId || '')
+
     return (
         <div className={`
             relative flex flex-col p-4 rounded-xl border transition-all duration-200
@@ -98,7 +143,10 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
                         <h3 className="font-bold text-gray-900 leading-tight line-clamp-1" title={lodging.name}>
                             {lodging.name}
                         </h3>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
+                            <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-600 uppercase">
+                                Host: {isHost ? 'You' : lodging.host_name || 'Owner'}
+                            </span>
                             {lodging.rating && (
                                 <div className="flex items-center gap-0.5 text-yellow-600 font-medium">
                                     <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
@@ -109,11 +157,6 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
                             {lodging.price_level && (
                                 <span className="font-medium text-gray-600">
                                     {Array(lodging.price_level).fill('$').join('')}
-                                </span>
-                            )}
-                            {lodging.total_cost && (
-                                <span className="font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded text-xs">
-                                    ${lodging.total_cost.toLocaleString()}
                                 </span>
                             )}
                         </div>
@@ -155,48 +198,84 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
 
 
             {
-                lodging.estimated_cost_per_person && (
-                    <div className="mt-2 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded inline-block border border-gray-100">
-                        Est: <span className="font-semibold text-gray-900">${lodging.estimated_cost_per_person}</span>
-                        <span className="text-gray-400">/ person</span>
+                (lodging.total_bedrooms !== undefined || lodging.total_cost) && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {lodging.total_bedrooms !== undefined && (
+                            <div className="text-[10px] font-bold px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 flex items-center gap-1">
+                                <BedDouble className="w-3 h-3" />
+                                {lodging.available_bedrooms} / {lodging.total_bedrooms} BEDS AVAIL
+                            </div>
+                        )}
+                        {lodging.total_cost && (
+                            <div className="text-[10px] font-bold px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-100">
+                                ${lodging.total_cost.toLocaleString()} TOTAL
+                            </div>
+                        )}
+                        {lodging.estimated_cost_per_person && (
+                            <div className="text-[10px] font-bold px-2 py-1 bg-amber-50 text-amber-700 rounded-md border border-amber-100">
+                                ${lodging.estimated_cost_per_person}/P
+                            </div>
+                        )}
                     </div>
                 )
             }
 
             {
-                isEditable && (
+                currentUserId && (
                     <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100/50">
-                        {canManageBooking && (
+                        {(!isHost && !isGuest && (lodging.available_bedrooms || 0) > 0) && (
                             <button
-                                onClick={handleToggleBooked}
+                                onClick={handleJoin}
                                 disabled={isUpdating}
-                                className={`
-                                flex-1 text-xs font-semibold py-2 px-3 rounded-lg transition-colors
-                                ${lodging.booked
-                                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'}
-                            `}
+                                className="flex-1 text-xs font-bold py-2 px-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
                             >
-                                {lodging.booked ? 'Mark Unbooked' : 'Mark as Booked'}
+                                Request Spot
                             </button>
                         )}
-                        <button
-                            onClick={() => setShowEditModal(true)}
-                            disabled={isUpdating}
-                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title="Edit"
-                        >
-                            <Pencil className="w-4 h-4" />
-                        </button>
-                        {!lodging.booked && (
+                        {isGuest && (
                             <button
-                                onClick={handleRemoveClick}
+                                onClick={handleLeave}
                                 disabled={isUpdating}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Remove"
+                                className="flex-1 text-xs font-bold py-2 px-3 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100 transition-colors"
                             >
-                                <Trash2 className="w-4 h-4" />
+                                Leave Spot
                             </button>
+                        )}
+                        {(isHost || isEditable) && (
+                            <>
+                                {canManageBooking && (
+                                    <button
+                                        onClick={handleToggleBooked}
+                                        disabled={isUpdating}
+                                        className={`
+                                        flex-1 text-xs font-semibold py-2 px-3 rounded-lg transition-colors
+                                        ${lodging.booked
+                                                ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'}
+                                    `}
+                                    >
+                                        {lodging.booked ? (isHost ? 'Unmark Booked' : 'Unbook') : (isHost ? 'I Booked It!' : 'Mark Booked')}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setShowEditModal(true)}
+                                    disabled={isUpdating}
+                                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                    title="Edit"
+                                >
+                                    <Pencil className="w-4 h-4" />
+                                </button>
+                                {!lodging.booked && (
+                                    <button
+                                        onClick={handleRemoveClick}
+                                        disabled={isUpdating}
+                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Remove"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 )

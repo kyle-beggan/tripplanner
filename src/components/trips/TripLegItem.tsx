@@ -41,6 +41,11 @@ interface Lodging {
     google_maps_uri?: string
     website_uri?: string
     booked: boolean
+    host_id?: string
+    host_name?: string
+    total_bedrooms?: number
+    available_bedrooms?: number
+    guest_ids?: string[]
 }
 
 interface TripLeg {
@@ -634,16 +639,14 @@ export default function TripLegItem({
                         {activeTab === 'lodging' && (
                             <div className="space-y-6 animate-in fade-in duration-300 slide-in-from-bottom-2">
                                 <div className="flex items-center justify-between">
-                                    <h4 className="text-sm font-medium text-gray-900">Where to Stay</h4>
-                                    {isEditable && (
-                                        <button
-                                            onClick={() => setSearchModalOpen(true)}
-                                            className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:bg-indigo-50 px-3 py-1.5 rounded transition-colors"
-                                        >
-                                            <Plus className="w-3.5 h-3.5" />
-                                            Add Lodging
-                                        </button>
-                                    )}
+                                    <h4 className="text-sm font-medium text-gray-900">Where are you staying?</h4>
+                                    <button
+                                        onClick={() => setSearchModalOpen(true)}
+                                        className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:bg-indigo-50 px-3 py-1.5 rounded transition-colors"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                        Add My Lodging
+                                    </button>
                                 </div>
 
                                 {leg.lodging && leg.lodging.length > 0 ? (
@@ -656,6 +659,7 @@ export default function TripLegItem({
                                                 legIndex={legIndex}
                                                 isEditable={isEditable}
                                                 canManageBooking={canManageBooking}
+                                                currentUserId={userId}
                                                 onUpdate={() => router.refresh()}
                                             />
                                         ))}
@@ -663,15 +667,13 @@ export default function TripLegItem({
                                 ) : (
                                     <div className="bg-gray-50 rounded-lg p-8 text-center border border-dashed border-gray-200">
                                         <BedDouble className="h-8 w-8 text-gray-300 mx-auto mb-3" />
-                                        <p className="text-sm text-gray-500 font-medium">No lodging selected yet.</p>
-                                        {isEditable && (
-                                            <button
-                                                onClick={() => setSearchModalOpen(true)}
-                                                className="mt-3 text-sm text-indigo-600 font-medium hover:underline"
-                                            >
-                                                Find a place to stay
-                                            </button>
-                                        )}
+                                        <p className="text-sm text-gray-500 font-medium">No one has shared their lodging yet.</p>
+                                        <button
+                                            onClick={() => setSearchModalOpen(true)}
+                                            className="mt-3 text-sm text-indigo-600 font-medium hover:underline"
+                                        >
+                                            Let the squad know where you&apos;re staying
+                                        </button>
                                     </div>
                                 )}
 

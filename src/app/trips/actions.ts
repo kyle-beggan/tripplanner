@@ -139,7 +139,12 @@ export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingD
         google_maps_uri: lodgingData.googleMapsUri,
         website_uri: lodgingData.websiteUri,
         booked: false,
-        estimated_cost_per_person: estimatedCostPerPerson
+        estimated_cost_per_person: estimatedCostPerPerson,
+        host_id: user.id,
+        host_name: user.user_metadata?.full_name || user.email,
+        total_bedrooms: 1,
+        available_bedrooms: 0,
+        guest_ids: []
     }
 
     leg.lodging.push(newLodging)
@@ -248,6 +253,8 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
     total_cost?: number
     estimated_cost_per_person?: number
     website_uri?: string
+    total_bedrooms?: number
+    available_bedrooms?: number
 }) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -292,7 +299,12 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
         user_rating_count: null,
         google_maps_uri: null,
         price_level: null,
-        estimated_cost_per_person: lodgingData.estimated_cost_per_person
+        estimated_cost_per_person: lodgingData.estimated_cost_per_person,
+        host_id: user.id,
+        host_name: user.user_metadata?.full_name || user.email,
+        total_bedrooms: 1,
+        available_bedrooms: 0,
+        guest_ids: []
     }
 
     leg.lodging.push(newLodging)
@@ -660,6 +672,8 @@ export async function updateLodgingInLeg(tripId: string, legIndex: number, lodgi
     total_cost?: number
     estimated_cost_per_person?: number
     website_uri?: string
+    total_bedrooms?: number
+    available_bedrooms?: number
 }) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -1202,5 +1216,84 @@ export async function createNewActivityCategory(name: string, requiresGps: boole
     }
 
     revalidatePath('/trips') // Revalidate pages that use activities
+    return { success: true }
+}
+
+export async function joinLodging(tripId: string, legIndex: number, lodgingId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+    if (!leg || !leg.lodging) return { success: false, message: 'Lodging not found' }
+
+    const lodging = leg.lodging.find((l: any) => l.id === lodgingId)
+    if (!lodging) return { success: false, message: 'Lodging not found' }
+
+    if (!lodging.guest_ids) lodging.guest_ids = []
+    if (lodging.guest_ids.includes(user.id)) return { success: true, message: 'Already joined' }
+
+    lodging.guest_ids.push(user.id)
+    if (lodging.available_bedrooms > 0) {
+        lodging.available_bedrooms -= 1
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
+    return { success: true }
+}
+
+export async function leaveLodging(tripId: string, legIndex: number, lodgingId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('locations')
+        .eq('id', tripId)
+        .single()
+
+    if (!trip) return { success: false, message: 'Trip not found' }
+
+    const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
+    const leg = locations[legIndex]
+    if (!leg || !leg.lodging) return { success: false, message: 'Lodging not found' }
+
+    const lodging = leg.lodging.find((l: any) => l.id === lodgingId)
+    if (!lodging) return { success: false, message: 'Lodging not found' }
+
+    if (!lodging.guest_ids) lodging.guest_ids = []
+    const index = lodging.guest_ids.indexOf(user.id)
+    if (index === -1) return { success: true, message: 'Not a guest' }
+
+    lodging.guest_ids.splice(index, 1)
+    if (lodging.available_bedrooms < lodging.total_bedrooms) {
+        lodging.available_bedrooms += 1
+    }
+
+    const { error } = await supabase
+        .from('trips')
+        .update({ locations })
+        .eq('id', tripId)
+
+    if (error) return { success: false, message: error.message }
+
+    revalidatePath(`/trips/${tripId}`)
     return { success: true }
 }
