@@ -1,6 +1,6 @@
 'use client'
 
-import { MapPin, Globe, ExternalLink, Trash2, Check, Home, Star, Pencil, BedDouble } from 'lucide-react'
+import { MapPin, Globe, ExternalLink, Trash2, Check, Home, Star, Pencil, BedDouble, Users } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { toggleLodgingBookingStatus, removeLodgingFromLeg, joinLodging, leaveLodging } from '@/app/trips/actions'
@@ -34,10 +34,11 @@ interface LodgingCardProps {
     isEditable: boolean
     canManageBooking: boolean
     currentUserId?: string
+    participants?: any[]
     onUpdate?: () => void
 }
 
-export default function LodgingCard({ lodging, tripId, legIndex, isEditable, canManageBooking, currentUserId, onUpdate }: LodgingCardProps) {
+export default function LodgingCard({ lodging, tripId, legIndex, isEditable, canManageBooking, currentUserId, participants, onUpdate }: LodgingCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -126,13 +127,27 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
                 ? 'bg-green-50 border-green-200 shadow-sm'
                 : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}
         `}>
-            {/* Status Badge */}
-            {lodging.booked && (
-                <div className="absolute top-3 right-3 flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider">
-                    <Check className="w-3 h-3" />
-                    Booked
-                </div>
-            )}
+            {/* Status Badges */}
+            <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+                {lodging.booked && (
+                    <div className="flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-green-200 shadow-sm">
+                        <Check className="w-2.5 h-2.5" />
+                        Booked
+                    </div>
+                )}
+                {isGuest && (
+                    <div className="flex items-center gap-1 bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-indigo-200 shadow-sm">
+                        <Check className="w-2.5 h-2.5" />
+                        Staying Here
+                    </div>
+                )}
+                {isHost && (
+                    <div className="flex items-center gap-1 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-200 shadow-sm">
+                        <Star className="w-2.5 h-2.5 fill-amber-500" />
+                        Host
+                    </div>
+                )}
+            </div>
 
             <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -203,7 +218,12 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
                         {lodging.total_bedrooms !== undefined && (
                             <div className="text-[10px] font-bold px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 flex items-center gap-1">
                                 <BedDouble className="w-3 h-3" />
-                                {lodging.available_bedrooms} / {lodging.total_bedrooms} BEDS AVAIL
+                                {lodging.available_bedrooms} / {lodging.total_bedrooms} ROOMS LEFT
+                            </div>
+                        )}
+                        {(lodging.guest_ids?.length || 0) > 0 && (
+                            <div className="text-[10px] font-bold px-2 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-200">
+                                {lodging.guest_ids?.length} JOINED
                             </div>
                         )}
                         {lodging.total_cost && (
@@ -219,6 +239,32 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
                     </div>
                 )
             }
+
+            {/* Guest List */}
+            {((lodging.guest_ids?.length || 0) > 0) && (
+                <div className="mt-3 bg-gray-50/50 rounded-lg p-2.5 border border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight mb-2 flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        Who&apos;s staying here ({lodging.guest_ids?.length}):
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {lodging.guest_ids?.map(id => {
+                            const p = participants?.find(part => (part.user_id || part.id) === id)
+                            const name = p?.profile?.full_name || p?.profile?.first_name || 'Guest'
+                            const isMe = id === currentUserId
+                            return (
+                                <span
+                                    key={id}
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium border
+                                        ${isMe ? 'bg-indigo-50 text-indigo-700 border-indigo-100 shadow-sm' : 'bg-white text-gray-600 border-gray-200'}`}
+                                >
+                                    {isMe ? 'You' : name}
+                                </span>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
 
             {
                 currentUserId && (

@@ -660,6 +660,7 @@ export default function TripLegItem({
                                                 isEditable={isEditable}
                                                 canManageBooking={canManageBooking}
                                                 currentUserId={userId}
+                                                participants={participants}
                                                 onUpdate={() => router.refresh()}
                                             />
                                         ))}
