@@ -69,22 +69,8 @@ export default function TripForm({ userId, trip }: TripFormProps) {
     const [destinationAirportCode, setDestinationAirportCode] = useState(trip?.destination_airport_code || '')
     const [locations, setLocations] = useState<TripLeg[]>(trip?.locations || [])
     const [newLocation, setNewLocation] = useState('')
-    const [availableActivities, setAvailableActivities] = useState<Activity[]>([])
     const [editingLegIndex, setEditingLegIndex] = useState<number | null>(null)
 
-    useEffect(() => {
-        const fetchActivities = async () => {
-            const { data, error } = await supabase
-                .from('activities')
-                .select('*')
-                .order('name', { ascending: true })
-
-            if (!error && data) {
-                setAvailableActivities(data)
-            }
-        }
-        fetchActivities()
-    }, [supabase])
 
     const handleAddLocation = () => {
         if (newLocation.trim()) {
@@ -111,13 +97,6 @@ export default function TripForm({ userId, trip }: TripFormProps) {
         })
     }
 
-    const toggleLegActivity = (legIndex: number, activityName: string) => {
-        const leg = locations[legIndex]
-        const nextActivities = leg.activities.includes(activityName)
-            ? leg.activities.filter(a => a !== activityName)
-            : [...leg.activities, activityName]
-        updateLeg(legIndex, { activities: nextActivities })
-    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -361,32 +340,6 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                                        Activities for this Leg
-                                    </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {availableActivities.map((activity) => {
-                                            const isSelected = leg.activities.includes(activity.name)
-                                            return (
-                                                <button
-                                                    key={activity.id}
-                                                    type="button"
-                                                    onClick={() => toggleLegActivity(index, activity.name)}
-                                                    className={`
-                                                        inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
-                                                        ${isSelected
-                                                            ? 'bg-indigo-600 text-white ring-1 ring-indigo-600'
-                                                            : 'bg-white text-gray-600 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'}
-                                                    `}
-                                                >
-                                                    {isSelected && <Check className="h-3 w-3" />}
-                                                    {activity.name}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
 
                                 <div className="mt-6 pt-6 border-t border-gray-100 flex items-center justify-between">
                                     <div className="text-sm text-gray-500 flex items-center gap-2">
@@ -418,8 +371,6 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                 legName={locations[editingLegIndex].name}
                                 startDate={locations[editingLegIndex].start_date || startDate}
                                 endDate={locations[editingLegIndex].end_date || endDate}
-                                legActivities={locations[editingLegIndex].activities}
-                                availableActivities={availableActivities}
                                 initialSchedule={locations[editingLegIndex].schedule}
                                 onSave={(schedule) => {
                                     updateLeg(editingLegIndex, { schedule })

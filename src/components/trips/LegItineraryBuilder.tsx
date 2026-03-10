@@ -22,8 +22,6 @@ interface LegItineraryBuilderProps {
     legName: string
     startDate: string | null
     endDate: string | null
-    legActivities: string[]
-    availableActivities: any[]
     initialSchedule?: DailySchedule[]
     onSave: (schedule: DailySchedule[]) => void
     onCancel: () => void
@@ -43,8 +41,6 @@ export default function LegItineraryBuilder({
     legName,
     startDate,
     endDate,
-    legActivities,
-    availableActivities,
     initialSchedule = [],
     onSave,
     onCancel
@@ -213,25 +209,6 @@ export default function LegItineraryBuilder({
                                                     placeholder="What are you doing? (e.g. Lunch at the Pier)"
                                                     className="block w-full border-0 border-b border-transparent bg-transparent focus:ring-0 focus:border-indigo-600 text-sm placeholder:text-gray-400 transition-all font-medium py-1"
                                                 />
-                                                {/* Suggestions from leg activities */}
-                                                {legActivities.length > 0 && !activity.description && (
-                                                    <div className="absolute top-full left-0 z-10 mt-1 w-full bg-white border border-gray-100 rounded-md shadow-lg overflow-hidden hidden group-focus-within:block">
-                                                        <div className="p-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50">
-                                                            From Leg Activities
-                                                        </div>
-                                                        {legActivities.map(act => (
-                                                            <button
-                                                                key={act}
-                                                                type="button"
-                                                                onClick={() => updateActivity(activeDate, idx, { description: act })}
-                                                                className="w-full text-left px-3 py-2 text-xs text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
-                                                            >
-                                                                <Check className="h-3 w-3" />
-                                                                {act}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
                                             </div>
                                             <button
                                                 type="button"
@@ -295,7 +272,6 @@ export default function LegItineraryBuilder({
                 onClose={() => setIsModalOpen(false)}
                 startDate={startDate}
                 endDate={endDate}
-                availableActivities={availableActivities}
                 onAdd={handleModalAdd}
                 initialDate={activeDate}
                 locationName={legName}

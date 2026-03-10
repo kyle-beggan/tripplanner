@@ -31,9 +31,13 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    let user = null;
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch (err) {
+        console.error('Middleware Supabase getUser error:', err)
+    }
 
     const url = request.nextUrl.clone()
     const path = url.pathname
@@ -61,11 +65,17 @@ export async function middleware(request: NextRequest) {
 
         // *Optimization*: We can skip this if we are already on /pending or /login
         if (path !== '/pending' && !path.startsWith('/auth')) {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('status, role')
-                .eq('id', user.id)
-                .single()
+            let profile = null;
+            try {
+                const response = await supabase
+                    .from('profiles')
+                    .select('status, role')
+                    .eq('id', user.id)
+                    .single()
+                profile = response.data
+            } catch (err) {
+                console.error('Middleware Supabase profile fetch error:', err)
+            }
 
             // If profile doesn't exist yet (race condition on creation), let them proceed (or wait)
             // Usually handle_new_user trigger makes it instantly.

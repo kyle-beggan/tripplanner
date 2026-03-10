@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@/utils/supabase/client'
 import { X, Search, Plus, Calendar, Clock, MapPin, DollarSign, Loader2, Navigation, Check } from 'lucide-react'
 import { format, eachDayOfInterval, parseISO } from 'date-fns'
 import { addActivityToLegSchedule, updateActivityInLegSchedule, createNewActivityCategory } from '@/app/trips/actions'
@@ -26,7 +27,7 @@ interface AddActivityModalProps {
     legIndex?: number
     startDate?: string | null
     endDate?: string | null
-    availableActivities: Activity[]
+    availableActivities?: Activity[]
     onAdd?: (activity: any) => void // For client-side only (TripForm)
     initialDate?: string | null
     initialTab?: 'custom' | 'find'
@@ -49,7 +50,7 @@ export default function AddActivityModal({
     legIndex,
     startDate,
     endDate,
-    availableActivities,
+    availableActivities: propActivities,
     onAdd,
     initialDate,
     initialTab = 'custom',
@@ -57,6 +58,9 @@ export default function AddActivityModal({
     locationName,
     initialActivityData
 }: AddActivityModalProps) {
+    const supabase = createClient()
+    const [internalActivities, setInternalActivities] = useState<Activity[]>([])
+    const availableActivities = propActivities || internalActivities
     const router = useRouter()
     const [activeTab, setActiveTab] = useState<'custom' | 'find'>(initialTab)
     const [subView, setSubView] = useState<'categories' | 'search' | 'schedule' | 'create_category'>('categories')
@@ -101,6 +105,23 @@ export default function AddActivityModal({
             setLoading(false)
         }
     }, [locationName])
+
+    // Fetch activities if not provided
+    useEffect(() => {
+        if (!propActivities) {
+            const fetchActivities = async () => {
+                const { data, error } = await supabase
+                    .from('activities')
+                    .select('name, requires_gps')
+                    .order('name', { ascending: true })
+
+                if (!error && data) {
+                    setInternalActivities(data)
+                }
+            }
+            fetchActivities()
+        }
+    }, [propActivities, supabase])
 
     // Sync dates when modal opens or initialDate changes
     useEffect(() => {
