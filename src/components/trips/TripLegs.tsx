@@ -59,6 +59,7 @@ export default function TripLegs({ legs, tripId, isEditable, canManageBooking, a
                     leg={leg}
                     tripId={tripId}
                     legIndex={index}
+                    totalLegs={legs.length}
                     isEditable={isEditable}
                     canManageBooking={canManageBooking}
                     activityMap={activityMap}

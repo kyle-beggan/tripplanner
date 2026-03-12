@@ -61,6 +61,7 @@ interface TripLegItemProps {
     leg: TripLeg
     tripId: string
     legIndex: number
+    totalLegs: number
     isEditable: boolean
     canManageBooking: boolean
     activityMap: Map<string, any>
@@ -76,6 +77,7 @@ export default function TripLegItem({
     leg,
     tripId,
     legIndex,
+    totalLegs,
     isEditable,
     canManageBooking,
     activityMap,
@@ -90,6 +92,13 @@ export default function TripLegItem({
     const [activitySearchOpen, setActivitySearchOpen] = useState(false)
     const [modalInitialDate, setModalInitialDate] = useState<string | null>(null)
     const [isOpen, setIsOpen] = useState(() => {
+        // If there's only one leg, expand it by default
+        if (totalLegs === 1) return true
+        
+        // If there are multiple legs, collapse everything by default (ignoring current dates as requested)
+        if (totalLegs > 1) return false
+
+        // Fallback (shouldn't really happen with totalLegs > 0)
         if (!leg.start_date || !leg.end_date) return false
         const now = new Date()
         const start = parseISO(leg.start_date)
@@ -208,24 +217,32 @@ export default function TripLegItem({
             <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-white" />
 
             <div
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 cursor-pointer group"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 cursor-pointer group hover:bg-white hover:shadow-sm hover:ring-8 hover:ring-white rounded-xl transition-all p-2 -ml-2"
                 onClick={() => setIsOpen(!isOpen)}
+                title={isOpen ? 'Click to collapse' : 'Click to expand'}
             >
-                <div>
-                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors flex items-center gap-2">
-                        {leg.name}
-                        <span className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                <div className="flex-1">
+                    <div className="flex items-center justify-between sm:justify-start sm:gap-4">
+                        <h3 className="text-xl font-black text-gray-900 group-hover:text-indigo-600 transition-colors flex items-center gap-2">
+                            {leg.name}
+                        </h3>
+                        <div className={`p-1 rounded-full bg-gray-50 text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all duration-300 ${isOpen ? 'rotate-180 bg-indigo-50 text-indigo-600' : ''}`}>
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                             </svg>
-                        </span>
-                    </h3>
-                    <p className="text-sm text-indigo-600 font-medium flex items-center gap-1.5 mt-1">
+                        </div>
+                    </div>
+                    <p className="text-sm text-indigo-600 font-bold flex items-center gap-1.5 mt-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                         <Calendar className="h-4 w-4" />
                         {leg.start_date ? formatDate(leg.start_date, 'MMM d') : 'TBD'}
                         {leg.end_date && ` - ${formatDate(leg.end_date, 'MMM d, yyyy')}`}
                     </p>
                 </div>
+                {!isOpen && (
+                    <div className="hidden sm:block text-[10px] font-bold text-gray-400 uppercase tracking-widest animate-pulse group-hover:animate-none group-hover:text-indigo-500">
+                        Click to expand
+                    </div>
+                )}
             </div>
 
             {isOpen && (
