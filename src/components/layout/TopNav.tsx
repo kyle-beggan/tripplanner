@@ -5,12 +5,14 @@ import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { User, ChevronDown, LogOut } from 'lucide-react'
+import { User, ChevronDown, LogOut, Menu, X, Map, MessageSquare, Shield } from 'lucide-react'
 
 
 export default function TopNav({ user, profile }: { user: any, profile: any }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
+    const mobileMenuRef = useRef<HTMLDivElement>(null)
     const router = useRouter()
     const supabase = createClient()
 
@@ -23,12 +25,15 @@ export default function TopNav({ user, profile }: { user: any, profile: any }) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false)
             }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+                setIsMobileMenuOpen(false)
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [dropdownRef]);
+    }, [dropdownRef, mobileMenuRef]);
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()
@@ -41,6 +46,19 @@ export default function TopNav({ user, profile }: { user: any, profile: any }) {
             <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                 {/* Logo & Branding */}
                 <div className="flex items-center gap-4">
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                    >
+                        <span className="sr-only">Open main menu</span>
+                        {isMobileMenuOpen ? (
+                            <X className="block h-6 w-6" aria-hidden="true" />
+                        ) : (
+                            <Menu className="block h-6 w-6" aria-hidden="true" />
+                        )}
+                    </button>
+
                     <Link href="/trips" className="flex items-center gap-2" aria-label="Home">
                         <div className="relative h-12 w-12 overflow-hidden rounded-xl shadow-lg border border-white bg-gradient-to-br from-white via-gray-100 to-gray-200">
                             <Image src="/LFGPlaces_logo.png" alt="LFG Places Logo" fill className="object-contain" />
@@ -104,6 +122,40 @@ export default function TopNav({ user, profile }: { user: any, profile: any }) {
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Navigation Menu */}
+            {isMobileMenuOpen && (
+                <div className="lg:hidden" ref={mobileMenuRef}>
+                    <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3 bg-white border-b border-gray-200 shadow-lg absolute w-full">
+                        <Link
+                            href="/trips"
+                            className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 group flex items-center gap-x-3 rounded-md p-2 text-base font-medium transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Map className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-indigo-600" aria-hidden="true" />
+                            Trips
+                        </Link>
+                        <Link
+                            href="/feedback"
+                            className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 group flex items-center gap-x-3 rounded-md p-2 text-base font-medium transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <MessageSquare className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-indigo-600" aria-hidden="true" />
+                            Feedback
+                        </Link>
+                        {profile?.role === 'admin' && (
+                            <Link
+                                href="/admin"
+                                className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 group flex items-center gap-x-3 rounded-md p-2 text-base font-medium transition-colors"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                <Shield className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-indigo-600" aria-hidden="true" />
+                                Admin
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            )}
         </header>
     )
 }

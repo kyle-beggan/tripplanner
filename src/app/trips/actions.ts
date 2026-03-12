@@ -534,7 +534,7 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
                     <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #ffffff; color: #1f2937;">
                         <div style="text-align: center; margin-bottom: 32px;">
                             <h1 style="color: #4f46e5; font-size: 28px; font-weight: 800; margin: 0;">LFG Places</h1>
-                            <p style="color: #6b7280; font-size: 16px; margin-top: 8px;">Find your next adventure together.</p>
+                            <p style="color: #6b7280; font-size: 16px; margin-top: 8px;">We can help you plan, organize, and execute your next group outing.</p>
                         </div>
                         
                         <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 32px; border-radius: 16px; color: #ffffff; margin-bottom: 24px; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2);">
