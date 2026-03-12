@@ -14,6 +14,8 @@ import CollapsibleSection from '@/components/ui/CollapsibleSection'
 import TripPhotosSection from '@/components/trips/TripPhotosSection'
 import TripDetailsSection from '@/components/trips/TripDetailsSection'
 import LiveTripStatus from '@/components/trips/LiveTripStatus'
+import TripHeaderGoingButton from '@/components/trips/TripHeaderGoingButton'
+import TripFloatingNav from '@/components/trips/TripFloatingNav'
 
 interface ScheduledActivity {
     time: string
@@ -64,11 +66,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    console.log('TripDetailsPage - Diagnostics:', {
-        id,
-        userId: user?.id,
-        authError: authError?.message
-    })
+
 
     if (!id || id.length < 32) {
         console.error('Invalid ID:', id)
@@ -211,6 +209,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
     })
 
     const userParticipation = user ? participants.find(p => p.user_id === user.id) : null
+    const isUserGoing = userParticipation?.status === 'going'
 
     // Calculate activity participation stats
     let totalActivities = 0
@@ -328,11 +327,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                     <User className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
                                     Hosted by {owner?.full_name || 'Unknown'}
                                 </div>
-                                <div className="mt-2 flex items-center text-sm text-gray-500">
-                                    <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded">
-                                        {totalConfirmed} {totalConfirmed === 1 ? 'Person' : 'People'} Going
-                                    </span>
-                                </div>
+                                    <TripHeaderGoingButton totalConfirmed={totalConfirmed} />
                             </div>
                         </div>
                         <div className="mt-4 flex items-center gap-3 md:ml-4 md:mt-0">
@@ -354,7 +349,9 @@ export default async function TripDetailsPage({ params }: PageProps) {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative">
+                <TripFloatingNav hasNotComing={notComing.length > 0} />
+
                 {isLive && (
                     <LiveTripStatus
                         currentActivity={currentActivity}
@@ -363,7 +360,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     />
                 )}
                 {/* Details & Cost Summary Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div id="details" className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                         <TripDetailsSection
                             tripId={trip.id}
@@ -402,7 +399,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 </section>
 
                 {/* Itinerary Section */}
-                <section className="bg-white shadow rounded-lg p-6">
+                <section id="itinerary" className="bg-white shadow rounded-lg p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                             Trip Itinerary
@@ -412,6 +409,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                                 tripId={trip.id}
                                 joinedCount={joinedActivities}
                                 totalCount={totalActivities}
+                                isUserGoing={isUserGoing}
                             />
                         )}
                     </div>
@@ -424,11 +422,13 @@ export default async function TripDetailsPage({ params }: PageProps) {
                         activityMap={activityMap}
                         userId={user?.id}
                         participants={participants}
+                        isUserGoing={isUserGoing}
                     />
                 </section>
 
                 {/* Aggregate Photos Section */}
                 <CollapsibleSection
+                    id="photos"
                     title="Photos"
                     badge={allPhotos.length}
                     icon={<ImageIcon className="w-5 h-5 text-indigo-500" />}
@@ -438,6 +438,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
                 {/* Who's Coming Section */}
                 <CollapsibleSection
+                    id="whos-coming"
                     title="Who's Coming"
                     badge={`${totalConfirmed} confirmed`}
                     icon={<Users className="w-5 h-5 text-indigo-500" />}
@@ -493,6 +494,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 {/* Who's Not Coming Section */}
                 {notComing.length > 0 && (
                     <CollapsibleSection
+                        id="not-coming"
                         title="Who's Not Coming"
                         badge={`${notComing.length} declined`}
                         icon={<Users className="w-5 h-5 text-red-500" />}

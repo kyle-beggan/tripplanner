@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 interface CollapsibleSectionProps {
+    id?: string
     title: string
     badge?: string | number
     children: React.ReactNode
@@ -13,6 +14,7 @@ interface CollapsibleSectionProps {
 }
 
 export default function CollapsibleSection({
+    id,
     title,
     badge,
     children,
@@ -22,8 +24,31 @@ export default function CollapsibleSection({
 }: CollapsibleSectionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen)
 
+    useEffect(() => {
+        const handleHashChange = () => {
+            if (id && window.location.hash === `#${id}`) {
+                setIsOpen(true)
+            }
+        }
+
+        const handleExpandEvent = (e: Event) => {
+            const customEvent = e as CustomEvent
+            if (id && customEvent.detail === id) {
+                setIsOpen(true)
+            }
+        }
+
+        handleHashChange()
+        window.addEventListener('hashchange', handleHashChange)
+        window.addEventListener('expand-section', handleExpandEvent)
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange)
+            window.removeEventListener('expand-section', handleExpandEvent)
+        }
+    }, [id])
+
     return (
-        <section className="bg-white shadow rounded-lg overflow-hidden">
+        <section id={id} className="bg-white shadow rounded-lg overflow-hidden">
             <div className="flex items-center justify-between bg-white px-6 py-4">
                 <button
                     onClick={() => setIsOpen(!isOpen)}

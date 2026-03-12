@@ -34,7 +34,7 @@ interface AddActivityModalProps {
     initialCategory?: string
     locationName?: string
     initialActivityData?: {
-        index: number
+        index?: number
         time: string
         description: string
         estimated_cost?: number
@@ -236,7 +236,7 @@ export default function AddActivityModal({
 
         setIsSubmitting(true)
         try {
-            if (initialActivityData) {
+            if (initialActivityData && typeof initialActivityData.index === 'number') {
                 const result = await updateActivityInLegSchedule(
                     tripId,
                     legIndex,
@@ -263,7 +263,7 @@ export default function AddActivityModal({
                     legIndex,
                     date,
                     time,
-                    title,
+                    title || '',
                     activeTab === 'find' ? selectedPlace : undefined,
                     cost,
                     location,
@@ -271,7 +271,7 @@ export default function AddActivityModal({
                 )
 
                 if (result.success) {
-                    toast.success('Activity added to agenda!')
+                    toast.success(initialActivityData ? 'Activity duplicated!' : 'Activity added to agenda!')
                     onClose()
                     router.refresh()
                 } else {
@@ -298,10 +298,10 @@ export default function AddActivityModal({
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">
-                            {initialActivityData ? 'Edit Activity' : 'Add to Agenda'}
+                            {initialActivityData ? (typeof initialActivityData.index === 'number' ? 'Edit Activity' : 'Duplicate Activity') : 'Add to Agenda'}
                         </h2>
                         <p className="text-sm text-gray-500 mt-0.5">
-                            {initialActivityData ? 'Update activity details' : 'Build your daily schedule'}
+                            {initialActivityData ? (typeof initialActivityData.index === 'number' ? 'Update activity details' : 'Create a copy of this activity') : 'Build your daily schedule'}
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
@@ -644,7 +644,7 @@ export default function AddActivityModal({
                         className="flex-[2] py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                     >
                         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                        {initialActivityData ? 'Save Changes' : 'Add to Agenda'}
+                        {initialActivityData ? (typeof initialActivityData.index === 'number' ? 'Save Changes' : 'Add to Agenda') : 'Add to Agenda'}
                     </button>
                 </div>
             </div>

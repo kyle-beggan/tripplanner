@@ -109,7 +109,7 @@ export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingD
 
     const { data: participant } = await supabase
         .from('trip_participants')
-        .select('id')
+        .select('status')
         .eq('trip_id', tripId)
         .eq('user_id', user.id)
         .maybeSingle()
@@ -122,10 +122,10 @@ export async function addLodgingToLeg(tripId: string, legIndex: number, lodgingD
 
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
-    const isParticipant = !!participant
+    const isGoing = participant?.status === 'going'
 
-    if (!trip || (!isOwner && !isAdmin && !isParticipant)) {
-        return { success: false, message: 'Unauthorized' }
+    if (!trip || (!isOwner && !isAdmin && !isGoing)) {
+        return { success: false, message: "You must RSVP \"I'm in\" for the trip before you can add lodging." }
     }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
@@ -290,7 +290,7 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
 
     const { data: participant } = await supabase
         .from('trip_participants')
-        .select('id')
+        .select('status')
         .eq('trip_id', tripId)
         .eq('user_id', user.id)
         .maybeSingle()
@@ -303,10 +303,10 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
 
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
-    const isParticipant = !!participant
+    const isGoing = participant?.status === 'going'
 
-    if (!trip || (!isOwner && !isAdmin && !isParticipant)) {
-        return { success: false, message: 'Unauthorized' }
+    if (!trip || (!isOwner && !isAdmin && !isGoing)) {
+        return { success: false, message: "You must RSVP \"I'm in\" for the trip before you can add lodging." }
     }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
@@ -773,6 +773,18 @@ export async function toggleActivityParticipation(tripId: string, legIndex: numb
 
     if (!trip) return { success: false, message: 'Trip not found' }
 
+    // Check RSVP status
+    const { data: participant } = await supabase
+        .from('trip_participants')
+        .select('status')
+        .eq('trip_id', tripId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+    if (participant?.status !== 'going') {
+        return { success: false, message: 'You must RSVP "I\'m in" for the trip before joining activities.' }
+    }
+
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
     const leg = locations[legIndex]
 
@@ -829,6 +841,18 @@ export async function joinAllTripActivities(tripId: string) {
         .single()
 
     if (!trip) return { success: false, message: 'Trip not found' }
+
+    // Check RSVP status
+    const { data: participant } = await supabase
+        .from('trip_participants')
+        .select('status')
+        .eq('trip_id', tripId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+    if (participant?.status !== 'going') {
+        return { success: false, message: 'You must RSVP "I\'m in" for the trip before joining activities.' }
+    }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
     let modified = false

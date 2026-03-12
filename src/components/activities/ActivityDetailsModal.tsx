@@ -49,6 +49,7 @@ interface ActivityDetailsModalProps {
     }
     participants: Participant[]
     userId?: string
+    isUserGoing: boolean
 }
 
 export default function ActivityDetailsModal({
@@ -60,7 +61,8 @@ export default function ActivityDetailsModal({
     activityIndex,
     activity,
     participants,
-    userId
+    userId,
+    isUserGoing
 }: ActivityDetailsModalProps) {
     const supabase = createClient()
     const [activeTab, setActiveTab] = useState<'details' | 'photos' | 'who'>('details')
@@ -272,10 +274,13 @@ export default function ActivityDetailsModal({
                                 </div>
                                 <button
                                     onClick={handleToggleParticipation}
-                                    disabled={joining || !userId}
+                                    disabled={joining || !userId || (!isParticipating && !isUserGoing)}
+                                    title={!isParticipating && !isUserGoing ? "You must RSVP for this trip before you can join activities." : undefined}
                                     className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2 ${isParticipating
                                         ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
-                                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                        : (!isParticipating && !isUserGoing)
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
                                         }`}
                                 >
                                     {joining ? (

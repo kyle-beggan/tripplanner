@@ -44,9 +44,10 @@ interface TripLegsProps {
     userId?: string
     participants?: any[]
     dataTimestamp?: number
+    isUserGoing: boolean
 }
 
-export default function TripLegs({ legs, tripId, isEditable, canManageBooking, activityMap, userId, participants, dataTimestamp }: TripLegsProps) {
+export default function TripLegs({ legs, tripId, isEditable, canManageBooking, activityMap, userId, participants, dataTimestamp, isUserGoing }: TripLegsProps) {
     if (legs.length === 0) {
         return <p className="text-gray-500 italic">No locations added to this trip yet.</p>
     }
@@ -66,6 +67,7 @@ export default function TripLegs({ legs, tripId, isEditable, canManageBooking, a
                     userId={userId}
                     participants={participants}
                     dataTimestamp={dataTimestamp}
+                    isUserGoing={isUserGoing}
                 />
             ))}
         </div>

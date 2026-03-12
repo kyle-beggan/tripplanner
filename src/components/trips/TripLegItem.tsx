@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Home, Tent, Pencil, Bell } from 'lucide-react'
+import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Home, Tent, Pencil, Bell, Copy } from 'lucide-react'
 import { format, eachDayOfInterval, parseISO, isAfter } from 'date-fns'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
@@ -68,6 +68,7 @@ interface TripLegItemProps {
     userId?: string
     participants?: any[]
     dataTimestamp?: number
+    isUserGoing: boolean
 }
 
 import { toggleActivityParticipation, removeActivityFromLegSchedule } from '@/app/trips/actions'
@@ -83,7 +84,8 @@ export default function TripLegItem({
     activityMap,
     userId,
     participants,
-    dataTimestamp
+    dataTimestamp,
+    isUserGoing
 }: TripLegItemProps) {
     const router = useRouter()
     const [loadingActivity, setLoadingActivity] = useState<{ dayIdx: number, actIdx: number } | null>(null)
@@ -132,7 +134,7 @@ export default function TripLegItem({
     const [activityToDelete, setActivityToDelete] = useState<{ date: string, index: number, description: string } | null>(null)
     const [isDeletingActivity, setIsDeletingActivity] = useState(false)
     const [multipliers, setMultipliers] = useState<Record<string, number>>({})
-    const [editingActivity, setEditingActivity] = useState<{ date: string, index: number, data: ScheduledActivity } | null>(null)
+    const [editingActivity, setEditingActivity] = useState<{ date: string, index?: number, data: ScheduledActivity } | null>(null)
     const [viewingActivity, setViewingActivity] = useState<{ dayDate: string, index: number, data: ScheduledActivity } | null>(null)
 
     const fullSchedule = useMemo(() => {
@@ -208,6 +210,12 @@ export default function TripLegItem({
 
     const handleEditActivity = (date: string, index: number, data: ScheduledActivity) => {
         setEditingActivity({ date, index, data })
+        setModalInitialDate(date)
+        setActivitySearchOpen(true)
+    }
+
+    const handleDuplicateActivity = (date: string, data: ScheduledActivity) => {
+        setEditingActivity({ date, data })
         setModalInitialDate(date)
         setActivitySearchOpen(true)
     }
@@ -390,6 +398,16 @@ export default function TripLegItem({
                                                                                         <button
                                                                                             onClick={(e) => {
                                                                                                 e.stopPropagation()
+                                                                                                handleDuplicateActivity(day.date, item)
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                                                                                            title="Duplicate activity"
+                                                                                        >
+                                                                                            <Copy className="w-4 h-4" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
                                                                                                 handleDeleteActivity(day.date, iIdx, item.description)
                                                                                             }}
                                                                                             className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
@@ -530,12 +548,15 @@ export default function TripLegItem({
                                                                                                                 setLoadingActivity(null)
                                                                                                             }
                                                                                                         }}
-                                                                                                        disabled={!!loadingActivity}
+                                                                                                        disabled={!!loadingActivity || (!isParticipating && !isUserGoing)}
+                                                                                                        title={!isParticipating && !isUserGoing ? "You must RSVP for this trip before you can join activities." : undefined}
                                                                                                         className={`
                                                                                                         inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors
                                                                                                         ${isParticipating
                                                                                                                 ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                                                                                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                                                                                                : (!isParticipating && !isUserGoing)
+                                                                                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                                                                                    : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
                                                                                                             }
                                                                                                         ${loadingActivity?.dayIdx === dIdx && loadingActivity?.actIdx === iIdx ? 'cursor-wait' : ''}
                                                                                                     `}
@@ -650,6 +671,7 @@ export default function TripLegItem({
                                     activity={liveActivity}
                                     participants={participants || []}
                                     userId={userId}
+                                    isUserGoing={isUserGoing}
                                 />
                             )
                         })()}
@@ -659,7 +681,13 @@ export default function TripLegItem({
                                     <h4 className="text-sm font-medium text-gray-900">Where are you staying?</h4>
                                     <button
                                         onClick={() => setSearchModalOpen(true)}
-                                        className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:bg-indigo-50 px-3 py-1.5 rounded transition-colors"
+                                        disabled={!isUserGoing}
+                                        title={!isUserGoing ? "You must RSVP for this trip before you can add lodging." : undefined}
+                                        className={`text-xs font-medium flex items-center gap-1 px-3 py-1.5 rounded transition-colors ${
+                                            !isUserGoing 
+                                                ? 'text-gray-400 cursor-not-allowed bg-gray-50' 
+                                                : 'text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50'
+                                        }`}
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                         Add My Lodging

@@ -10,9 +10,10 @@ interface TripJoinAllButtonProps {
     tripId: string
     joinedCount: number
     totalCount: number
+    isUserGoing: boolean
 }
 
-export default function TripJoinAllButton({ tripId, joinedCount, totalCount }: TripJoinAllButtonProps) {
+export default function TripJoinAllButton({ tripId, joinedCount, totalCount, isUserGoing }: TripJoinAllButtonProps) {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
 
@@ -60,10 +61,13 @@ export default function TripJoinAllButton({ tripId, joinedCount, totalCount }: T
             {!isFullyJoined && (
                 <button
                     onClick={handleJoinAll}
-                    disabled={loading}
+                    disabled={loading || !isUserGoing}
+                    title={!isUserGoing ? "You must RSVP for this trip before you can join activities." : undefined}
                     className={`
                         inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all
-                        bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow active:scale-95
+                        ${isUserGoing 
+                            ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow active:scale-95' 
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
                         ${loading ? 'opacity-70 cursor-wait' : ''}
                     `}
                 >

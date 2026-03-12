@@ -15,10 +15,6 @@ interface TripRSVPModalProps {
     initialData?: any
 }
 
-interface Guest {
-    name: string
-    age: string
-}
 
 export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: TripRSVPModalProps) {
     const supabase = createClient()
@@ -28,7 +24,6 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
     const [status, setStatus] = useState<'going' | 'declined'>('going')
     const [arrivalDate, setArrivalDate] = useState('')
     const [departureDate, setDepartureDate] = useState('')
-    const [guests, setGuests] = useState<Guest[]>([])
     const [selectedActivities, setSelectedActivities] = useState<string[]>([])
 
     // Initialize form with existing data
@@ -37,31 +32,18 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
             setStatus(initialData.status || 'going')
             setArrivalDate(initialData.arrival_date ? new Date(initialData.arrival_date).toISOString().split('T')[0] : '')
             setDepartureDate(initialData.departure_date ? new Date(initialData.departure_date).toISOString().split('T')[0] : '')
-            setGuests(Array.isArray(initialData.guests) ? initialData.guests : [])
+            setDepartureDate(initialData.departure_date ? new Date(initialData.departure_date).toISOString().split('T')[0] : '')
             setSelectedActivities(Array.isArray(initialData.interested_activities) ? initialData.interested_activities : [])
         } else {
             // Reset if no data (fresh RSVP)
             setStatus('going')
             setArrivalDate('')
             setDepartureDate('')
-            setGuests([])
+            setDepartureDate('')
             setSelectedActivities([])
         }
     }, [initialData, isOpen])
 
-    const handleAddGuest = () => {
-        setGuests([...guests, { name: '', age: '' }])
-    }
-
-    const handleRemoveGuest = (index: number) => {
-        setGuests(guests.filter((_, i) => i !== index))
-    }
-
-    const handleGuestChange = (index: number, field: keyof Guest, value: string) => {
-        const newGuests = [...guests]
-        newGuests[index] = { ...newGuests[index], [field]: value }
-        setGuests(newGuests)
-    }
 
     const toggleActivity = (activity: string) => {
         if (selectedActivities.includes(activity)) {
@@ -87,7 +69,7 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                     status,
                     arrival_date: arrivalDate || null,
                     departure_date: departureDate || null,
-                    guests,
+                    guests: [],
                     interested_activities: selectedActivities
                 }, {
                     onConflict: 'trip_id,user_id'
@@ -196,50 +178,6 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                                 </div>
                                             </div>
 
-                                            {/* Guests */}
-                                            <div className="mb-6">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <label className="text-sm font-medium text-gray-700">Guests in your group</label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleAddGuest}
-                                                        className="inline-flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-500"
-                                                    >
-                                                        <Plus className="mr-1 h-3 w-3" />
-                                                        Add Member
-                                                    </button>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    {guests.length === 0 && (
-                                                        <p className="text-sm text-gray-500 italic">Just you for now.</p>
-                                                    )}
-                                                    {guests.map((guest, index) => (
-                                                        <div key={index} className="flex gap-2 items-center">
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Name"
-                                                                value={guest.name}
-                                                                onChange={(e) => handleGuestChange(index, 'name', e.target.value)}
-                                                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                            />
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Age"
-                                                                value={guest.age}
-                                                                onChange={(e) => handleGuestChange(index, 'age', e.target.value)}
-                                                                className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveGuest(index)}
-                                                                className="text-gray-400 hover:text-red-500"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
 
                                             {/* Activities */}
                                             {trip.activities && trip.activities.length > 0 && (
