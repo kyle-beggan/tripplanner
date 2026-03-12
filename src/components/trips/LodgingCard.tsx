@@ -183,7 +183,7 @@ export default function LodgingCard({ lodging, tripId, legIndex, isEditable, can
                 <div className="text-sm text-gray-600 flex items-start gap-1.5 leading-snug">
                     <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
                     <a
-                        href={lodging.google_maps_uri || `https://maps.google.com/?q=${encodeURIComponent(lodging.name + ' ' + lodging.address)}`}
+                        href={lodging.google_maps_uri || `https://maps.google.com/?q=${encodeURIComponent(lodging.address)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="line-clamp-2 hover:text-indigo-600 transition-colors hover:underline"
