@@ -80,14 +80,14 @@ export default function TripFloatingNav({ hasNotComing = false }: TripFloatingNa
     if (!mounted) return null;
 
     return (
-        <div className="fixed right-6 bottom-24 z-[60] flex flex-col gap-3 items-end print:hidden">
-            <div className="flex flex-col gap-2 bg-indigo-600 p-2 rounded-2xl shadow-2xl scale-90 sm:scale-100 ring-1 ring-white/20">
+        <div className="fixed right-6 top-[45%] -translate-y-1/2 z-[60] flex flex-col gap-3 items-end print:hidden">
+            <div className="flex flex-col gap-4 bg-indigo-600 p-3 rounded-2xl shadow-2xl scale-90 sm:scale-100 ring-1 ring-white/20">
                 {navItems.filter(item => item.show !== false).map((item) => (
                     <div key={item.id} className="relative group">
                         <button
                             type="button"
                             onClick={() => handleNavClick(item.id)}
-                            className="p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+                            className="p-4 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
                             title={item.label}
                         >
                             {item.icon}
