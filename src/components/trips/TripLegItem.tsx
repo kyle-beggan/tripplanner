@@ -295,13 +295,13 @@ export default function TripLegItem({
                                         return (
                                             <div key={dIdx} id={`day-${day.date.split('T')[0]}`} className="space-y-4">
                                                 <div className="flex items-center">
-                                                    <h4 className={`w-full flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm ${isToday ? 'bg-gradient-to-r from-indigo-600 to-violet-600 ring-4 ring-indigo-50' : 'bg-indigo-600'}`}>
+                                                    <h4 className={`w-full flex items-center justify-between text-sm sm:text-base font-bold text-white uppercase tracking-wider px-4 py-2 rounded-full shadow-sm ${isToday ? 'bg-gradient-to-r from-indigo-600 to-violet-600 ring-4 ring-indigo-50' : 'bg-indigo-600'}`}>
                                                         <div className="flex items-center gap-2">
-                                                            <Clock className="h-3.5 w-3.5" />
+                                                            <Clock className="h-4 w-4" />
                                                             {formatDate(day.date, 'EEEE, MMM d')}
                                                         </div>
                                                         {isToday && (
-                                                            <span className="bg-white text-indigo-600 px-2 py-0.5 rounded-full text-[9px] animate-pulse">
+                                                            <span className="bg-white text-indigo-600 px-2 py-0.5 rounded-full text-[11px] animate-pulse">
                                                                 Today
                                                             </span>
                                                         )}
@@ -335,7 +335,7 @@ export default function TripLegItem({
 
                                                             return (
                                                                 <div key={iIdx} className="relative flex items-start gap-4 py-3 group">
-                                                                    <div className="w-20 pt-1 text-[10px] font-bold text-indigo-400 text-right tabular-nums uppercase">
+                                                                    <div className="w-20 pt-1 text-xs font-bold text-indigo-400 text-right tabular-nums uppercase">
                                                                         {(() => {
                                                                             const [h, m] = item.time.split(':')
                                                                             const hour = parseInt(h)
