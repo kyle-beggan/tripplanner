@@ -28,11 +28,11 @@ export default function TripFloatingNav({ hasNotComing = false }: TripFloatingNa
     }, [])
 
     const navItems: NavItem[] = [
-        { id: 'details', label: 'Cost Per Person', icon: <DollarSign className="w-5 h-5" /> },
-        { id: 'itinerary', label: 'Itinerary', icon: <Calendar className="w-5 h-5" /> },
-        { id: 'photos', label: 'Photos', icon: <ImageIcon className="w-5 h-5" /> },
-        { id: 'whos-coming', label: "Who's Coming", icon: <Users className="w-5 h-5" /> },
-        { id: 'not-coming', label: "Who's Not Coming", icon: <UserX className="w-5 h-5" />, show: hasNotComing },
+        { id: 'details', label: 'Cost Per Person', icon: <DollarSign className="w-6 h-6" strokeWidth={2.5} /> },
+        { id: 'itinerary', label: 'Itinerary', icon: <Calendar className="w-6 h-6" strokeWidth={2.5} /> },
+        { id: 'photos', label: 'Photos', icon: <ImageIcon className="w-6 h-6" strokeWidth={2.5} /> },
+        { id: 'whos-coming', label: "Who's Coming", icon: <Users className="w-6 h-6" strokeWidth={2.5} /> },
+        { id: 'not-coming', label: "Who's Not Coming", icon: <UserX className="w-6 h-6" strokeWidth={2.5} />, show: hasNotComing },
     ]
 
     const handleNavClick = (id: string) => {
