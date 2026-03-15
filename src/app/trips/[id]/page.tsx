@@ -16,6 +16,7 @@ import TripDetailsSection from '@/components/trips/TripDetailsSection'
 import LiveTripStatus from '@/components/trips/LiveTripStatus'
 import TripHeaderGoingButton from '@/components/trips/TripHeaderGoingButton'
 import TripFloatingNav from '@/components/trips/TripFloatingNav'
+import TripWalkthrough from '@/components/trips/TripWalkthrough'
 
 interface ScheduledActivity {
     time: string
@@ -83,7 +84,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
         { data: activitiesData }
     ] = await Promise.all([
         supabase.from('trips').select('*').eq('id', id).single(),
-        supabase.from('profiles').select('role, home_airport').eq('id', user?.id || '00000000-0000-0000-0000-000000000000').single(),
+        supabase.from('profiles').select('role, home_airport, has_seen_trip_walkthrough, status').eq('id', user?.id || '00000000-0000-0000-0000-000000000000').single(),
         supabase.from('trip_participants').select(`
             *,
             profile:profiles!trip_participants_user_id_fkey(
@@ -305,9 +306,12 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
     return (
         <div className="min-h-full pb-12">
+            {profile?.status === 'approved' && !profile?.has_seen_trip_walkthrough && (
+                <TripWalkthrough />
+            )}
             <TripFloatingNav hasNotComing={notComing.length > 0} />
             {/* Header */}
-            <div className="bg-white border-b border-gray-200">
+            <div id="walkthrough-header" className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="mb-4">
                         <Link href="/trips" className="text-sm font-medium text-gray-500 hover:text-gray-700 flex items-center gap-1">

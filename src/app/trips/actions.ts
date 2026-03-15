@@ -1381,3 +1381,23 @@ export async function leaveLodging(tripId: string, legIndex: number, lodgingId: 
     revalidatePath(`/trips/${tripId}`)
     return { success: true }
 }
+
+export async function completeWalkthrough() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { error } = await supabase
+        .from('profiles')
+        .update({ has_seen_trip_walkthrough: true })
+        .eq('id', user.id)
+
+    if (error) {
+        console.error('Error completing walkthrough:', error)
+        return { success: false, error: error.message }
+    }
+
+    return { success: true }
+}
+

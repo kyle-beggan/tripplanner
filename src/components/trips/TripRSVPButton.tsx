@@ -13,7 +13,7 @@ export default function TripRSVPButton({ trip, initialData }: TripRSVPButtonProp
     const status = initialData?.status
 
     return (
-        <>
+        <div id="walkthrough-rsvp">
             <TripRSVPModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -44,6 +44,6 @@ export default function TripRSVPButton({ trip, initialData }: TripRSVPButtonProp
                     RSVP
                 </button>
             )}
-        </>
+        </div>
     )
 }

@@ -71,7 +71,7 @@ export default function TripCostSummary({
     // We always show the card now, even if individual costs are TBD/zero
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div id="walkthrough-cost" className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <Calculator className="h-5 w-5 text-indigo-600" />
