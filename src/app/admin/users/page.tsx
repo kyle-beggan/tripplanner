@@ -148,7 +148,76 @@ export default function AdminPage() {
             </div>
 
             <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
-                <table className="min-w-full divide-y divide-gray-200">
+                {/* Mobile View: Cards */}
+                <div className="md:hidden divide-y divide-gray-200">
+                    {users.map((user) => (
+                        <div key={user.id} className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <div className="h-10 w-10 flex-shrink-0 relative">
+                                        {user.avatar_url ? (
+                                            <Image className="h-10 w-10 rounded-full object-cover" src={user.avatar_url} alt="" fill />
+                                        ) : (
+                                            <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                                                {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="ml-3">
+                                        <div className="text-sm font-medium text-gray-900">{user.full_name || 'No Name'}</div>
+                                        <div className="text-xs text-gray-500">{user.email}</div>
+                                    </div>
+                                </div>
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    ${user.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                        user.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                            'bg-yellow-100 text-yellow-800'}`}>
+                                    {user.status}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <div className="flex items-center gap-1">
+                                    {user.role === 'admin' ? <Shield className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                                    <span className="capitalize">{user.role}</span>
+                                </div>
+                                <div>Joined: {new Date(user.created_at).toLocaleDateString()}</div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-2">
+                                {user.status === 'pending' && (
+                                    <button
+                                        onClick={() => handleStatusUpdate(user.id, 'approved')}
+                                        className="flex-1 bg-green-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                    >
+                                        Approve
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => handleMakeAdmin(user.id)}
+                                    disabled={user.role === 'admin'}
+                                    className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-colors ${user.role === 'admin'
+                                        ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'
+                                        }`}
+                                >
+                                    Make Admin
+                                </button>
+
+                                <button
+                                    onClick={() => handleDeleteUser(user.id)}
+                                    className="px-3 bg-red-50 text-red-600 text-xs font-semibold py-2 rounded-lg border border-red-100 hover:bg-red-100 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Desktop View: Table */}
+                <table className="hidden md:table min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>

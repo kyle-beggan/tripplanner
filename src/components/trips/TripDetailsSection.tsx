@@ -96,7 +96,11 @@ export default function TripDetailsSection({
             seinfeld: `What's the deal with ${locations}? And "${tripName}"... why is it called that? Who picked these dates, ${dateRange}? I've got ${confirmedCount} people in my building—I mean, on the trip. And ${highlight}? Is it an activity? Is it a hobby? I don't get it! *bass guitar slap*`
         }
 
-        setGeneratedSummary(personas[personaId] || personas['snoop'])
+        const persona = POP_ICONS.find(p => p.id === personaId) || POP_ICONS[0]
+        const summary = personas[personaId] || personas['snoop']
+        const signature = `\n\n— ${persona.name}`
+
+        setGeneratedSummary(summary + signature)
         setIsGenerated(true)
     }
 
@@ -144,25 +148,27 @@ export default function TripDetailsSection({
                             {isSaving ? 'Saving...' : hasSaved ? 'Saved' : 'Save to Trip'}
                         </button>
                     )}
-                    <button
-                        onClick={() => isGenerated ? setIsGenerated(false) : setIsPersonaModalOpen(true)}
-                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isGenerated
-                            ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 ring-1 ring-inset ring-indigo-600/20'
-                            }`}
-                    >
-                        {isGenerated ? (
-                            <>
-                                <History className="w-3.5 h-3.5" />
-                                Show Original
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="w-3.5 h-3.5" />
-                                Auto-generate Summary
-                            </>
-                        )}
-                    </button>
+                    {isEditable && (
+                        <button
+                            onClick={() => isGenerated ? setIsGenerated(false) : setIsPersonaModalOpen(true)}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isGenerated
+                                ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 ring-1 ring-inset ring-indigo-600/20'
+                                }`}
+                        >
+                            {isGenerated ? (
+                                <>
+                                    <History className="w-3.5 h-3.5" />
+                                    Show Original
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    Auto-generate Summary
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
 
