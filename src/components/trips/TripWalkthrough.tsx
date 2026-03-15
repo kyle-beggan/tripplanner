@@ -45,7 +45,7 @@ const steps: Step[] = [
     {
         target: '#walkthrough-lodging-tab',
         title: "Where to Stay 🏠",
-        content: "Switch to the lodging tab to see where the group is staying or add your own hotel details."
+        content: "Switch to the lodging tab to see where the group is staying or add your own lodging details."
     },
     {
         target: '#photos',
@@ -91,9 +91,11 @@ export default function TripWalkthrough() {
             const isItinerary = targetSelector === '#itinerary'
             if (isItinerary) {
                 // Scroll to its position but with a 100px buffer at the top
-                const yOffset = -100
-                const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset
-                window.scrollTo({ top: y, behavior: 'smooth' })
+                const main = document.querySelector('main')
+                if (main) {
+                    const y = el.getBoundingClientRect().top + main.scrollTop - 100
+                    main.scrollTo({ top: y, behavior: 'smooth' })
+                }
             } else {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' })
             }
@@ -115,8 +117,21 @@ export default function TripWalkthrough() {
     }
 
     const handleComplete = async () => {
-        setIsVisible(false)
-        await completeWalkthrough()
+        // Stop the update loop to prevent fighting with the scroll
+        if (rafRef.current) cancelAnimationFrame(rafRef.current)
+        
+        const main = document.querySelector('main')
+        if (main) {
+            main.scrollTo({ top: 0, behavior: 'smooth' })
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+        
+        // Give the smooth scroll enough time to finish before unmounting and revalidating
+        setTimeout(async () => {
+            setIsVisible(false)
+            await completeWalkthrough()
+        }, 800)
     }
 
     if (!isVisible || !highlightRect) return null
