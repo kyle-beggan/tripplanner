@@ -15,7 +15,7 @@ interface InviteModalProps {
 export default function InviteModal({ isOpen, onClose, tripId, tripName }: InviteModalProps) {
     const [emails, setEmails] = useState('')
     const [message, setMessage] = useState(
-        `Hey! I'm planning a trip to ${tripName} and thought you might want to join. Check out the details and RSVP here:`
+        `Hey! I'm planning a trip to ${tripName} and thought you might want to join. \n\nIf you have never logged into LFG Places before, you'll have to create an account and an admin will have to approve it. *Don't delete this email* After your account is approved, you can use the button below to jump straight to the trip details.\n\nCheck out the details and RSVP here:`
     )
     const [isSending, setIsSending] = useState(false)
     const [itineraryHtml, setItineraryHtml] = useState<string>('')
