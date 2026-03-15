@@ -23,6 +23,11 @@ const steps: Step[] = [
         content: "Ready to go? Use the RSVP button to confirm your attendance and pick your specific dates."
     },
     {
+        target: '#walkthrough-nav',
+        title: "Quick Navigation ⚡",
+        content: "Use this menu to jump quickly between costs, the itinerary, photos, and participants."
+    },
+    {
         target: '#walkthrough-cost',
         title: "Track your budget 💰",
         content: "We calculate the estimated cost per person for you. You can toggle whether you're flying to see an updated total."
@@ -229,7 +234,7 @@ export default function TripWalkthrough() {
                             onClick={nextStep}
                             className="inline-flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all active:scale-[0.98] shadow-md shadow-indigo-200"
                         >
-                            {currentStep === steps.length - 1 ? "Let's Go!" : "Explore Next"}
+                            {currentStep === steps.length - 1 ? "Let's Go!" : "Next"}
                             <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>

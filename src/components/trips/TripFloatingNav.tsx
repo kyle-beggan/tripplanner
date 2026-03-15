@@ -80,7 +80,7 @@ export default function TripFloatingNav({ hasNotComing = false }: TripFloatingNa
     if (!mounted) return null;
 
     return (
-        <div className="sticky top-0 sm:fixed sm:right-6 sm:top-[45%] sm:-translate-y-1/2 z-[60] flex flex-row sm:flex-col gap-3 items-center sm:items-end print:hidden transition-all duration-300">
+        <div id="walkthrough-nav" className="sticky top-0 sm:fixed sm:right-6 sm:top-[45%] sm:-translate-y-1/2 z-[60] flex flex-row sm:flex-col gap-3 items-center sm:items-end print:hidden transition-all duration-300">
             <div className="flex flex-row sm:flex-col w-full sm:w-auto bg-indigo-600 sm:p-3 h-[25px] sm:h-auto sm:rounded-2xl shadow-2xl scale-100 ring-0 sm:ring-1 sm:ring-white/20 items-center justify-around sm:justify-center overflow-hidden">
                 {navItems.filter(item => item.show !== false).map((item) => (
                     <div key={item.id} className="relative group flex items-center justify-center flex-1 sm:flex-none">
