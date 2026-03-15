@@ -274,7 +274,7 @@ export default function TripLegItem({
                     {/* Tabs */}
                     <div className="flex p-1 mb-6 bg-gray-100 rounded-xl">
                         <button
-                            id="walkthrough-schedule-tab"
+                            id={legIndex === 0 ? "walkthrough-schedule-tab" : undefined}
                             onClick={() => setActiveTab('schedule')}
                             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'schedule'
                                 ? 'bg-white text-indigo-600 shadow-sm'
@@ -285,7 +285,7 @@ export default function TripLegItem({
                             Daily Schedule
                         </button>
                         <button
-                            id="walkthrough-lodging-tab"
+                            id={legIndex === 0 ? "walkthrough-lodging-tab" : undefined}
                             onClick={() => setActiveTab('lodging')}
                             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'lodging'
                                 ? 'bg-white text-indigo-600 shadow-sm'

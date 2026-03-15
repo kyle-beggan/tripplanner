@@ -63,49 +63,46 @@ export default function TripWalkthrough() {
     const [currentStep, setCurrentStep] = useState(0)
     const [isVisible, setIsVisible] = useState(true)
     const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null)
-    const observerRef = useRef<ResizeObserver | null>(null)
+    const rafRef = useRef<number | null>(null)
 
     useEffect(() => {
-        const target = steps[currentStep].target
-        if (target === '#walkthrough-lodging-tab') {
+        const targetSelector = steps[currentStep].target
+        
+        // Dispatch events for step-specific UI changes
+        if (targetSelector === '#walkthrough-lodging-tab') {
             window.dispatchEvent(new CustomEvent('walkthrough-show-lodging'))
         }
-        if (target === '#walkthrough-schedule-tab' || target === '#itinerary') {
+        if (targetSelector === '#walkthrough-schedule-tab' || targetSelector === '#itinerary') {
             window.dispatchEvent(new CustomEvent('walkthrough-show-schedule'))
         }
 
-        const updateHighlight = () => {
-            const el = document.querySelector(target)
+        const update = () => {
+            const el = document.querySelector(targetSelector)
             if (el) {
-                // Ensure it's in view
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                
-                // Disconnect previous observer
-                if (observerRef.current) observerRef.current.disconnect()
+                const rect = el.getBoundingClientRect()
+                setHighlightRect(rect)
+            }
+            rafRef.current = requestAnimationFrame(update)
+        }
 
-                // Create new observer to track position/size during and after scroll
-                observerRef.current = new ResizeObserver(() => {
-                    setHighlightRect(el.getBoundingClientRect())
-                })
-                observerRef.current.observe(el)
-                
-                // Also track window scroll to keep it synced
-                const handleScroll = () => {
-                    setHighlightRect(el.getBoundingClientRect())
-                }
-                window.addEventListener('scroll', handleScroll, { passive: true })
-                
-                return () => {
-                    window.removeEventListener('scroll', handleScroll)
-                }
+        // Trigger scroll once when step changes
+        const el = document.querySelector(targetSelector)
+        if (el) {
+            const isItinerary = targetSelector === '#itinerary'
+            if (isItinerary) {
+                // Scroll to its position but with a 100px buffer at the top
+                const yOffset = -100
+                const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset
+                window.scrollTo({ top: y, behavior: 'smooth' })
+            } else {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' })
             }
         }
 
-        const cleanup = updateHighlight()
-        
+        rafRef.current = requestAnimationFrame(update)
+
         return () => {
-            if (observerRef.current) observerRef.current.disconnect()
-            if (cleanup) cleanup()
+            if (rafRef.current) cancelAnimationFrame(rafRef.current)
         }
     }, [currentStep])
 
@@ -124,21 +121,28 @@ export default function TripWalkthrough() {
 
     if (!isVisible || !highlightRect) return null
 
+    // Add some padding to the highlight
+    const PADDING = 12
+    const top = highlightRect.top - PADDING
+    const left = highlightRect.left - PADDING
+    const right = highlightRect.right + PADDING
+    const bottom = highlightRect.bottom + PADDING
+
     return (
-        <div className="fixed inset-0 z-[100] pointer-events-none">
+        <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
             {/* Dark Overlay with Hole */}
             <div 
-                className="absolute inset-0 bg-black/60 transition-all duration-500 ease-in-out"
+                className="absolute inset-0 bg-black/60 transition-opacity duration-300"
                 style={{
                     clipPath: `polygon(
                         0% 0%, 
                         0% 100%, 
-                        ${highlightRect.left - 8}px 100%, 
-                        ${highlightRect.left - 8}px ${highlightRect.top - 8}px, 
-                        ${highlightRect.right + 8}px ${highlightRect.top - 8}px, 
-                        ${highlightRect.right + 8}px ${highlightRect.bottom + 8}px, 
-                        ${highlightRect.left - 8}px ${highlightRect.bottom + 8}px, 
-                        ${highlightRect.left - 8}px 100%, 
+                        ${left}px 100%, 
+                        ${left}px ${top}px, 
+                        ${right}px ${top}px, 
+                        ${right}px ${bottom}px, 
+                        ${left}px ${bottom}px, 
+                        ${left}px 100%, 
                         100% 100%, 
                         100% 0%
                     )`
@@ -155,10 +159,25 @@ export default function TripWalkthrough() {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     className="absolute pointer-events-auto bg-white rounded-2xl shadow-2xl p-6 w-80 border border-indigo-100 ring-1 ring-black/5"
                     style={{
-                        left: Math.min(window.innerWidth - 340, Math.max(20, highlightRect.left + (highlightRect.width / 2) - 160)),
-                        top: highlightRect.bottom + 40 > window.innerHeight - 250 
-                            ? highlightRect.top - 280 
-                            : highlightRect.bottom + 40
+                        left: Math.min(window.innerWidth - 340, Math.max(20, left + (highlightRect.width / 2) - 160 + PADDING)),
+                        top: (() => {
+                            const cardHeight = 320
+                            const space = 20
+                            
+                            // 1. Try below the highlight
+                            if (bottom + space + cardHeight < window.innerHeight) {
+                                return bottom + space
+                            }
+                            
+                            // 2. Try above the highlight
+                            if (top - space - cardHeight > 0) {
+                                return top - space - cardHeight
+                            }
+                            
+                            // 3. Fallback: Position in the middle of the viewport or near the top if it's a huge section
+                            // but try to avoid the top edge
+                            return Math.max(100, Math.min(window.innerHeight - cardHeight - 100, 200))
+                        })()
                     }}
                 >
                     <div className="flex items-start justify-between mb-4">
@@ -195,7 +214,7 @@ export default function TripWalkthrough() {
                             onClick={nextStep}
                             className="inline-flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all active:scale-[0.98] shadow-md shadow-indigo-200"
                         >
-                            {currentStep === steps.length - 1 ? "Start Planning!" : "Explore Next"}
+                            {currentStep === steps.length - 1 ? "Let's Go!" : "Explore Next"}
                             <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
