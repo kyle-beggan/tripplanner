@@ -35,7 +35,7 @@ const steps: Step[] = [
     {
         target: '#walkthrough-flights',
         title: "Flight Estimates 🛫",
-        content: "Check out the base flight prices here. We'll help you find the best options for your trip."
+        content: "Will you be flying in? We can help you find flight estimates from your home airport."
     },
     {
         target: '#itinerary',

@@ -28,11 +28,11 @@ export default function TripFloatingNav({ hasNotComing = false }: TripFloatingNa
     }, [])
 
     const navItems: NavItem[] = [
-        { id: 'details', label: 'Cost Per Person', icon: <DollarSign className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
-        { id: 'itinerary', label: 'Itinerary', icon: <Calendar className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
-        { id: 'photos', label: 'Photos', icon: <ImageIcon className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
-        { id: 'whos-coming', label: "Who's Coming", icon: <Users className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
-        { id: 'not-coming', label: "Who's Not Coming", icon: <UserX className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} />, show: hasNotComing },
+        { id: 'details', label: 'Cost Per Person', icon: <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'itinerary', label: 'Itinerary', icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'photos', label: 'Photos', icon: <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'whos-coming', label: "Who's Coming", icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'not-coming', label: "Who's Not Coming", icon: <UserX className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />, show: hasNotComing },
     ]
 
     const handleNavClick = (id: string) => {
@@ -81,7 +81,7 @@ export default function TripFloatingNav({ hasNotComing = false }: TripFloatingNa
 
     return (
         <div id="walkthrough-nav" className="sticky top-0 sm:fixed sm:right-6 sm:top-[45%] sm:-translate-y-1/2 z-[60] flex flex-row sm:flex-col gap-3 items-center sm:items-end print:hidden transition-all duration-300">
-            <div className="flex flex-row sm:flex-col w-full sm:w-auto bg-indigo-600 sm:p-3 h-[25px] sm:h-auto sm:rounded-2xl shadow-2xl scale-100 ring-0 sm:ring-1 sm:ring-white/20 items-center justify-around sm:justify-center overflow-hidden">
+            <div className="flex flex-row sm:flex-col w-full sm:w-auto bg-indigo-600 sm:p-3 h-[50px] sm:h-auto sm:rounded-2xl shadow-2xl scale-100 ring-0 sm:ring-1 sm:ring-white/20 items-center justify-around sm:justify-center overflow-hidden">
                 {navItems.filter(item => item.show !== false).map((item) => (
                     <div key={item.id} className="relative group flex items-center justify-center flex-1 sm:flex-none">
                         <button
