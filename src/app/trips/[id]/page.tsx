@@ -396,7 +396,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
                 </div>
 
                 {/* Flight Estimate Row */}
-                <section>
+                <section id="walkthrough-flights">
                     <FlightEstimateCard
                         tripId={trip.id}
                         initialEstimate={flightEstimate}

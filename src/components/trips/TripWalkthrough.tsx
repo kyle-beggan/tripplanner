@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, X, Sparkles, HandMetal } from 'lucide-react'
+import { ChevronRight, X, Sparkles } from 'lucide-react'
 import { completeWalkthrough } from '@/app/trips/actions'
 
 interface Step {
@@ -28,9 +28,34 @@ const steps: Step[] = [
         content: "We calculate the estimated cost per person for you. You can toggle whether you're flying to see an updated total."
     },
     {
+        target: '#walkthrough-flights',
+        title: "Flight Estimates 🛫",
+        content: "Check out the base flight prices here. We'll help you find the best options for your trip."
+    },
+    {
         target: '#itinerary',
-        title: "The Fun Part 🌴",
-        content: "Check out the daily schedule here. See what's planned, where you're staying, and join individual activities."
+        title: "The Trip Plan 🌴",
+        content: "This is where the magic happens. Your daily itinerary is laid out here so you never miss a beat."
+    },
+    {
+        target: '#walkthrough-schedule-tab',
+        title: "Daily Schedule 📅",
+        content: "View every activity planned for each leg of the trip. You can join individual events right from here!"
+    },
+    {
+        target: '#walkthrough-lodging-tab',
+        title: "Where to Stay 🏠",
+        content: "Switch to the lodging tab to see where the group is staying or add your own hotel details."
+    },
+    {
+        target: '#photos',
+        title: "Capture the Memories 📸",
+        content: "All photos uploaded by participants for this trip will show up here. Share your best shots!"
+    },
+    {
+        target: '#whos-coming',
+        title: "The Squad 👥",
+        content: "See who else is coming on the trip and who's still pending. The more the merrier!"
     }
 ]
 
@@ -38,23 +63,49 @@ export default function TripWalkthrough() {
     const [currentStep, setCurrentStep] = useState(0)
     const [isVisible, setIsVisible] = useState(true)
     const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null)
+    const observerRef = useRef<ResizeObserver | null>(null)
 
     useEffect(() => {
+        const target = steps[currentStep].target
+        if (target === '#walkthrough-lodging-tab') {
+            window.dispatchEvent(new CustomEvent('walkthrough-show-lodging'))
+        }
+        if (target === '#walkthrough-schedule-tab' || target === '#itinerary') {
+            window.dispatchEvent(new CustomEvent('walkthrough-show-schedule'))
+        }
+
         const updateHighlight = () => {
-            const el = document.querySelector(steps[currentStep].target)
+            const el = document.querySelector(target)
             if (el) {
-                setHighlightRect(el.getBoundingClientRect())
+                // Ensure it's in view
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                
+                // Disconnect previous observer
+                if (observerRef.current) observerRef.current.disconnect()
+
+                // Create new observer to track position/size during and after scroll
+                observerRef.current = new ResizeObserver(() => {
+                    setHighlightRect(el.getBoundingClientRect())
+                })
+                observerRef.current.observe(el)
+                
+                // Also track window scroll to keep it synced
+                const handleScroll = () => {
+                    setHighlightRect(el.getBoundingClientRect())
+                }
+                window.addEventListener('scroll', handleScroll, { passive: true })
+                
+                return () => {
+                    window.removeEventListener('scroll', handleScroll)
+                }
             }
         }
 
-        updateHighlight()
-        window.addEventListener('resize', updateHighlight)
-        window.addEventListener('scroll', updateHighlight)
-
+        const cleanup = updateHighlight()
+        
         return () => {
-            window.removeEventListener('resize', updateHighlight)
-            window.removeEventListener('scroll', updateHighlight)
+            if (observerRef.current) observerRef.current.disconnect()
+            if (cleanup) cleanup()
         }
     }, [currentStep])
 
@@ -82,12 +133,12 @@ export default function TripWalkthrough() {
                     clipPath: `polygon(
                         0% 0%, 
                         0% 100%, 
-                        ${highlightRect.left}px 100%, 
-                        ${highlightRect.left}px ${highlightRect.top}px, 
-                        ${highlightRect.right}px ${highlightRect.top}px, 
-                        ${highlightRect.right}px ${highlightRect.bottom}px, 
-                        ${highlightRect.left}px ${highlightRect.bottom}px, 
-                        ${highlightRect.left}px 100%, 
+                        ${highlightRect.left - 8}px 100%, 
+                        ${highlightRect.left - 8}px ${highlightRect.top - 8}px, 
+                        ${highlightRect.right + 8}px ${highlightRect.top - 8}px, 
+                        ${highlightRect.right + 8}px ${highlightRect.bottom + 8}px, 
+                        ${highlightRect.left - 8}px ${highlightRect.bottom + 8}px, 
+                        ${highlightRect.left - 8}px 100%, 
                         100% 100%, 
                         100% 0%
                     )`
@@ -98,15 +149,16 @@ export default function TripWalkthrough() {
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentStep}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     className="absolute pointer-events-auto bg-white rounded-2xl shadow-2xl p-6 w-80 border border-indigo-100 ring-1 ring-black/5"
                     style={{
                         left: Math.min(window.innerWidth - 340, Math.max(20, highlightRect.left + (highlightRect.width / 2) - 160)),
-                        top: highlightRect.bottom + 20 > window.innerHeight - 250 
-                            ? highlightRect.top - 250 
-                            : highlightRect.bottom + 20
+                        top: highlightRect.bottom + 40 > window.innerHeight - 250 
+                            ? highlightRect.top - 280 
+                            : highlightRect.bottom + 40
                     }}
                 >
                     <div className="flex items-start justify-between mb-4">
@@ -143,7 +195,7 @@ export default function TripWalkthrough() {
                             onClick={nextStep}
                             className="inline-flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all active:scale-[0.98] shadow-md shadow-indigo-200"
                         >
-                            {currentStep === steps.length - 1 ? "Got it!" : "Next"}
+                            {currentStep === steps.length - 1 ? "Start Planning!" : "Explore Next"}
                             <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
