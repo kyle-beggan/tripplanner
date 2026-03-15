@@ -349,7 +349,7 @@ export async function addCustomLodgingToLeg(tripId: string, legIndex: number, lo
     return { success: true }
 }
 
-export async function addActivityToLegSchedule(tripId: string, legIndex: number, date: string, time: string, description: string, placeDetails?: any, estimatedCost?: number, locationName?: string, venmoLink?: string) {
+export async function addActivityToLegSchedule(tripId: string, legIndex: number, date: string, time: string, title: string, place?: any, cost?: number, locationName?: string, venmoLink?: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -367,11 +367,20 @@ export async function addActivityToLegSchedule(tripId: string, legIndex: number,
         .eq('id', user.id)
         .single()
 
+    // Check RSVP status
+    const { data: participant } = await supabase
+        .from('trip_participants')
+        .select('status')
+        .eq('trip_id', tripId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
     const isOwner = trip?.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
+    const isGoing = participant?.status === 'going'
 
-    if (!trip || (!isOwner && !isAdmin)) {
-        return { success: false, message: 'Unauthorized' }
+    if (!trip || (!isOwner && !isAdmin && !isGoing)) {
+        return { success: false, message: 'Only trip owners, admins, or attendees who have RSVP\'d "I\'m in" can add activities.' }
     }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
@@ -403,14 +412,19 @@ export async function addActivityToLegSchedule(tripId: string, legIndex: number,
     if (!daySchedule.activities) daySchedule.activities = []
 
     // Add activity
-    daySchedule.activities.push({
-        time: time,
-        description: description,
-        estimated_cost: estimatedCost,
+    const newActivity = {
+        time,
+        description: title,
         location_name: locationName,
+        estimated_cost: cost,
         venmo_link: venmoLink,
-        participants: [] // Initialize with empty participants
-    })
+        google_place_id: place?.id,
+        google_maps_uri: place?.googleMapsUri,
+        participants: [],
+        photos: [],
+        creator_id: user.id
+    }
+    daySchedule.activities.push(newActivity)
 
     // Sort activities by time
     daySchedule.activities.sort((a: any, b: any) => {
@@ -419,12 +433,19 @@ export async function addActivityToLegSchedule(tripId: string, legIndex: number,
         return parseInt(timeA) - parseInt(timeB)
     })
 
-    const { error } = await supabase
+    const { error, data } = await supabase
         .from('trips')
         .update({ locations })
         .eq('id', tripId)
+        .select()
 
     if (error) return { success: false, message: error.message }
+    if (!data || data.length === 0) {
+        return { 
+            success: false, 
+            message: 'Permission denied: Attendees must RSVP "I\'m in" to add activities. RLS policy might be blocking the update.' 
+        }
+    }
 
     revalidatePath(`/trips/${tripId}`)
     return { success: true }
@@ -980,12 +1001,9 @@ export async function removeActivityFromLegSchedule(tripId: string, legIndex: nu
         .eq('id', user.id)
         .single()
 
-    const isOwner = trip?.owner_id === user.id
+    if (!trip) return { success: false, message: 'Trip not found' }
+    const isOwner = trip.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
-
-    if (!trip || (!isOwner && !isAdmin)) {
-        return { success: false, message: 'Unauthorized' }
-    }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
     const leg = locations[legIndex]
@@ -1004,6 +1022,13 @@ export async function removeActivityFromLegSchedule(tripId: string, legIndex: nu
 
     if (activityIndex < 0 || activityIndex >= daySchedule.activities.length) {
         return { success: false, message: 'Invalid activity index' }
+    }
+
+    const activity = daySchedule.activities[activityIndex]
+    const isCreator = activity.creator_id === user.id
+
+    if (!trip || (!isOwner && !isAdmin && !isCreator)) {
+        return { success: false, message: 'Only the activity creator, trip owner, or admin can remove this activity.' }
     }
 
     // Remove the activity
@@ -1055,17 +1080,12 @@ export async function updateActivityInLegSchedule(
         .eq('id', user.id)
         .single()
 
-    const isOwner = trip?.owner_id === user.id
+    if (!trip) return { success: false, message: 'Trip not found' }
+    const isOwner = trip.owner_id === user.id
     const isAdmin = profile?.role === 'admin'
-
-    if (!trip || (!isOwner && !isAdmin)) {
-        return { success: false, message: 'Unauthorized' }
-    }
 
     const locations = Array.isArray(trip.locations) ? [...trip.locations] : []
     const leg = locations[legIndex]
-
-    if (!leg || !leg.schedule) return { success: false, message: 'Schedule not found' }
 
     const daySchedule = leg.schedule.find((d: any) => d.date.split('T')[0] === date.split('T')[0])
     if (!daySchedule || !daySchedule.activities) return { success: false, message: 'Activity not found' }
@@ -1081,8 +1101,14 @@ export async function updateActivityInLegSchedule(
         return { success: false, message: 'Invalid activity index' }
     }
 
-    // Update the activity
     const activity = daySchedule.activities[activityIndex]
+    const isCreator = activity.creator_id === user.id
+
+    if (!trip || (!isOwner && !isAdmin && !isCreator)) {
+        return { success: false, message: 'Only the activity creator, trip owner, or admin can edit this activity.' }
+    }
+
+    // Update the activity
     activity.time = updatedData.time
     activity.description = updatedData.description
     activity.estimated_cost = updatedData.estimatedCost

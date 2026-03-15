@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Home, Tent, Pencil, Bell, Copy } from 'lucide-react'
+import { Calendar, Clock, BedDouble, Plus, MapPin, Search, List, Home, Tent, Pencil, Bell, Copy, MessageSquare, Check, X } from 'lucide-react'
 import { format, eachDayOfInterval, parseISO, isAfter } from 'date-fns'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
@@ -21,6 +21,7 @@ interface ScheduledActivity {
     location_name?: string
     venmo_link?: string
     participants?: string[]
+    creator_id?: string
 }
 
 interface DailySchedule {
@@ -72,7 +73,6 @@ interface TripLegItemProps {
 }
 
 import { toggleActivityParticipation, removeActivityFromLegSchedule } from '@/app/trips/actions'
-import { Check, X } from 'lucide-react'
 
 export default function TripLegItem({
     leg,
@@ -136,6 +136,7 @@ export default function TripLegItem({
     const [multipliers, setMultipliers] = useState<Record<string, number>>({})
     const [editingActivity, setEditingActivity] = useState<{ date: string, index?: number, data: ScheduledActivity } | null>(null)
     const [viewingActivity, setViewingActivity] = useState<{ dayDate: string, index: number, data: ScheduledActivity } | null>(null)
+    const isAdminOrOwner = isEditable // matches the logic in page.tsx where isEditable = isOwner || isAdmin
 
     const fullSchedule = useMemo(() => {
         if (!leg.start_date || !leg.end_date) return leg.schedule || []
@@ -150,7 +151,7 @@ export default function TripLegItem({
             const dayStrings = days.map(d => format(d, 'yyyy-MM-dd'))
 
             return dayStrings.map(date => {
-                const existing = leg.schedule?.find(s => s.date === date)
+                const existing = leg.schedule?.find(s => s.date.split('T')[0] === date)
                 return existing || { date, activities: [] }
             })
         } catch (e) {
@@ -312,16 +313,16 @@ export default function TripLegItem({
                                                     <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30">
                                                         <Clock className="h-6 w-6 text-gray-200 mx-auto mb-2" />
                                                         <p className="text-xs text-gray-400">No activities scheduled for this day.</p>
-                                                        {isEditable && (
+                                                        {(isAdminOrOwner || isUserGoing) && (
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleOpenAddActivity(day.date)}
                                                                 className="mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 mx-auto bg-indigo-50 px-4 py-2 rounded-full transition-colors border border-indigo-100 shadow-sm"
                                                             >
-                                                                <Plus className="h-3.5 w-3.5" />
-                                                                Add Activity
-                                                            </button>
-                                                        )}
+                                                                    <Plus className="h-3.5 w-3.5" />
+                                                                    Add Activity
+                                                                </button>
+                                                            )}
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-0 relative">
@@ -373,50 +374,62 @@ export default function TripLegItem({
                                                                             </div>
 
                                                                             <div className="flex items-center gap-3 self-end sm:self-start">
-                                                                                {isEditable && (
-                                                                                    <div className="flex items-center gap-1">
-                                                                                        <button
-                                                                                            onClick={(e) => {
-                                                                                                e.stopPropagation()
-                                                                                                toast.info('Reminder feature coming soon!')
-                                                                                            }}
-                                                                                            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                                                                                            title="Send reminder"
-                                                                                        >
-                                                                                            <Bell className="w-4 h-4" />
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={(e) => {
-                                                                                                e.stopPropagation()
-                                                                                                handleEditActivity(day.date, iIdx, item)
-                                                                                            }}
-                                                                                            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
-                                                                                            title="Edit activity"
-                                                                                        >
-                                                                                            <Pencil className="w-4 h-4" />
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={(e) => {
-                                                                                                e.stopPropagation()
-                                                                                                handleDuplicateActivity(day.date, item)
-                                                                                            }}
-                                                                                            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
-                                                                                            title="Duplicate activity"
-                                                                                        >
-                                                                                            <Copy className="w-4 h-4" />
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={(e) => {
-                                                                                                e.stopPropagation()
-                                                                                                handleDeleteActivity(day.date, iIdx, item.description)
-                                                                                            }}
-                                                                                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                                                                            title="Remove activity"
-                                                                                        >
-                                                                                            <X className="w-4 h-4" />
-                                                                                        </button>
-                                                                                    </div>
-                                                                                )}
+                                                                            <div className="flex items-center gap-1">
+                                                                                    {(isAdminOrOwner || item.creator_id === userId) && (
+                                                                                        <>
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    toast.info('Text invite feature coming soon!')
+                                                                                                }}
+                                                                                                className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                                                                                                title="Send text invite"
+                                                                                            >
+                                                                                                <MessageSquare className="w-4 h-4" />
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    toast.info('Reminder feature coming soon!')
+                                                                                                }}
+                                                                                                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                                                                                                title="Send reminder"
+                                                                                            >
+                                                                                                <Bell className="w-4 h-4" />
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    handleEditActivity(day.date, iIdx, item)
+                                                                                                }}
+                                                                                                className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                                                                                                title="Edit activity"
+                                                                                            >
+                                                                                                <Pencil className="w-4 h-4" />
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    handleDuplicateActivity(day.date, item)
+                                                                                                }}
+                                                                                                className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                                                                                                title="Duplicate activity"
+                                                                                            >
+                                                                                                <Copy className="w-4 h-4" />
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    handleDeleteActivity(day.date, iIdx, item.description)
+                                                                                                }}
+                                                                                                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                                                                title="Remove activity"
+                                                                                            >
+                                                                                                <X className="w-4 h-4" />
+                                                                                            </button>
+                                                                                        </>
+                                                                                    )}
+                                                                                </div>
                                                                                 {(() => {
                                                                                     return (
                                                                                         <>
@@ -584,7 +597,7 @@ export default function TripLegItem({
                                                                 </div>
                                                             )
                                                         })}
-                                                        {isEditable && (
+                                                        {(isAdminOrOwner || isUserGoing) && (
                                                             <div className="flex justify-center pt-2">
                                                                 <button
                                                                     onClick={() => handleOpenAddActivity(day.date)}
@@ -607,7 +620,7 @@ export default function TripLegItem({
                                         <p className="text-xs text-gray-400 mt-1">
                                             Check &quot;Find Activities&quot; to add some fun!
                                         </p>
-                                        {isEditable && (
+                                        {(isAdminOrOwner || isUserGoing) && (
                                             <button
                                                 onClick={() => handleOpenAddActivity(leg.start_date)}
                                                 className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
@@ -672,6 +685,7 @@ export default function TripLegItem({
                                     participants={participants || []}
                                     userId={userId}
                                     isUserGoing={isUserGoing}
+                                    isAdminOrOwner={isAdminOrOwner}
                                 />
                             )
                         })()}

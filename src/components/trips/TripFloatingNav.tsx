@@ -28,11 +28,11 @@ export default function TripFloatingNav({ hasNotComing = false }: TripFloatingNa
     }, [])
 
     const navItems: NavItem[] = [
-        { id: 'details', label: 'Cost Per Person', icon: <DollarSign className="w-6 h-6" strokeWidth={2.5} /> },
-        { id: 'itinerary', label: 'Itinerary', icon: <Calendar className="w-6 h-6" strokeWidth={2.5} /> },
-        { id: 'photos', label: 'Photos', icon: <ImageIcon className="w-6 h-6" strokeWidth={2.5} /> },
-        { id: 'whos-coming', label: "Who's Coming", icon: <Users className="w-6 h-6" strokeWidth={2.5} /> },
-        { id: 'not-coming', label: "Who's Not Coming", icon: <UserX className="w-6 h-6" strokeWidth={2.5} />, show: hasNotComing },
+        { id: 'details', label: 'Cost Per Person', icon: <DollarSign className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'itinerary', label: 'Itinerary', icon: <Calendar className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'photos', label: 'Photos', icon: <ImageIcon className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'whos-coming', label: "Who's Coming", icon: <Users className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} /> },
+        { id: 'not-coming', label: "Who's Not Coming", icon: <UserX className="w-3.5 h-3.5 sm:w-6 sm:h-6" strokeWidth={2.5} />, show: hasNotComing },
     ]
 
     const handleNavClick = (id: string) => {
@@ -80,19 +80,19 @@ export default function TripFloatingNav({ hasNotComing = false }: TripFloatingNa
     if (!mounted) return null;
 
     return (
-        <div className="fixed right-6 top-[45%] -translate-y-1/2 z-[60] flex flex-col gap-3 items-end print:hidden">
-            <div className="flex flex-col gap-4 bg-indigo-600 p-3 rounded-2xl shadow-2xl scale-90 sm:scale-100 ring-1 ring-white/20">
+        <div className="sticky top-0 sm:fixed sm:right-6 sm:top-[45%] sm:-translate-y-1/2 z-[60] flex flex-row sm:flex-col gap-3 items-center sm:items-end print:hidden transition-all duration-300">
+            <div className="flex flex-row sm:flex-col w-full sm:w-auto bg-indigo-600 sm:p-3 h-[25px] sm:h-auto sm:rounded-2xl shadow-2xl scale-100 ring-0 sm:ring-1 sm:ring-white/20 items-center justify-around sm:justify-center overflow-hidden">
                 {navItems.filter(item => item.show !== false).map((item) => (
-                    <div key={item.id} className="relative group">
+                    <div key={item.id} className="relative group flex items-center justify-center flex-1 sm:flex-none">
                         <button
                             type="button"
                             onClick={() => handleNavClick(item.id)}
-                            className="p-4 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+                            className="p-1 sm:p-4 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center h-full w-full sm:w-auto"
                             title={item.label}
                         >
                             {item.icon}
                         </button>
-                        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-white text-indigo-900 text-[10px] font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg ring-1 ring-indigo-200 whitespace-nowrap">
+                        <span className="hidden sm:block absolute right-full mr-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-white text-indigo-900 text-[10px] font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg ring-1 ring-indigo-200 whitespace-nowrap">
                             {item.label}
                         </span>
                     </div>

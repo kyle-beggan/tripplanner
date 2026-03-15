@@ -22,6 +22,8 @@ interface ScheduledActivity {
     description: string
     estimated_cost?: number
     location_name?: string
+    participants?: string[]
+    creator_id?: string
 }
 
 interface DailySchedule {
@@ -303,6 +305,7 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
     return (
         <div className="min-h-full pb-12">
+            <TripFloatingNav hasNotComing={notComing.length > 0} />
             {/* Header */}
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -350,7 +353,6 @@ export default async function TripDetailsPage({ params }: PageProps) {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative">
-                <TripFloatingNav hasNotComing={notComing.length > 0} />
 
                 {isLive && (
                     <LiveTripStatus

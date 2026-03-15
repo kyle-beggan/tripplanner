@@ -5,6 +5,10 @@ import TripLegItem from './TripLegItem'
 interface ScheduledActivity {
     time: string
     description: string
+    estimated_cost?: number
+    location_name?: string
+    participants?: string[]
+    creator_id?: string
 }
 
 interface DailySchedule {
