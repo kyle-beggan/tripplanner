@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import AvatarUpload from './AvatarUpload'
-import { Loader2, Save } from 'lucide-react'
+import { Loader2, Save, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { formatPhoneNumber } from '@/utils/format'
+import Link from 'next/link'
 
 export default function ProfileForm({ user, profile }: { user: any, profile: any }) {
     const supabase = createClient()
@@ -17,6 +19,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
     const [lastName, setLastName] = useState(profile?.last_name || '')
     const [username, setUsername] = useState(profile?.username || '')
     const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number || '')
+    const [textOptIn, setTextOptIn] = useState(profile?.text_opt_in || false)
     const [homeAirport, setHomeAirport] = useState(profile?.home_airport || '')
     const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || user?.user_metadata?.avatar_url || '')
 
@@ -32,6 +35,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
             full_name: `${firstName} ${lastName}`.trim(),
             username,
             phone_number: phoneNumber,
+            text_opt_in: textOptIn,
             home_airport: homeAirport.toUpperCase(),
             avatar_url: avatarUrl,
             updated_at: new Date().toISOString(),
@@ -61,14 +65,13 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                     url={avatarUrl}
                     onUpload={(url) => {
                         setAvatarUrl(url)
-                        // Optional: Auto-save avatar change immediately? 
-                        // For now, let's keep it as part of the form submission for clarity
                     }}
                 />
             </div>
 
             <form onSubmit={updateProfile} className="space-y-6">
                 <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                    {/* ... (First Name and Last Name fields) */}
                     <div>
                         <label htmlFor="first_name" className="block text-sm font-medium leading-6 text-gray-900">
                             First Name <span className="text-red-500">*</span>
@@ -136,16 +139,60 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                         <label htmlFor="phone" className="block text-sm font-medium leading-6 text-gray-900">
                             Phone Number <span className="text-red-500">*</span>
                         </label>
-                        <div className="mt-2">
-                            <input
-                                type="tel"
-                                id="phone"
-                                required
-                                value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
+                        <div className="mt-2 flex gap-4 items-start">
+                            <div className="flex-1">
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    required
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
+                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    placeholder="555-555-5555"
+                                    maxLength={12}
+                                />
+                            </div>
+
+                            {textOptIn ? (
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        const { error } = await supabase
+                                            .from('profiles')
+                                            .update({ text_opt_in: false })
+                                            .eq('id', user.id)
+
+                                        if (error) {
+                                            toast.error(`Error: ${error.message}`)
+                                        } else {
+                                            setTextOptIn(false)
+                                            toast.success('Successfully unsubscribed from SMS.')
+                                            router.refresh()
+                                        }
+                                    }}
+                                    className="rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
+                                >
+                                    Unsubscribe
+                                </button>
+                            ) : (
+                                <Link
+                                    href="/sms-opt-in"
+                                    className="rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-inset ring-indigo-300 hover:bg-indigo-50"
+                                >
+                                    SMS Opt-in
+                                </Link>
+                            )}
                         </div>
+
+                        {textOptIn && (
+                            <div className="mt-2 flex items-center gap-1.5 text-xs text-green-600 font-medium">
+                                <CheckCircle2 className="h-4 w-4" />
+                                Opted in for SMS notifications
+                            </div>
+                        )}
+                        <p className="mt-2 text-xs text-gray-500">
+                            Receive trip updates and activity reminders via text message.
+                        </p>
                     </div>
 
                     <div className="sm:col-span-2">
@@ -166,6 +213,12 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                         </div>
                     </div>
                 </div >
+
+                <div className="pt-4 border-t border-gray-100 flex justify-center gap-4">
+                    <Link href="/privacy" className="text-xs text-gray-400 hover:text-indigo-600 transition-colors">Privacy Policy</Link>
+                    <span className="text-gray-200">|</span>
+                    <Link href="/terms" className="text-xs text-gray-400 hover:text-indigo-600 transition-colors">Terms of Service</Link>
+                </div>
 
                 {message && (
                     <div className={`p-4 rounded-md text-sm ${message.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
