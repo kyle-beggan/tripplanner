@@ -77,7 +77,20 @@ Once configured, every push to `main` will trigger the deployment workflow defin
 1.  **DNS**: Point your domain's A record to your Lightsail Static IP.
 2.  **HTTPS**: Bitnami instances usually come with a `bncert-tool` to easily set up Let's Encrypt SSL certificates for Apache/Nginx.
 
-## 5. Troubleshooting
+## 5. Server Recovery
+If the server reboots or the application goes down, you can use the consolidated recovery script:
+
+```bash
+# Pull latest changes (if not already up to date)
+git pull origin main
+
+# Run the recovery script
+bash scripts/recover.sh
+```
+
+The script handles environment setup, rebuilding the app, restarting PM2, and refreshing the Apache proxy.
+
+## 6. Troubleshooting
 
 ### "git: command not found"
 If `git` is not installed on your server (which can happen with minimal blueprints), install it:
