@@ -521,7 +521,7 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
     // @ts-ignore
     const flightCost = flightEstimateResult.success && flightEstimateResult.total ? Number(flightEstimateResult.total) : 0
 
-    const blufTotal = flightCost + lodgingTotalPerPerson + activityTotalPotential
+    const blufTotal = lodgingTotalPerPerson + activityTotalPotential
     // --- End Costs ---
 
     // 3. Send Emails via Resend
@@ -572,11 +572,6 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
                                 <div style="font-size: 36px; font-weight: 800; color: #0c4a6e;">$${blufTotal.toLocaleString()}</div>
                             </div>
                             <div style="display: flex; justify-content: space-around; font-size: 14px; text-align: center;">
-                                <div>
-                                    <div style="color: #64748b; margin-bottom: 4px;">Flights</div>
-                                    <div style="font-weight: 700; color: #1e293b;">$${flightCost.toLocaleString()}</div>
-                                </div>
-                                <div style="border-left: 1px solid #bae6fd; height: 32px; margin: 0 10px;"></div>
                                 <div>
                                     <div style="color: #64748b; margin-bottom: 4px;">Lodging</div>
                                     <div style="font-weight: 700; color: #1e293b;">$${lodgingTotalPerPerson.toLocaleString()}</div>
