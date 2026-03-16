@@ -373,236 +373,242 @@ export default function TripLegItem({
                                                                             data: item
                                                                         })}
                                                                     >
-                                                                        <div className="flex flex-col gap-3 w-full">
-                                                                            {/* 1. Activity Name */}
-                                                                            <p className="text-xs sm:text-sm font-bold text-gray-900">{item.description}</p>
+                                                                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 w-full">
+                                                                            {/* Left Side: Name and Directions (Rows 1 & 2 on mobile) */}
+                                                                            <div className="flex flex-col gap-1 sm:gap-1.5 flex-1 min-w-0">
+                                                                                {/* 1. Activity Name */}
+                                                                                <p className="text-xs sm:text-sm font-bold text-gray-900">{item.description}</p>
 
-                                                                            {/* 2. Directions */}
-                                                                            {item.location_name && (
-                                                                                <a
-                                                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location_name)}`}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
-                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                >
-                                                                                    <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                                                                                    <span className="truncate">Get Directions</span>
-                                                                                </a>
-                                                                            )}
+                                                                                {/* 2. Directions */}
+                                                                                {item.location_name && (
+                                                                                    <a
+                                                                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location_name)}`}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                    >
+                                                                                        <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                                                                        <span className="truncate">Get Directions</span>
+                                                                                    </a>
+                                                                                )}
+                                                                            </div>
 
-                                                                            {/* 3. Action Buttons */}
-                                                                            {(isAdminOrOwner || item.creator_id === userId) && (
-                                                                                <div className="flex items-center gap-4 py-1 border-y border-gray-100 sm:border-0 sm:py-0">
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            toast.info('Text invite feature coming soon!')
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                                                                                        title="Send text invite"
-                                                                                    >
-                                                                                        <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            toast.info('Reminder feature coming soon!')
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                                                                                        title="Send reminder"
-                                                                                    >
-                                                                                        <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            handleEditActivity(day.date, iIdx, item)
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
-                                                                                        title="Edit activity"
-                                                                                    >
-                                                                                        <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            handleDuplicateActivity(day.date, item)
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
-                                                                                        title="Duplicate activity"
-                                                                                    >
-                                                                                        <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            handleDeleteActivity(day.date, iIdx, item.description)
-                                                                                        }}
-                                                                                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                                                                        title="Remove activity"
-                                                                                    >
-                                                                                        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                                    </button>
-                                                                                </div>
-                                                                            )}
+                                                                            {/* Right Side: Actions and Participation (Rows 3, 4, 5, 6 on mobile) */}
+                                                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                                                                                {/* 3. Action Buttons */}
+                                                                                {(isAdminOrOwner || item.creator_id === userId) && (
+                                                                                    <div className="flex items-center gap-4 py-1 border-y border-gray-100 sm:border-0 sm:py-0">
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                toast.info('Text invite feature coming soon!')
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                                                                                            title="Send text invite"
+                                                                                        >
+                                                                                            <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                toast.info('Reminder feature coming soon!')
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                                                                                            title="Send reminder"
+                                                                                        >
+                                                                                            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                handleEditActivity(day.date, iIdx, item)
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                                                                                            title="Edit activity"
+                                                                                        >
+                                                                                            <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                handleDuplicateActivity(day.date, item)
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                                                                                            title="Duplicate activity"
+                                                                                        >
+                                                                                            <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                handleDeleteActivity(day.date, iIdx, item.description)
+                                                                                            }}
+                                                                                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                                                            title="Remove activity"
+                                                                                        >
+                                                                                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                )}
 
-                                                                            {/* 4. Who's Coming / Committed Count */}
-                                                                            {currentParticipants.length > 0 && participants && (
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <div className="flex -space-x-2">
-                                                                                        {currentParticipants.slice(0, 3).map((pId) => {
-                                                                                            const p = participants.find(part => part.user_id === pId)
-                                                                                            if (!p) return null
-                                                                                            return (
-                                                                                                // eslint-disable-next-line @next/next/no-img-element
-                                                                                                <img
-                                                                                                    key={pId}
-                                                                                                    src={p.profile?.avatar_url || `https://ui-avatars.com/api/?name=${p.profile?.full_name}&background=random`}
-                                                                                                    alt={p.profile?.full_name}
-                                                                                                    title={p.profile?.full_name}
-                                                                                                    className="h-6 w-6 rounded-full ring-2 ring-white"
-                                                                                                />
-                                                                                            )
-                                                                                        })}
-                                                                                        {currentParticipants.length > 3 && (
-                                                                                            <div className="h-6 w-6 rounded-full bg-gray-100 ring-2 ring-white flex items-center justify-center text-[10px] font-medium text-gray-600">
-                                                                                                +{currentParticipants.length - 3}
+                                                                                {/* 4. Who's Coming / Committed Count */}
+                                                                                {currentParticipants.length > 0 && participants && (
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <div className="flex -space-x-2">
+                                                                                            {currentParticipants.slice(0, 3).map((pId) => {
+                                                                                                const p = participants.find(part => part.user_id === pId)
+                                                                                                if (!p) return null
+                                                                                                return (
+                                                                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                                                                    <img
+                                                                                                        key={pId}
+                                                                                                        src={p.profile?.avatar_url || `https://ui-avatars.com/api/?name=${p.profile?.full_name}&background=random`}
+                                                                                                        alt={p.profile?.full_name}
+                                                                                                        title={p.profile?.full_name}
+                                                                                                        className="h-6 w-6 rounded-full ring-2 ring-white"
+                                                                                                    />
+                                                                                                )
+                                                                                            })}
+                                                                                            {currentParticipants.length > 3 && (
+                                                                                                <div className="h-6 w-6 rounded-full bg-gray-100 ring-2 ring-white flex items-center justify-center text-[10px] font-medium text-gray-600">
+                                                                                                    +{currentParticipants.length - 3}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isParticipating ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                                                            {currentParticipants.length} {currentParticipants.length === 1 ? 'committed' : 'committed'}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {/* 5. Cost & Pay Button */}
+                                                                                {(item.estimated_cost && item.estimated_cost > 0) || item.venmo_link ? (
+                                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                                        {item.estimated_cost && item.estimated_cost > 0 && (
+                                                                                            <div className="text-[11px] font-bold text-gray-700 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
+                                                                                                ${item.estimated_cost}
+                                                                                            </div>
+                                                                                        )}
+                                                                                        {item.venmo_link && item.estimated_cost && isParticipating && (
+                                                                                            <div className="flex items-center gap-1.5 bg-indigo-50/50 p-1 rounded-full border border-indigo-100">
+                                                                                                {(() => {
+                                                                                                    const key = `${dIdx}-${iIdx}`
+                                                                                                    const multiplier = multipliers[key] || 1
+
+                                                                                                    const getVenmoUrl = () => {
+                                                                                                        const phoneOrUser = item.venmo_link?.replace('@', '')
+                                                                                                        const amount = (item.estimated_cost || 0) * multiplier
+                                                                                                        const note = encodeURIComponent(`${item.description} - ${multiplier} person${multiplier > 1 ? 's' : ''}`)
+                                                                                                        return `https://venmo.com/?txn=pay&recipients=${phoneOrUser}&amount=${amount}&note=${note}`
+                                                                                                    }
+
+                                                                                                    return (
+                                                                                                        <>
+                                                                                                            <div className="flex items-center bg-white rounded-full border border-indigo-100 px-1">
+                                                                                                                <button
+                                                                                                                    onClick={(e) => {
+                                                                                                                        e.stopPropagation()
+                                                                                                                        setMultipliers(prev => ({ ...prev, [key]: Math.max(1, (prev[key] || 1) - 1) }))
+                                                                                                                    }}
+                                                                                                                    className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
+                                                                                                                >
+                                                                                                                    -
+                                                                                                                </button>
+                                                                                                                <span className="w-4 text-center text-[10px] font-bold text-indigo-600">{multiplier}</span>
+                                                                                                                <button
+                                                                                                                    onClick={(e) => {
+                                                                                                                        e.stopPropagation()
+                                                                                                                        setMultipliers(prev => ({ ...prev, [key]: (prev[key] || 1) + 1 }))
+                                                                                                                    }}
+                                                                                                                    className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
+                                                                                                                >
+                                                                                                                    +
+                                                                                                                </button>
+                                                                                                            </div>
+                                                                                                            <a
+                                                                                                                href={getVenmoUrl()}
+                                                                                                                target="_blank"
+                                                                                                                rel="noopener noreferrer"
+                                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                                className="inline-flex items-center gap-1 px-3 py-1 bg-[#3396cd] hover:bg-[#2b7fad] text-white rounded-full text-[11px] font-bold transition-colors shadow-sm"
+                                                                                                            >
+                                                                                                                Pay ${((item.estimated_cost || 0) * multiplier).toFixed(2)}
+                                                                                                            </a>
+                                                                                                        </>
+                                                                                                    )
+                                                                                                })()}
                                                                                             </div>
                                                                                         )}
                                                                                     </div>
-                                                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isParticipating ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                                                                                        {currentParticipants.length} {currentParticipants.length === 1 ? 'committed' : 'committed'}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
+                                                                                ) : null}
 
-                                                                            {/* 5. Cost & Pay Button */}
-                                                                            {(item.estimated_cost && item.estimated_cost > 0) || item.venmo_link ? (
-                                                                                <div className="flex flex-wrap items-center gap-2">
-                                                                                    {item.estimated_cost && item.estimated_cost > 0 && (
-                                                                                        <div className="text-[11px] font-bold text-gray-700 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
-                                                                                            ${item.estimated_cost}
-                                                                                        </div>
-                                                                                    )}
-                                                                                    {item.venmo_link && item.estimated_cost && isParticipating && (
-                                                                                        <div className="flex items-center gap-1.5 bg-indigo-50/50 p-1 rounded-full border border-indigo-100">
-                                                                                            {(() => {
-                                                                                                const key = `${dIdx}-${iIdx}`
-                                                                                                const multiplier = multipliers[key] || 1
+                                                                                {/* 6. Going or + Join Button */}
+                                                                                {userId && (
+                                                                                    <button
+                                                                                        onClick={async (e) => {
+                                                                                            e.stopPropagation()
 
-                                                                                                const getVenmoUrl = () => {
-                                                                                                    const phoneOrUser = item.venmo_link?.replace('@', '')
-                                                                                                    const amount = (item.estimated_cost || 0) * multiplier
-                                                                                                    const note = encodeURIComponent(`${item.description} - ${multiplier} person${multiplier > 1 ? 's' : ''}`)
-                                                                                                    return `https://venmo.com/?txn=pay&recipients=${phoneOrUser}&amount=${amount}&note=${note}`
-                                                                                                }
+                                                                                            // Optimistic update
+                                                                                            let newParticipants = [...currentParticipants]
+                                                                                            if (isParticipating) {
+                                                                                                newParticipants = newParticipants.filter(id => id !== userId)
+                                                                                            } else {
+                                                                                                newParticipants.push(userId)
+                                                                                            }
 
-                                                                                                return (
-                                                                                                    <>
-                                                                                                        <div className="flex items-center bg-white rounded-full border border-indigo-100 px-1">
-                                                                                                            <button
-                                                                                                                onClick={(e) => {
-                                                                                                                    e.stopPropagation()
-                                                                                                                    setMultipliers(prev => ({ ...prev, [key]: Math.max(1, (prev[key] || 1) - 1) }))
-                                                                                                                }}
-                                                                                                                className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
-                                                                                                            >
-                                                                                                                -
-                                                                                                            </button>
-                                                                                                            <span className="w-4 text-center text-[10px] font-bold text-indigo-600">{multiplier}</span>
-                                                                                                            <button
-                                                                                                                onClick={(e) => {
-                                                                                                                    e.stopPropagation()
-                                                                                                                    setMultipliers(prev => ({ ...prev, [key]: (prev[key] || 1) + 1 }))
-                                                                                                                }}
-                                                                                                                className="w-5 h-5 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-full text-xs font-bold"
-                                                                                                            >
-                                                                                                                +
-                                                                                                            </button>
-                                                                                                        </div>
-                                                                                                        <a
-                                                                                                            href={getVenmoUrl()}
-                                                                                                            target="_blank"
-                                                                                                            rel="noopener noreferrer"
-                                                                                                            onClick={(e) => e.stopPropagation()}
-                                                                                                            className="inline-flex items-center gap-1 px-3 py-1 bg-[#3396cd] hover:bg-[#2b7fad] text-white rounded-full text-[11px] font-bold transition-colors shadow-sm"
-                                                                                                        >
-                                                                                                            Pay ${((item.estimated_cost || 0) * multiplier).toFixed(2)}
-                                                                                                        </a>
-                                                                                                    </>
-                                                                                                )
-                                                                                            })()}
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            ) : null}
+                                                                                            setOptimisticParticipants(prev => ({
+                                                                                                ...prev,
+                                                                                                [optimisticKey]: newParticipants
+                                                                                            }))
 
-                                                                            {/* 6. Going or + Join Button */}
-                                                                            {userId && (
-                                                                                <button
-                                                                                    onClick={async (e) => {
-                                                                                        e.stopPropagation()
+                                                                                            if (loadingActivity) return
+                                                                                            setLoadingActivity({ dayIdx: dIdx, actIdx: iIdx })
 
-                                                                                        // Optimistic update
-                                                                                        let newParticipants = [...currentParticipants]
-                                                                                        if (isParticipating) {
-                                                                                            newParticipants = newParticipants.filter(id => id !== userId)
-                                                                                        } else {
-                                                                                            newParticipants.push(userId)
-                                                                                        }
-
-                                                                                        setOptimisticParticipants(prev => ({
-                                                                                            ...prev,
-                                                                                            [optimisticKey]: newParticipants
-                                                                                        }))
-
-                                                                                        if (loadingActivity) return
-                                                                                        setLoadingActivity({ dayIdx: dIdx, actIdx: iIdx })
-
-                                                                                        try {
-                                                                                            await toggleActivityParticipation(tripId, legIndex, day.date, iIdx)
-                                                                                            router.refresh()
-                                                                                        } catch (error) {
-                                                                                            console.error('Failed to toggle participation', error)
-                                                                                            toast.error('Failed to update participation')
-                                                                                            setOptimisticParticipants(prev => {
-                                                                                                const copy = { ...prev }
-                                                                                                delete copy[optimisticKey]
-                                                                                                return copy
-                                                                                            })
-                                                                                        } finally {
-                                                                                            setLoadingActivity(null)
-                                                                                        }
-                                                                                    }}
-                                                                                    disabled={!!loadingActivity || (!isParticipating && !isUserGoing)}
-                                                                                    title={!isParticipating && !isUserGoing ? "You must RSVP for this trip before you can join activities." : undefined}
-                                                                                    className={`
-                                                                                        w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-bold transition-all shadow-sm
-                                                                                        ${isParticipating
-                                                                                            ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
-                                                                                            : (!isParticipating && !isUserGoing)
-                                                                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                                                                                                : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                                                                                        }
-                                                                                        ${loadingActivity?.dayIdx === dIdx && loadingActivity?.actIdx === iIdx ? 'cursor-wait' : ''}
-                                                                                    `}
-                                                                                >
-                                                                                    {loadingActivity?.dayIdx === dIdx && loadingActivity?.actIdx === iIdx ? (
-                                                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                                                    ) : isParticipating ? (
-                                                                                        <>
-                                                                                            <Check className="w-3.5 h-3.5" />
-                                                                                            Going
-                                                                                        </>
-                                                                                    ) : (
-                                                                                        <>
-                                                                                            <Plus className="w-3.5 h-3.5" />
-                                                                                            Join Activity
-                                                                                        </>
-                                                                                    )}
-                                                                                </button>
-                                                                            )}
+                                                                                            try {
+                                                                                                await toggleActivityParticipation(tripId, legIndex, day.date, iIdx)
+                                                                                                router.refresh()
+                                                                                            } catch (error) {
+                                                                                                console.error('Failed to toggle participation', error)
+                                                                                                toast.error('Failed to update participation')
+                                                                                                setOptimisticParticipants(prev => {
+                                                                                                    const copy = { ...prev }
+                                                                                                    delete copy[optimisticKey]
+                                                                                                    return copy
+                                                                                                })
+                                                                                            } finally {
+                                                                                                setLoadingActivity(null)
+                                                                                            }
+                                                                                        }}
+                                                                                        disabled={!!loadingActivity || (!isParticipating && !isUserGoing)}
+                                                                                        title={!isParticipating && !isUserGoing ? "You must RSVP for this trip before you can join activities." : undefined}
+                                                                                        className={`
+                                                                                            w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 sm:px-2.5 sm:py-1 rounded-xl sm:rounded-full text-[11px] font-bold transition-all shadow-sm
+                                                                                            ${isParticipating
+                                                                                                ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
+                                                                                                : (!isParticipating && !isUserGoing)
+                                                                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                                                                                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                                                                            }
+                                                                                            ${loadingActivity?.dayIdx === dIdx && loadingActivity?.actIdx === iIdx ? 'cursor-wait' : ''}
+                                                                                        `}
+                                                                                    >
+                                                                                        {loadingActivity?.dayIdx === dIdx && loadingActivity?.actIdx === iIdx ? (
+                                                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                                        ) : isParticipating ? (
+                                                                                            <>
+                                                                                                <Check className="w-3.5 h-3.5" />
+                                                                                                Going
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            <>
+                                                                                                <Plus className="w-3.5 h-3.5" />
+                                                                                                Join Activity
+                                                                                            </>
+                                                                                        )}
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
