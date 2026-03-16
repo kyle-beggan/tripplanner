@@ -457,34 +457,34 @@ export default async function TripDetailsPage({ params }: PageProps) {
                     }
                 >
                     {going.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                             {going.map((participant) => (
-                                <div key={participant.id} className="flex flex-col items-center p-4 rounded-lg border border-gray-200 bg-gray-50 hover:shadow-md transition-shadow text-center">
-                                    <div className="flex-shrink-0 mb-3">
+                                <div key={participant.id} className="flex flex-col items-center p-3 sm:p-4 rounded-lg border border-gray-200 bg-gray-50 hover:shadow-md transition-shadow text-center">
+                                    <div className="flex-shrink-0 mb-2 sm:mb-3">
                                         {participant.profile?.avatar_url ? (
                                             <>
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
                                                     src={participant.profile.avatar_url}
                                                     alt={participant.profile.full_name || participant.profile.username || 'User avatar'}
-                                                    className="h-16 w-16 rounded-full object-cover bg-gray-100 ring-2 ring-white"
+                                                    className="h-12 w-12 sm:h-16 sm:w-16 rounded-full object-cover bg-gray-100 ring-2 ring-white"
                                                 />
                                             </>
                                         ) : (
-                                            <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl ring-2 ring-white">
+                                            <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg sm:text-xl ring-2 ring-white">
                                                 {participant.profile?.full_name?.charAt(0) || participant.profile?.username?.charAt(0) || '?'}
                                             </div>
                                         )}
                                     </div>
-                                    <div className="w-full">
-                                        <p className="text-sm font-semibold text-gray-900 truncate">
+                                    <div className="w-full min-w-0">
+                                        <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate px-1">
                                             {participant.profile?.full_name || participant.profile?.username || 'Unknown User'}
                                         </p>
-                                        <p className="text-xs text-indigo-600 font-medium mb-1">
+                                        <p className="text-[10px] sm:text-xs text-indigo-600 font-medium mb-1">
                                             {participant.role === 'owner' ? 'Host' : 'Guest'}
                                         </p>
                                         {participant.arrival_date && participant.departure_date && (
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-[10px] sm:text-xs text-gray-500 truncate">
                                                 {formatDate(participant.arrival_date, 'MMM d')} - {formatDate(participant.departure_date, 'MMM d')}
                                             </p>
                                         )}

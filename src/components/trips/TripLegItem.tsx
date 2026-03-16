@@ -237,7 +237,7 @@ export default function TripLegItem({
     }
 
     return (
-        <div className="relative pl-8 border-l-2 border-indigo-100 last:border-0 pb-2">
+        <div className="relative pl-4 sm:pl-8 border-l-2 border-indigo-100 last:border-0 pb-2">
             <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-white" />
 
             <div
@@ -343,7 +343,7 @@ export default function TripLegItem({
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-0 relative">
-                                                        <div className="absolute left-[39px] top-6 bottom-6 w-0.5 bg-indigo-50" />
+                                                        <div className="absolute left-[34px] sm:left-[39px] top-6 bottom-6 w-0.5 bg-indigo-50" />
                                                         {day.activities.map((item, iIdx) => {
                                                             const optimisticKey = `${dIdx}-${iIdx}`
                                                             const currentParticipants = optimisticParticipants[optimisticKey] !== undefined
@@ -352,18 +352,18 @@ export default function TripLegItem({
                                                             const isParticipating = userId && currentParticipants.includes(userId)
 
                                                             return (
-                                                                <div key={iIdx} className="relative flex items-start gap-4 py-3 group">
-                                                                    <div className="w-20 pt-1 text-xs font-bold text-indigo-400 text-right tabular-nums uppercase">
+                                                                <div key={iIdx} className="relative flex items-start gap-2 sm:gap-4 py-3 group">
+                                                                    <div className="w-14 sm:w-20 pt-1.5 text-[10px] sm:text-xs font-bold text-indigo-400 text-right tabular-nums uppercase">
                                                                         {(() => {
                                                                             const [h, m] = item.time.split(':')
                                                                             const hour = parseInt(h)
                                                                             const ampm = hour >= 12 ? 'PM' : 'AM'
                                                                             const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)
-                                                                            return `${displayHour}:${m || '00'} ${ampm}`
+                                                                            return `${displayHour}:${m || '00'}${ampm}`
                                                                         })()}
                                                                     </div>
-                                                                    <div className={`relative z-10 mt-1.5 w-2 h-2 rounded-full ring-4 ring-white transition-colors ${isParticipating ? 'bg-green-500' : 'bg-indigo-200 group-hover:bg-indigo-600'}`} />
-                                                                    <div className={`flex-1 rounded-lg p-3 transition-colors border cursor-pointer ${isParticipating
+                                                                    <div className={`relative z-10 mt-2 sm:mt-1.5 w-2 h-2 rounded-full ring-4 ring-white transition-colors ${isParticipating ? 'bg-green-500' : 'bg-indigo-200 group-hover:bg-indigo-600'}`} />
+                                                                    <div className={`flex-1 min-w-0 rounded-lg p-2 sm:p-3 transition-colors border cursor-pointer ${isParticipating
                                                                         ? 'bg-green-50 border-green-100 hover:bg-green-100/80'
                                                                         : 'bg-gray-50 border-transparent group-hover:bg-indigo-50/50 group-hover:border-indigo-100 hover:bg-white hover:shadow-md'
                                                                         }`}
@@ -373,25 +373,25 @@ export default function TripLegItem({
                                                                             data: item
                                                                         })}
                                                                     >
-                                                                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                                                            <div>
-                                                                                <p className="text-sm font-semibold text-gray-900">{item.description}</p>
+                                                                        <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+                                                                            <div className="min-w-0 flex-1">
+                                                                                <p className="text-xs sm:text-sm font-semibold text-gray-900">{item.description}</p>
                                                                                 {item.location_name && (
                                                                                     <a
                                                                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location_name)}`}
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
-                                                                                        className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 hover:underline mt-1"
+                                                                                        className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-indigo-600 hover:text-indigo-800 hover:underline mt-1"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                     >
-                                                                                        <MapPin className="h-3 w-3" />
-                                                                                        Get Directions
+                                                                                        <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                                                                        <span className="truncate">Get Directions</span>
                                                                                     </a>
                                                                                 )}
                                                                             </div>
 
-                                                                            <div className="flex items-center gap-3 self-end sm:self-start">
-                                                                            <div className="flex items-center gap-1">
+                                                                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                                                                                <div className="flex items-center gap-1">
                                                                                     {(isAdminOrOwner || item.creator_id === userId) && (
                                                                                         <>
                                                                                             <button
@@ -402,7 +402,7 @@ export default function TripLegItem({
                                                                                                 className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
                                                                                                 title="Send text invite"
                                                                                             >
-                                                                                                <MessageSquare className="w-4 h-4" />
+                                                                                                <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                                                             </button>
                                                                                             <button
                                                                                                 onClick={(e) => {
@@ -412,7 +412,7 @@ export default function TripLegItem({
                                                                                                 className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
                                                                                                 title="Send reminder"
                                                                                             >
-                                                                                                <Bell className="w-4 h-4" />
+                                                                                                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                                                             </button>
                                                                                             <button
                                                                                                 onClick={(e) => {
@@ -422,7 +422,7 @@ export default function TripLegItem({
                                                                                                 className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
                                                                                                 title="Edit activity"
                                                                                             >
-                                                                                                <Pencil className="w-4 h-4" />
+                                                                                                <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                                                             </button>
                                                                                             <button
                                                                                                 onClick={(e) => {
@@ -432,7 +432,7 @@ export default function TripLegItem({
                                                                                                 className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
                                                                                                 title="Duplicate activity"
                                                                                             >
-                                                                                                <Copy className="w-4 h-4" />
+                                                                                                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                                                             </button>
                                                                                             <button
                                                                                                 onClick={(e) => {
@@ -442,7 +442,7 @@ export default function TripLegItem({
                                                                                                 className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                                                                                                 title="Remove activity"
                                                                                             >
-                                                                                                <X className="w-4 h-4" />
+                                                                                                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                                                             </button>
                                                                                         </>
                                                                                     )}

@@ -154,27 +154,37 @@ export default function TripRSVPModal({ isOpen, onClose, trip, initialData }: Tr
                                             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div>
                                                     <label htmlFor="arrival" className="block text-sm font-medium text-gray-700">Arrival Date</label>
-                                                    <input
-                                                        type="date"
-                                                        id="arrival"
-                                                        value={arrivalDate}
-                                                        onChange={(e) => setArrivalDate(e.target.value)}
-                                                        min={trip.start_date ? new Date(trip.start_date).toISOString().split('T')[0] : undefined}
-                                                        max={trip.end_date ? new Date(trip.end_date).toISOString().split('T')[0] : undefined}
-                                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                    />
+                                                    <div className="mt-1 relative rounded-md shadow-sm">
+                                                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                            <Calendar className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                                                        </div>
+                                                        <input
+                                                            type="date"
+                                                            id="arrival"
+                                                            value={arrivalDate}
+                                                            onChange={(e) => setArrivalDate(e.target.value)}
+                                                            min={trip.start_date ? new Date(trip.start_date).toISOString().split('T')[0] : undefined}
+                                                            max={trip.end_date ? new Date(trip.end_date).toISOString().split('T')[0] : undefined}
+                                                            className="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <label htmlFor="departure" className="block text-sm font-medium text-gray-700">Departure Date</label>
-                                                    <input
-                                                        type="date"
-                                                        id="departure"
-                                                        value={departureDate}
-                                                        onChange={(e) => setDepartureDate(e.target.value)}
-                                                        min={trip.start_date ? new Date(trip.start_date).toISOString().split('T')[0] : undefined}
-                                                        max={trip.end_date ? new Date(trip.end_date).toISOString().split('T')[0] : undefined}
-                                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                    />
+                                                    <div className="mt-1 relative rounded-md shadow-sm">
+                                                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                            <Calendar className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                                                        </div>
+                                                        <input
+                                                            type="date"
+                                                            id="departure"
+                                                            value={departureDate}
+                                                            onChange={(e) => setDepartureDate(e.target.value)}
+                                                            min={trip.start_date ? new Date(trip.start_date).toISOString().split('T')[0] : undefined}
+                                                            max={trip.end_date ? new Date(trip.end_date).toISOString().split('T')[0] : undefined}
+                                                            className="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
 
