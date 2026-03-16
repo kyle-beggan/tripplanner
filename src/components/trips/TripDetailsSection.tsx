@@ -133,7 +133,7 @@ export default function TripDetailsSection({
                         <button
                             onClick={handleSaveSummary}
                             disabled={isSaving || hasSaved}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${hasSaved
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all ${hasSaved
                                 ? 'bg-green-50 text-green-700 pointer-events-none'
                                 : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
                                 }`}
@@ -151,7 +151,7 @@ export default function TripDetailsSection({
                     {isEditable && (
                         <button
                             onClick={() => isGenerated ? setIsGenerated(false) : setIsPersonaModalOpen(true)}
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isGenerated
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all ${isGenerated
                                 ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 ring-1 ring-inset ring-indigo-600/20'
                                 }`}

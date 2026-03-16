@@ -276,7 +276,7 @@ export default function TripLegItem({
                         <button
                             id={legIndex === 0 ? "walkthrough-schedule-tab" : undefined}
                             onClick={() => setActiveTab('schedule')}
-                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'schedule'
+                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-[11px] sm:text-sm font-medium rounded-lg transition-all ${activeTab === 'schedule'
                                 ? 'bg-white text-indigo-600 shadow-sm'
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                 }`}
@@ -287,7 +287,7 @@ export default function TripLegItem({
                         <button
                             id={legIndex === 0 ? "walkthrough-lodging-tab" : undefined}
                             onClick={() => setActiveTab('lodging')}
-                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'lodging'
+                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-[11px] sm:text-sm font-medium rounded-lg transition-all ${activeTab === 'lodging'
                                 ? 'bg-white text-indigo-600 shadow-sm'
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                 }`}

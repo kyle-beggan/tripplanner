@@ -314,13 +314,13 @@ export default function AddActivityModal({
                     <div className="px-6 py-4 flex gap-1 border-b border-gray-100 bg-gray-50/50">
                         <button
                             onClick={() => setActiveTab('custom')}
-                            className={`flex-1 py-2 px-4 text-sm font-semibold rounded-lg transition-all ${activeTab === 'custom' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`flex-1 py-2 px-4 text-[11px] sm:text-sm font-semibold rounded-lg transition-all ${activeTab === 'custom' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             Custom
                         </button>
                         <button
                             onClick={() => setActiveTab('find')}
-                            className={`flex-1 py-2 px-4 text-sm font-semibold rounded-lg transition-all ${activeTab === 'find' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`flex-1 py-2 px-4 text-[11px] sm:text-sm font-semibold rounded-lg transition-all ${activeTab === 'find' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             Find Activities
                         </button>
@@ -634,14 +634,14 @@ export default function AddActivityModal({
                 <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex gap-3">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-3 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors"
+                        className="flex-1 py-3 text-[11px] sm:text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={() => handleSubmit()}
                         disabled={isSubmitting || (activeTab === 'custom' && !customTitle) || (activeTab === 'find' && (subView !== 'schedule' && subView !== 'create_category')) || (subView === 'create_category')}
-                        className="flex-[2] py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                        className="flex-[2] py-3 bg-indigo-600 text-white text-[11px] sm:text-sm font-bold rounded-xl shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                     >
                         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                         {initialActivityData ? (typeof initialActivityData.index === 'number' ? 'Save Changes' : 'Add to Agenda') : 'Add to Agenda'}

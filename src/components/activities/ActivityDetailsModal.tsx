@@ -189,7 +189,7 @@ export default function ActivityDetailsModal({
                     <div className="flex p-1 bg-gray-100 rounded-xl">
                         <button
                             onClick={() => setActiveTab('details')}
-                            className={`flex-1 py-2.5 text-sm font-medium transition-all rounded-lg flex items-center justify-center gap-2 ${activeTab === 'details'
+                            className={`flex-1 py-2.5 text-[11px] sm:text-sm font-medium transition-all rounded-lg flex items-center justify-center gap-2 ${activeTab === 'details'
                                 ? 'bg-white text-indigo-600 shadow-sm'
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                 }`}
@@ -198,7 +198,7 @@ export default function ActivityDetailsModal({
                         </button>
                         <button
                             onClick={() => setActiveTab('photos')}
-                            className={`flex-1 py-2.5 text-sm font-medium transition-all rounded-lg flex items-center justify-center gap-2 ${activeTab === 'photos'
+                            className={`flex-1 py-2.5 text-[11px] sm:text-sm font-medium transition-all rounded-lg flex items-center justify-center gap-2 ${activeTab === 'photos'
                                 ? 'bg-white text-indigo-600 shadow-sm'
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                 }`}
@@ -207,7 +207,7 @@ export default function ActivityDetailsModal({
                         </button>
                         <button
                             onClick={() => setActiveTab('who')}
-                            className={`flex-1 py-2.5 text-sm font-medium transition-all rounded-lg flex items-center justify-center gap-2 ${activeTab === 'who'
+                            className={`flex-1 py-2.5 text-[11px] sm:text-sm font-medium transition-all rounded-lg flex items-center justify-center gap-2 ${activeTab === 'who'
                                 ? 'bg-white text-indigo-600 shadow-sm'
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                 }`}
@@ -282,7 +282,7 @@ export default function ActivityDetailsModal({
                                                 e.stopPropagation()
                                                 toast.info('Text invite feature coming soon!')
                                             }}
-                                            className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2 bg-green-50 text-green-700 border border-green-200 hover:bg-green-100"
+                                            className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-[11px] sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2 bg-green-50 text-green-700 border border-green-200 hover:bg-green-100"
                                             title="Send text invite"
                                         >
                                             <MessageSquare className="w-4 h-4" />
@@ -293,7 +293,7 @@ export default function ActivityDetailsModal({
                                         onClick={handleToggleParticipation}
                                         disabled={joining || !userId || (!isParticipating && !isUserGoing)}
                                         title={!isParticipating && !isUserGoing ? "You must RSVP for this trip before you can join activities." : undefined}
-                                        className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2 ${isParticipating
+                                        className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-[11px] sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2 ${isParticipating
                                             ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
                                             : (!isParticipating && !isUserGoing)
                                                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
@@ -425,7 +425,7 @@ export default function ActivityDetailsModal({
                 <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-white text-gray-700 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm"
+                        className="px-6 py-2 bg-white text-gray-700 border border-gray-200 rounded-xl text-[11px] sm:text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm"
                     >
                         Close
                     </button>

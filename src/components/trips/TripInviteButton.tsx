@@ -19,7 +19,7 @@ export default function TripInviteButton({ tripId, tripName, isOwnerOrAdmin }: T
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] sm:text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
             >
                 <Plus className="h-4 w-4" />
                 Invite

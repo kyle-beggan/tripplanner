@@ -155,14 +155,14 @@ export default function InviteModal({ isOpen, onClose, tripId, tripName }: Invit
                     <button
                         onClick={onClose}
                         disabled={isSending}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all disabled:opacity-50"
+                        className="px-4 py-2 text-[11px] sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all disabled:opacity-50"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSend}
                         disabled={isSending || !emails.trim()}
-                        className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-70 disabled:shadow-none"
+                        className="px-4 py-2 text-[11px] sm:text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-70 disabled:shadow-none"
                     >
                         {isSending ? (
                             <>

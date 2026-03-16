@@ -154,7 +154,7 @@ export default function LegItineraryBuilder({
                             <div className="text-xs uppercase tracking-wider opacity-70">
                                 {format(parseISO(day.date), 'EEE')}
                             </div>
-                            <div className="text-sm">
+                            <div className="text-[11px] sm:text-sm">
                                 {format(parseISO(day.date), 'MMM d')}
                             </div>
                             {day.activities.length > 0 && (
@@ -281,14 +281,14 @@ export default function LegItineraryBuilder({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800"
+                    className="px-4 py-2 text-[11px] sm:text-sm font-semibold text-gray-600 hover:text-gray-800"
                 >
                     Cancel
                 </button>
                 <button
                     type="button"
                     onClick={() => onSave(schedule)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
+                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
                 >
                     <Check className="h-4 w-4" />
                     Save Schedule

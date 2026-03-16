@@ -170,14 +170,14 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                                             router.refresh()
                                         }
                                     }}
-                                    className="rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
+                                    className="rounded-md bg-white px-3.5 py-2 text-[11px] sm:text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
                                 >
                                     Unsubscribe
                                 </button>
                             ) : (
                                 <Link
                                     href="/sms-opt-in"
-                                    className="rounded-md bg-white px-3.5 py-2 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-inset ring-indigo-300 hover:bg-indigo-50"
+                                    className="rounded-md bg-white px-3.5 py-2 text-[11px] sm:text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-inset ring-indigo-300 hover:bg-indigo-50"
                                 >
                                     SMS Opt-in
                                 </Link>
@@ -231,7 +231,7 @@ export default function ProfileForm({ user, profile }: { user: any, profile: any
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex items-center gap-2 rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="flex items-center gap-2 rounded-md bg-indigo-600 px-6 py-2.5 text-[11px] sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                         {loading ? 'Saving...' : 'Save Profile'}

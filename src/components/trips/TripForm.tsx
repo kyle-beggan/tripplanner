@@ -289,7 +289,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                             className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                             <Plus className="h-4 w-4" />
-                            <span className="ml-2">Add Leg</span>
+                            <span className="ml-2 text-[11px] sm:text-sm">Add Leg</span>
                         </button>
                     </div>
 
@@ -353,7 +353,7 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                                     <button
                                         type="button"
                                         onClick={() => setEditingLegIndex(index)}
-                                        className="inline-flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
+                                        className="inline-flex items-center gap-2 text-[11px] sm:text-sm font-bold text-indigo-600 hover:text-indigo-700"
                                     >
                                         Edit Daily Schedule
                                     </button>
@@ -443,14 +443,14 @@ export default function TripForm({ userId, trip }: TripFormProps) {
                 <button
                     type="button"
                     onClick={() => router.back()}
-                    className="text-sm font-semibold leading-6 text-gray-900"
+                    className="text-[11px] sm:text-sm font-semibold leading-6 text-gray-900"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center gap-2 rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 rounded-md bg-indigo-600 px-6 py-2.5 text-[11px] sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     {trip ? 'Update Trip' : 'Create Trip'}
