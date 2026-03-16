@@ -516,10 +516,8 @@ export async function sendTripInvitation(tripId: string, emails: string[], messa
         })
     })
 
-    // 3. Flight Cost (Estimate)
-    const flightEstimateResult = await getEstimateFlightPrice(tripId)
-    // @ts-ignore
-    const flightCost = flightEstimateResult.success && flightEstimateResult.total ? Number(flightEstimateResult.total) : 0
+    // 3. Flight Cost (Estimate) - Removed by default per user request
+    // --- End Costs ---
 
     const blufTotal = lodgingTotalPerPerson + activityTotalPotential
     // --- End Costs ---
