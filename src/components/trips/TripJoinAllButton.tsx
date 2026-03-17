@@ -64,7 +64,7 @@ export default function TripJoinAllButton({ tripId, joinedCount, totalCount, isU
                     disabled={loading || !isUserGoing}
                     title={!isUserGoing ? "You must RSVP for this trip before you can join activities." : undefined}
                     className={`
-                        inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all
+                        inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] sm:text-xs font-medium rounded-full transition-all whitespace-nowrap
                         ${isUserGoing 
                             ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow active:scale-95' 
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
@@ -85,7 +85,7 @@ export default function TripJoinAllButton({ tripId, joinedCount, totalCount, isU
                     onClick={handleUnjoinAll}
                     disabled={loading}
                     className={`
-                        inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all
+                        inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] sm:text-xs font-medium rounded-full transition-all whitespace-nowrap
                         ${isFullyJoined
                             ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
                             : 'text-gray-500 hover:text-red-600 hover:bg-gray-100'

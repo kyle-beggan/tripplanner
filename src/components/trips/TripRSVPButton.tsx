@@ -24,14 +24,14 @@ export default function TripRSVPButton({ trip, initialData }: TripRSVPButtonProp
             {status === 'going' ? (
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-[11px] sm:text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-[11px] sm:text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 whitespace-nowrap"
                 >
                     Edit RSVP
                 </button>
             ) : status === 'declined' ? (
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-[11px] sm:text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-[11px] sm:text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 whitespace-nowrap"
                 >
                     Edit RSVP
                 </button>
@@ -39,7 +39,7 @@ export default function TripRSVPButton({ trip, initialData }: TripRSVPButtonProp
                 <button
                     type="button"
                     onClick={() => setIsModalOpen(true)}
-                    className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 whitespace-nowrap"
                 >
                     RSVP
                 </button>

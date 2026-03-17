@@ -24,7 +24,7 @@ export default function TripHeaderGoingButton({ totalConfirmed }: TripHeaderGoin
     return (
         <button 
             onClick={handleClick}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 transition-colors text-[11px] sm:text-sm font-medium border border-indigo-200/50 cursor-pointer shadow-sm active:scale-95 transform"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 transition-colors text-[11px] sm:text-sm font-medium border border-indigo-200/50 cursor-pointer shadow-sm active:scale-95 transform whitespace-nowrap"
         >
             <Users className="h-4 w-4" />
             {totalConfirmed} {totalConfirmed === 1 ? 'Person' : 'People'} Going

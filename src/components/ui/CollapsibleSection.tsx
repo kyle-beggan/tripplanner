@@ -60,7 +60,7 @@ export default function CollapsibleSection({
                             <h2 className="text-xl font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">{title}</h2>
                         </div>
                         {badge !== undefined && (
-                            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+                            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] sm:text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20 whitespace-nowrap">
                                 {badge}
                             </span>
                         )}
