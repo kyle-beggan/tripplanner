@@ -79,18 +79,6 @@ export default function SMSOptInPage() {
                     &quot;By providing your mobile phone number, you consent to receive informational text messages from LFG Places related to your account activity, trip updates, and notifications. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for assistance.&quot;
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 text-center">
-                    <p className="text-gray-700 font-medium">
-                        Alternatively, you can opt-in by texting from your mobile device:
-                    </p>
-                    <p className="text-xl font-bold text-indigo-600 mt-2">
-                        Text <span className="bg-indigo-100 px-2 py-0.5 rounded text-indigo-800">TIPTOE</span> to <span className="bg-indigo-100 px-2 py-0.5 rounded text-indigo-800">(571) 500-4807</span>
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">
-                        You will receive a confirmation message.
-                    </p>
-                </div>
-
                 <div className="space-y-4">
                     <label className="flex items-start gap-4 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group">
                         <div className="mt-1">
